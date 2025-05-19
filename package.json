@@ -1,0 +1,21 @@
+{
+  "name": "nearcashfrontend",
+  "version": "1.0.0",
+  "description": "The frontend for NearCash App",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zedtek-me/NearCash-Web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Zedtek-me/NearCash-Web/issues"
+  },
+  "homepage": "https://github.com/Zedtek-me/NearCash-Web#readme"
+}
