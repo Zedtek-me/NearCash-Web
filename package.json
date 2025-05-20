@@ -1,21 +1,27 @@
 {
   "name": "nearcashfrontend",
   "version": "1.0.0",
-  "description": "The frontend for NearCash App",
-  "main": "index.js",
+  "description": "frontend for nearcash",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "webpack serve --progress --config webpack.config.js --mode development",
+    "build": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Zedtek-me/NearCash-Web.git"
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.6.0",
+    "react-router-dom": "^7.6.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/Zedtek-me/NearCash-Web/issues"
-  },
-  "homepage": "https://github.com/Zedtek-me/NearCash-Web#readme"
+  "devDependencies": {
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "babel": "^6.23.0",
+    "babel-core": "^4.7.16",
+    "babel-loader": "^10.0.0",
+    "dotenv-webpack": "^8.1.0",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.1"
+  }
 }

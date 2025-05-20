@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: near-cash-frontend
+    container_name: near_cash_frontend
+    env_file:
+      - .env
+    ports:
+      - "8005:8005"
+    volumes:
+      - ./:/app
+    networks:
+      - near-cash-network
+  
+networks:
+  near-cash-network:
+    driver: bridge

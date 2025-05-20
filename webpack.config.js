@@ -4,20 +4,24 @@ const Dotenv = require("dotenv-webpack");
 
 module.exports = {
     mode:  "development",
-    entry: "./src/index.js",
+    entry: path.resolve(`./src/index.js`),
     output: {
-        path: "./src/",
+        path: path.join(__dirname, "public"),
         filename: "bundle.js",
     },
     module: {
         rules: [
             {
-                test: /\.(js|jsx|.ts)$/,
+                test: /\.(js|jsx|ts)$/,
                 exclude: /node_modules/,
                 use: {
                     loader: "babel-loader",
                     options: {
                         presets: ["@babel/preset-env", "@babel/preset-react"],
+                        plugins: [
+                            "@babel/plugin-transform-runtime"
+                          ],
+                        sourceType: "module"
                     },
                 },
             },
@@ -32,11 +36,18 @@ module.exports = {
         ],
     },
     devServer: {
-        contentBase: path.join(__dirname, "src"),
-        compress: true,
-        port: 8005,
+        static: {
+            directory: path.join(__dirname, 'public'),
+          },
+          compress: true,
+          historyApiFallback:true,
+          hot:true,
+          port: 8015,
     },
-    plugin: [
+    plugins: [
         new Dotenv()
-    ]
+    ],
+    resolve: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+    }
 }
