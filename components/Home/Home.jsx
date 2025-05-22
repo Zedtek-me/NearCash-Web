@@ -3,16 +3,13 @@ import Header from "./Navs/Headers.jsx";
 import Footer from "./Navs/Footers.jsx";
 
 
-const Home = ({ children }) => {
+const Home = () => {
     return (
-        <div className="home">
+        <div className="home w-full h-full">
             <Header/>
             <div className="home__content">
                 <h1>Home</h1>
                 <p>This is the home page.</p>
-                {
-                    children
-                }
             </div>
             <Footer/>
         </div>
