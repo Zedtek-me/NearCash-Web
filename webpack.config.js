@@ -12,7 +12,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(js|jsx|ts)$/,
+                test: /\.(js|jsx|ts)$/i,
                 exclude: /node_modules/,
                 use: {
                     loader: "babel-loader",
@@ -26,11 +26,19 @@ module.exports = {
                 },
             },
             {
-                test: /\.(css|scss)$/,
-                use: ["style-loader", "css-loader"],
+                test: /\.(css|scss)$/i,
+                use: [
+                    "style-loader", {
+                        loader: "css-loader",
+                        options: {
+                            importLoaders: 1
+                        }
+                    },
+                    "postcss-loader"
+                ],
             },
             {
-                test: /\.(png|jpg|gif|svg)$/,
+                test: /\.(png|jpg|gif|svg)$/i,
                 type: "asset/resource",
             }
         ],
