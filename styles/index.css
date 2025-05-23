@@ -1,9 +1,52 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 
+
+*{font-family: "Montserrat", sans-serif;}
 #root{
     width: 100%;
     height: 100%
+}
+
+.auth-shuffle {
+    padding: 0.5px;
+}
+
+.left-btn-shuffle {
+    display: flex;
+    animation-name: fade-in-left;
+    animation-duration: 0.7s;
+    animation-fill-mode: forwards;
+    animation-delay: 0.3s;
+    animation-timing-function: ease-in;
+}
+
+.right-btn-shuffle {
+    display: flex;
+    animation-name: fade-in-right;
+    animation-duration: 0.7s;
+    animation-delay: 0.5s;
+    animation-timing-function: ease-in;
+}
+
+/* animations */
+@keyframes fade-in-left {
+    0% {
+        transform: translate((-80px), (0));
+    }
+    100% {
+        transform: translate((80px), (0));
+    }
+}
+
+@keyframes fade-in-right {
+    0% {
+        transform: translate((0), (-80px));
+    }
+    100% {
+        transform: translate((0), (80px));
+    }
 }
