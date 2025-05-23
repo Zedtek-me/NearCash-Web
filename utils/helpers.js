@@ -14,15 +14,14 @@ export function handleBackToggle(navigator, url=null){
     navigator(url);
 }
 
-export function toggleAuthPageBtnClassList(e){
-    console.log("toggleAuthPageBtnClassList::: ", e.target.classList)
+export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null){
     let btn = e.target;
-    let btnBgShuffle = document.querySelector(".auth-btn-color-shuffle");
-    console.log("btnBgShuffle::: ", btnBgShuffle)
     if(btn.classList.contains("login-btn")){
-        btn.classList.add("z-10");
-        btnBgShuffle.classList.add("left-btn-shuffle");
+      setActiveBtns((prevState) => ({...prevState, login: true, signup: false}))
+      setTimeout(()=> navigator?.("/login"), 500);
     }
-    else{ btnBgShuffle.classList.add("right-btn-shuffle") }
-
+    else{
+      setActiveBtns((prevState) => ({...prevState, login: false, signup: true}))
+      setTimeout(()=> navigator?.("/signup"), 500);
+    }
 }
