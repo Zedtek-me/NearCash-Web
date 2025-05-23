@@ -15,38 +15,53 @@
     padding: 0.5px;
 }
 
-.left-btn-shuffle {
-    display: flex;
-    animation-name: fade-in-left;
-    animation-duration: 0.7s;
-    animation-fill-mode: forwards;
-    animation-delay: 0.3s;
-    animation-timing-function: ease-in;
+.auth-shuffle .login-btn, .auth-shuffle .signup-btn{
+    transition: all 0.5s ease-in-out;
 }
 
-.right-btn-shuffle {
-    display: flex;
-    animation-name: fade-in-right;
-    animation-duration: 0.7s;
-    animation-delay: 0.5s;
-    animation-timing-function: ease-in;
+
+.active-btn{
+    margin: 0.5 0 0.5 0;
+    width: 50%;
+    background: white;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+    border-radius: 15px;
 }
 
 /* animations */
 @keyframes fade-in-left {
     0% {
-        transform: translate((-80px), (0));
+        transform: translateX(-80px);
+    }
+    50% {
+        transform: translateX(-70px);
+    }
+    65% {
+        transform: translateX(-75px);
+    }
+    80% {
+        transform: translateX(-150px);
     }
     100% {
-        transform: translate((80px), (0));
+        transform: translateX(-300px);
     }
 }
 
 @keyframes fade-in-right {
     0% {
-        transform: translate((0), (-80px));
+        transform: translateX(80px);
+    }
+    50% {
+        transform: translateX(70px);
+    }
+    65% {
+        transform: translateX(75px);
+    }
+    80% {
+        transform: translateX(150px);
     }
     100% {
-        transform: translate((0), (80px));
+        transform: translateX(300px);
     }
 }
