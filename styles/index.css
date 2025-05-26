@@ -29,6 +29,12 @@
     border-radius: 15px;
 }
 
+.get-started-active-btn{
+    cursor: pointer;
+    background-color: white;
+    color: black;
+}
+
 /* animations */
 @keyframes fade-in-left {
     0% {
