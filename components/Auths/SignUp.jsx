@@ -31,7 +31,7 @@ export default function SignUp(){
                 </div>
                 <input type="button" value="Forgot password?" className="fg-pass text-center cursor-pointer"/>
             </div>
-            <div className="submit flex flex-row justify-center text-center -mt-16">
+            <div className="submit flex flex-row justify-center text-center">
                 {
                     loading ? <Loader/> : <button type="submit" name="submit"
                     id="submit" className="flex flex-row justify-around align-center border-2 border-black p-3 bg-black w-96 rounded-3xl text-white">Submit</button>

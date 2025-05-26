@@ -14,14 +14,16 @@ export function handleBackToggle(navigator, url=null){
     navigator(url);
 }
 
-export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null){
+export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, { context } = {}) {
     let btn = e.target;
     if(btn.classList.contains("login-btn")){
+      if(context){context.btnContext = {login: true, signup: false}};
       setActiveBtns((prevState) => ({...prevState, login: true, signup: false}))
-      setTimeout(()=> navigator?.("/login"), 500);
+      setTimeout(()=> navigator?.("/auth/login"), 500);
     }
     else{
+      if(context){context.btnContext = {login: false, signup: true}};
       setActiveBtns((prevState) => ({...prevState, login: false, signup: true}))
-      setTimeout(()=> navigator?.("/signup"), 500);
+      setTimeout(()=> navigator?.("/auth/signup"), 500);
     }
 }
