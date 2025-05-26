@@ -11,7 +11,7 @@ export default function GetStarted(){
                 <h1 className="text-3xl font-bold">Get Started</h1>
                 <p className="text-3 flex flex-row flex-wrap break-words">An easy way vendors and clients of POS connect anywhere in Nigeria.</p>
             </div>
-            <div className="center-wave w-full relative self-center flex flex-col justify-center items-center border-2 border-solid border-white h-72 pl-96">
+            <div className="center-wave w-full relative self-center flex flex-col justify-center items-center h-72">
                 {[...Array(16)].map((_, i) => (
                 <div
                     key={i}
