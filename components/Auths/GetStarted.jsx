@@ -6,7 +6,7 @@ export default function GetStarted(){
     const navigator = useNavigate()
     const currentContextVal = useContext(AuthContext);
     return (
-        <div className="get-started flex flex-col justify-between items-center bg-black text-white w-screen h-screen p-5">
+        <div className="get-started flex flex-col justify-between items-center bg-black text-white w-screen h-screen p-5 pt-8">
             <div className="started-txt w-full text-left">
                 <h1 className="text-3xl font-bold">Get Started</h1>
                 <p className="text-3 flex flex-row flex-wrap break-words">An easy way vendors and clients of POS connect anywhere in Nigeria.</p>
@@ -19,8 +19,8 @@ export default function GetStarted(){
                     style={{
                         width: `${(i + 1) * 32}px`,
                         height: `${(i + 1) * 32}px`,
-                        top: `${128 - (i + 1) * 16}px`,
-                        left: `${128 - (i + 1) * 16}px`,
+                        top: `${256 - (i + 1) * 32}px`,
+                        left: `${256 - (i + 1) * 32}px`,
                     }}
                 />
                 ))}
