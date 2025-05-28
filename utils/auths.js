@@ -67,6 +67,6 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
         return response
     }catch(error){
         console.error("Error in requestHandler: ", error);
-        throw error;
+        return {};
     }
 }
