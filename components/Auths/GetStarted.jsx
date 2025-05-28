@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router";
 import { AuthContext } from "../../src/App.jsx";
-
+import PointingFinger from "../../assets/images/fingerTapping1.jpg"
+;
 export default function GetStarted(){
     const navigator = useNavigate()
     const currentContextVal = useContext(AuthContext);
@@ -12,18 +13,11 @@ export default function GetStarted(){
                 <p className="text-3 flex flex-row flex-wrap break-words">An easy way vendors and clients of POS connect anywhere in Nigeria.</p>
             </div>
             <div className="center-wave w-full relative self-center flex flex-col justify-center items-center h-72">
-                {[...Array(16)].map((_, i) => (
-                <div
-                    key={i}
-                    className="absolute border border-gray-600 rounded-full self-center"
-                    style={{
-                        width: `${(i + 1) * 32}px`,
-                        height: `${(i + 1) * 32}px`,
-                        top: `${256 - (i + 1) * 32}px`,
-                        left: `${256 - (i + 1) * 32}px`,
-                    }}
-                />
-                ))}
+                <div className="ripple-container">
+                    <div className="ripple-circle cursor-pointer">
+                        <img src={PointingFinger} alt="finger pointing" />
+                    </div>
+                </div>
             </div>
             <div className="cta-btns flex flex-row justify-around items-center text-center w-1/2 p-4">
                 <button type="button" name="Login" onClick={

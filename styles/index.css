@@ -35,6 +35,60 @@
     color: black;
 }
 
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: black;
+    font-family: sans-serif;
+  }
+  
+.ripple-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+  
+.ripple-circle {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    /* background: url('../assets/images/fingerTapping1.jpg') no-repeat center;
+    background-size: contain; */
+    z-index: 2;
+}
+
+.ripple-circle::before,
+.ripple-circle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    border: 2px solid white;
+    transform: translate(-50%, -50%);
+    animation: ripple 3s infinite;
+}
+
+.ripple-circle::before {
+    width: 200px;
+    height: 200px;
+}
+
+.ripple-circle::after {
+    width: 300px;
+    height: 300px;
+    animation-delay: 1.5s;
+}
+
+/* .loader {
+    animation-name: loader;
+    animation-duration: 1s;
+    animation-timing-function: infinite;
+} */
+
 /* animations */
 @keyframes fade-in-left {
     0% {
@@ -69,5 +123,45 @@
     }
     100% {
         transform: translateX(300px);
+    }
+}
+
+@keyframes ripple {
+    0% {
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0.5;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1.5);
+      opacity: 0;
+    }
+  }
+
+@keyframes loader{
+    0% {
+        transform: rotate(1800deg)
+    }
+    100% {
+        transform: rotate(360deg)
+    }
+}
+
+
+/* media queries */
+@media (max-width: 768px) {
+    .ripple-circle {
+        width: 70px;
+        height: 70px;
+        background-size: 60%;
+    }
+
+    .ripple-circle::before {
+        width: 140px;
+        height: 140px;
+    }
+
+    .ripple-circle::after {
+        width: 200px;
+        height: 200px;
     }
 }
