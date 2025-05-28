@@ -3,8 +3,8 @@ import React from "react";
 
 export default function Loader() {
     return (
-        <div className="loader">
-            {/* a spinner to be used when fetching data from the backend */}
+        <div className="loader border-2 border-solid rounded-full w-60 h-fit p-2 border-black bg-blue-500 text-white">
+            Loading...
         </div>
     )
 }

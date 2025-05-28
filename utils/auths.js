@@ -1,15 +1,28 @@
 import axios from "axios";
+import { redirect } from "react-router";
 
 const axiosInstance = axios.create({
     baseURL: process.env.NEARCASH_API_URL,
+    allowAbsoluteUrls: true,
 });
 
-export function handleSubmit(e, setLoader, data){
+const API_BASE = process.env.NEARCASH_API_URL || "http://localhost:9000/api/v1";
+
+export async function handleSubmit(e, setLoader, data, submitSource="login"){
     e.preventDefault()
     setLoader(true)
     console.log("data to send to the backend::: ", data)
-    // make a call to the backend here
-    setTimeout(() => setLoader(false), 2000)
+    let endpoint = submitSource === "login" ? "/auth/login" : "/auth/signup";
+    // setTimeout(() => setLoader(false), 2000)
+    let response = await requestHandler(endpoint, "post", data)
+    console.log("response from the backend::: ", response)
+    setLoader(false)
+    if(response.status === 200){
+        let { token, user } = response.data;
+        localStorage.setItem("nearcash_token", token);
+        let { user_type } = user
+        user_type?.toLowerCase() === "vendor" ? redirect("/dashboard") : redirect("/dashboard/client");
+    }
 }
 
 export function handleState(e, stateSetter){
@@ -39,5 +52,21 @@ export function checkAuth(userStateSetter){
             console.error("error::: ", error)
             userStateSetter(null)
         })
+}
 
+export async function requestHandler(endpoint, method="get", data={}, headers={}){
+    try {
+        let response;
+        if(method.toLowerCase() === "get"){
+            response = await axiosInstance.get(`${API_BASE}${endpoint}`, { headers });
+            console.log("response from the backend... ", response)
+            return response
+        }
+        response = await axiosInstance.post(`${API_BASE}${endpoint}`, data, { headers });
+        console.log("response from the backend... ", response)
+        return response
+    }catch(error){
+        console.error("Error in requestHandler: ", error);
+        return {};
+    }
 }
