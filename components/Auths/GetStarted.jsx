@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router";
 import { AuthContext } from "../../src/App.jsx";
-import PointingFinger from "../../assets/images/fingerTapping1.jpg"
-;
+import PointingFinger from "../../assets/images/fingerTapping1.jpg";
+
 export default function GetStarted(){
     const navigator = useNavigate()
     const currentContextVal = useContext(AuthContext);
