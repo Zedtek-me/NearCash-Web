@@ -22,12 +22,12 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={ user ? <Navigate to="/dashboard" replace/> : <GetStarted/> }/>
+                <Route path="/" element={ user ? <Navigate to={`/dashboard/${user.user_type}`} replace/> : <GetStarted/> }/>
                 <Route path="/auth" element={<AuthLayout/>}>
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>
                 </Route>
-                <Route path="/dashboard" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
+                <Route path="/dashboard:user_type" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
                     <Route path="client" element={<ClientDashboard/>}/>
                     <Route path="vendor" element={<VendorDashboard/>}/>
                 </Route>
