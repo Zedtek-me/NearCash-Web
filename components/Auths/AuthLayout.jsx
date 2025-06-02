@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useState, useContext } from "react";
 import { Outlet, useNavigate } from "react-router";
 import { handleBackToggle, toggleAuthPageBtnClassList } from "../../utils/helpers.js";
 import { FaArrowLeft } from "react-icons/fa";

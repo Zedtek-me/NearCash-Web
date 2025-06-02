@@ -8,9 +8,9 @@ import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 import { FaFacebook } from "react-icons/fa";
 
 export default function Login(){
-    const [data, setData] = useState({})
-    const [loading, setLoading] = useState(false)
-   const [showPassword, setShowPassword] = useState(false);
+  const [data, setData] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="w-full md:w-1/3 pt-8">
