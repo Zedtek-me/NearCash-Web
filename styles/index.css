@@ -82,11 +82,12 @@ body, html {
     animation-delay: 1.5s;
 }
 
-/* .loader {
+.loader {
     animation-name: loader;
-    animation-duration: 1s;
-    animation-timing-function: infinite;
-} */
+    animation-duration: .3s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
 
 /* animations */
 @keyframes fade-in-left {
@@ -141,12 +142,27 @@ body, html {
 }
 
 @keyframes loader{
-    0% {
-        transform: rotate(1800deg)
+    from {
+        transform: rotate(90deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+    /* 0% {
+        transform: rotate(90deg)
+    }
+    25% {
+        transform: rotate(270deg)
+    }
+    50% {
+        transform: rotate(360deg)
+    }
+    75% {
+        transform: rotate(315deg)
     }
     100% {
         transform: rotate(360deg)
-    }
+    } */
 }
 
 

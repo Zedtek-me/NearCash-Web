@@ -37,9 +37,9 @@ const App = () => {
                 <Route path="/auth" element={<AuthLayout/>}>
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>
-                    <Route path="google" element={<SocialAuth authType="Google"/>}/>
+                    <Route path="google" element={<SocialAuth socialType="GOOGLE"/>}/>
                 </Route>
-                <Route path="/dashboard:user_type" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
+                <Route path="/dashboard/:user_type" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
                     <Route path="client" element={<ClientDashboard/>}/>
                     <Route path="vendor" element={<VendorDashboard/>}/>
                 </Route>

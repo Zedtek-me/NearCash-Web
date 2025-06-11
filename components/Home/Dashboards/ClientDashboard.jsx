@@ -7,7 +7,7 @@ export default function ClientDashboard() {
     return (
         <div className="dashboard client-dashboard">
             <h1>Client Dashboard</h1>
-            <p>This is the client dashboard.</p>
+            <p>This is the {user_type} dashboard.</p>
         </div>
     )
 }

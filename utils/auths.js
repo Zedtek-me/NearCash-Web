@@ -69,8 +69,17 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
     }
 }
 
-export async function handleSocialAuth(authCode, setAuthenticated){
+export async function handleSocialAuth(authCode, gqlFunc, authType, socialType){
     // sends auth code to the backend for authorization and user data.
+    gqlFunc(
+        {
+            variables: {
+                code: authCode,
+                authType: "login",
+                socialType: socialType
+            }
+        }
+    )
 
 }
 
