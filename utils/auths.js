@@ -2,11 +2,9 @@ import axios from "axios";
 import { redirect } from "react-router";
 
 const axiosInstance = axios.create({
-    baseURL: process.env.NEARCASH_API_URL,
+    baseURL: process.env.NEARCASH_REST_API_URL,
     allowAbsoluteUrls: true,
 });
-
-const API_BASE = process.env.NEARCASH_API_URL || "http://localhost:9000/api/v1";
 
 export async function handleSubmit(e, setLoader, data, submitSource="login"){
     e.preventDefault()
@@ -32,7 +30,7 @@ export function handleState(e, stateSetter){
 }
 
 
-export function checkAuth(userStateSetter){
+export function checkAuthWithRest(userStateSetter){
     /**determines if user has a current session.
      * if so, updates the user state with the user info
      */
@@ -69,4 +67,14 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
         console.error("Error in requestHandler: ", error);
         return {};
     }
+}
+
+export async function handleSocialAuth(authCode, setAuthenticated){
+    // sends auth code to the backend for authorization and user data.
+
+}
+
+export function checkCurrentSession(){
+    let authToken = localStorage.getItem("nearcash_token")
+   return authToken;
 }
