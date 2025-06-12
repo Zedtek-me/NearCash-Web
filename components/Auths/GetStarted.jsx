@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router";
-import { AuthContext } from "../../src/App.jsx";
+import useAuth from "../../Hooks/Auths";
 import PointingFinger from "../../assets/images/fingerTapping1.jpg";
 
 export default function GetStarted(){
     const navigator = useNavigate()
-    const currentContextVal = useContext(AuthContext);
+    const { updateBtn } = useAuth()
     return (
         <div className="get-started flex flex-col justify-between items-center bg-black text-white w-screen h-screen p-5 pt-12">
             <div className="started-txt w-full text-left">
@@ -43,7 +43,7 @@ export default function GetStarted(){
                 <button 
                     type="button" 
                     name="Login" 
-                    onClick={(e) => handelAuthNavigate(e, navigator, {context: currentContextVal})}
+                    onClick={(e) => handelAuthNavigate(e, navigator, updateBtn)}
                     className="get-started-login-prompt border-2 border-solid rounded-full border-white flex-1 max-w-36 py-3 px-6 font-medium transition-all hover:bg-white hover:text-black"
                 >
                     Login
@@ -51,7 +51,7 @@ export default function GetStarted(){
                 <button 
                     type="button" 
                     name="Sign Up" 
-                    onClick={(e) => handelAuthNavigate(e, navigator, {context: currentContextVal})}
+                    onClick={(e) => handelAuthNavigate(e, navigator, updateBtn)}
                     className="get-started-signup-prompt rounded-full bg-white text-black flex-1 max-w-36 py-3 px-6 font-medium hover:bg-gray-100 transition-all"
                 >
                     Sign up
@@ -64,16 +64,16 @@ export default function GetStarted(){
 }
 
 
-export const handelAuthNavigate = (e, navigator, { context }) => {
+export const handelAuthNavigate = (e, navigator, btnContextUpdater) => {
     let name = e.target.name.toLowerCase();
     if(name === "login"){
         let btnContext = {login: true, signup: false};
-        context.btnContext = btnContext;
+        btnContextUpdater(btnContext);
         setTimeout(()=> navigator("/auth/login"), 200);
     }
     else {
         let btnContext = {login: false, signup: true};
-        context.btnContext = btnContext;
+        btnContextUpdater(btnContext);
         setTimeout(()=> navigator("/auth/signup"), 200);
     };
 }

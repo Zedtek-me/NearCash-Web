@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { Navigate } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client";
@@ -10,24 +10,21 @@ import Home from "../components/Home/Home.jsx"
 import GetStarted from "../components/Auths/GetStarted.jsx";
 import SocialAuth from "../components/Auths/SocialAuths.jsx";
 import { checkCurrentSession } from "../utils/auths.js";
-
+import useAuth from "../Hooks/Auths.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 
-export const AuthContext = createContext({userData: null});
-
 const App = () => {
-    let [ user, setUser ] = useState(null);
-    let [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
-    
+    const { userData: user, updateUser, clearUser, isLoading } = useAuth()
+    const [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
     useEffect(() => {
         let sessionToken = checkCurrentSession();
         if(sessionToken){
-            fetchUser()
-            if(data){
-                let { user: newUserData } = data;
-                AuthContext.userData = newUserData;
-                setUser(newUserData);
-            }
+            fetchUser().then((result)=>{
+                if(result?.data){
+                    let { user: newUserData } = result.data;
+                    updateUser(newUserData);
+                }
+            })
         }
     }, [])
     return (

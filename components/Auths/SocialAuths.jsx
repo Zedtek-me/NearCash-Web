@@ -1,22 +1,20 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams, useNavigate, Navigate, replace } from "react-router";
 import Loader from "./Loader.jsx"
 import { handleSocialAuth } from "../../utils/auths.js";
 import { useMutation } from "@apollo/client";
 import { AUTHORIZE_WITH_SOCIAL_CODE } from "./mutations/userMutations.js";
-import { AuthContext } from "../../src/App.jsx";
-
+import useAuth from "../../Hooks/Auths.js";
 
 
 export default function SocialAuth({ authType, socialType }){
-    const [authenticated, setAuthenticated] = useState(false);
-    const [userData, setUserData] = useState({});
     const [queryParams, _] = useSearchParams();
-    const currentContextVal = useContext(AuthContext);
+    const { updateUser, clearUser, userData } = useAuth()
     const navigate = useNavigate()
     const [ mutationFunc, { loading, error, data } ] = useMutation(AUTHORIZE_WITH_SOCIAL_CODE)
-    let authCode = queryParams.get("code")
-    console.log("error recieved ", error, "data received: ", data, "loading state:: ", loading)
+    const authCode = queryParams.get("code")
+    const authenticated = (Object.entries(userData).length > 0)
+    console.log("error recieved ", error, "data received: ", data, "loading state:: ", loading, "user data::: ", userData)
     useEffect(()=>{
         (
             authenticated ? navigate(`/dashboard/${(userData?.user_type || "client")}`) :
@@ -24,18 +22,31 @@ export default function SocialAuth({ authType, socialType }){
         )
 
     }, [authCode])
-    if(data?.authorizeWithCode){
-        let user = data.authorizeWithCode.data;
-        currentContextVal.userData = user
-        setUserData(user)
-        setAuthenticated(true)
-    }
+
+    useEffect(
+        ()=>{
+            if(data?.authorizeWithCode.data){
+                console.log("entered into the if authorize check::::::::")
+                let {user, token} = data.authorizeWithCode.data;
+                console.log("user data directly from mutation before attempting to set in context and state::::: ", user, `token destructured::: ${token}`)
+                localStorage.setItem("nearcash_token", token)
+                updateUser(user)
+            }
+        }, [data]
+    )
+    console.log(`authenticated state::: ${authenticated}`)
     return (
         <div className="social-auth-handler w-full h-full border border-solid border-grey relative flex flex-col justify-center items-center">
-            <p className="auth-text flex justify-between items-center text-center my-2">
-                Authenticating...
-            </p>
-            <Loader extraStyles={"my-2 border-2 border-solid border-black"}/>
+            {
+                authenticated ? <Navigate to={`/dashboard/${(userData?.auth_type || "client")}`} replace/>: (
+                    <div className="flex-1">
+                        <p className="auth-text flex justify-between items-center text-center my-2">
+                            Authenticating...
+                        </p>
+                        <Loader extraStyles={"my-2 border-2 border-solid border-black"}/>
+                    </div>
+                )
+            }
         </div>
     )
 }

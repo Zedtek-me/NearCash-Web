@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "../styles/index.css";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import AuthProvider from "../components/Auths/AuthContextProvider.jsx";
 
 let root = ReactDOM.createRoot(document.getElementById("root"));
 export const apolloClient = new ApolloClient({
@@ -11,7 +12,9 @@ export const apolloClient = new ApolloClient({
 })
 const view = (
     <ApolloProvider client={apolloClient}>
-        <App/>
+        <AuthProvider>
+            <App/>
+        </AuthProvider>
     </ApolloProvider>
 )
 root.render(view)
