@@ -43,7 +43,7 @@ export default function SocialAuth({ authType, socialType }){
                         <p className="auth-text flex justify-between items-center text-center my-2">
                             Authenticating...
                         </p>
-                        <Loader extraStyles={"my-2 border-2 border-solid border-black"}/>
+                        <Loader extraStyles={"my-2 border-2 border-solid border-black h-fit"}/>
                     </div>
                 )
             }

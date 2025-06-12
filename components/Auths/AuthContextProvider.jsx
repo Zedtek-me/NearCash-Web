@@ -43,7 +43,8 @@ const AuthProvider = ({ children }) => {
         clearUser,
         updateBtn,
         btnContext,
-        isLoading
+        isLoading,
+        setIsLoading
       }}>
         {children}
       </AuthContext.Provider>

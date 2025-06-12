@@ -6,10 +6,11 @@ import { HiOutlineMail } from "react-icons/hi";
 import { MdLockOutline } from "react-icons/md";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 import { FaFacebook } from "react-icons/fa";
+import useAuth from "../../Hooks/Auths.js";
 
 export default function Login(){
   const [data, setData] = useState({})
-  const [loading, setLoading] = useState(false)
+  const { isLoading: loading, setIsLoading: setLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false);
 
   return (

@@ -14,12 +14,16 @@ import useAuth from "../Hooks/Auths.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 
 const App = () => {
-    const { userData: user, updateUser, clearUser, isLoading } = useAuth()
+    const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
     const [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
+    console.log("user from app component::: ", user)
     useEffect(() => {
         let sessionToken = checkCurrentSession();
         if(sessionToken){
+            console.log(`found the localStorage session toke: ${sessionToken}`)
             fetchUser().then((result)=>{
+                setIsLoading(false)
+                console.log("result from the user fetcher from app component::: ", result)
                 if(result?.data){
                     let { user: newUserData } = result.data;
                     updateUser(newUserData);
@@ -30,13 +34,13 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={ user ? <Navigate to={`/dashboard/${user.user_type}`} replace/> : <GetStarted/> }/>
+                <Route path="/" element={ user?.email ? <Navigate to={`/dashboard/${user.firstName}`} replace/> : <GetStarted/> }/>
                 <Route path="/auth" element={<AuthLayout/>}>
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>
                     <Route path="google" element={<SocialAuth socialType="GOOGLE"/>}/>
                 </Route>
-                <Route path="/dashboard/:user_type" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
+                <Route path="/dashboard/:user_type" element={ user?.email ? <DashboardLayout/> : <Navigate to="/" replace/> }>
                     <Route index element={<Home/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
