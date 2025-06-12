@@ -71,12 +71,18 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
 
 export async function handleSocialAuth(authCode, gqlFunc, authType, socialType){
     // sends auth code to the backend for authorization and user data.
-    gqlFunc(
+    await gqlFunc(
         {
             variables: {
                 code: authCode,
                 authType: "login",
                 socialType: socialType
+            },
+            onError: (error) =>{
+                console.log(`this is the error message returned: ${error.message}`)
+            },
+            onCompleted: (data) => {
+                console.log("mutation completed! Data here::: ", data);
             }
         }
     )

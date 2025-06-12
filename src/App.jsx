@@ -6,15 +6,14 @@ import AuthLayout from "../components/Auths/AuthLayout.jsx";
 import Login from "../components/Auths/Login.jsx";
 import SignUp from "../components/Auths/SignUp.jsx";
 import DashboardLayout from "../components/Home/Dashboards/DashboardLayout.jsx";
-import ClientDashboard from "../components/Home/Dashboards/ClientDashboard.jsx";
-import VendorDashboard from "../components/Home/Dashboards/VendorDashboard.jsx";
+import Home from "../components/Home/Home.jsx"
 import GetStarted from "../components/Auths/GetStarted.jsx";
 import SocialAuth from "../components/Auths/SocialAuths.jsx";
 import { checkCurrentSession } from "../utils/auths.js";
 
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 
-export const AuthContext = createContext({});
+export const AuthContext = createContext({userData: null});
 
 const App = () => {
     let [ user, setUser ] = useState(null);
@@ -25,8 +24,9 @@ const App = () => {
         if(sessionToken){
             fetchUser()
             if(data){
-                let { user: userData } = data;
-                setUser(userData);
+                let { user: newUserData } = data;
+                AuthContext.userData = newUserData;
+                setUser(newUserData);
             }
         }
     }, [])
@@ -40,8 +40,7 @@ const App = () => {
                     <Route path="google" element={<SocialAuth socialType="GOOGLE"/>}/>
                 </Route>
                 <Route path="/dashboard/:user_type" element={ user ? <DashboardLayout/> : <Navigate to="/" replace/> }>
-                    <Route path="client" element={<ClientDashboard/>}/>
-                    <Route path="vendor" element={<VendorDashboard/>}/>
+                    <Route index element={<Home/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
             </Routes>

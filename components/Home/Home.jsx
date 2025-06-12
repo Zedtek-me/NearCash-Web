@@ -1,19 +1,12 @@
 import React from "react";
-import Header from "./Navs/Headers.jsx";
-import Footer from "./Navs/Footers.jsx";
-
+import { useParams } from "react-router";
+import ClientDashboard from "./Dashboards/ClientDashboard.jsx"
+import VendorDashboard from "./Dashboards/VendorDashboard.jsx";
 
 const Home = () => {
-    return (
-        <div className="home w-full h-full">
-            <Header/>
-            <div className="home__content">
-                <h1>Home</h1>
-                <p>This is the home page.</p>
-            </div>
-            <Footer/>
-        </div>
-    )
+    const { user_type } = useParams()
+    if(user_type?.toLowerCase() === "client") return <ClientDashboard/>
+    if(user_type?.toLowerCase() === "vendor") return <VendorDashboard/>
 }
 
 export default Home;
