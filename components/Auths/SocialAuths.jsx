@@ -7,7 +7,7 @@ import { AUTHORIZE_WITH_SOCIAL_CODE } from "./mutations/userMutations.js";
 import useAuth from "../../Hooks/Auths.js";
 
 
-export default function SocialAuth({ authType, socialType }){
+export default function SocialAuth({ socialType }){
     const [queryParams, _] = useSearchParams();
     const { updateUser, clearUser, userData } = useAuth()
     const navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function SocialAuth({ authType, socialType }){
     useEffect(()=>{
         (
             authenticated ? navigate(`/dashboard/${(userData?.user_type || "client")}`) :
-            handleSocialAuth(authCode, mutationFunc, authType, socialType)
+            handleSocialAuth(authCode, mutationFunc, "login", socialType)
         )
 
     }, [authCode])
