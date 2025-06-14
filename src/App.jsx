@@ -12,6 +12,7 @@ import SocialAuth from "../components/Auths/SocialAuths.jsx";
 import { checkCurrentSession } from "../utils/auths.js";
 import useAuth from "../Hooks/Auths.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
+import ClientDashboard from "../components/Home/Dashboards/ClientDashboard.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -44,6 +45,7 @@ const App = () => {
                     <Route index element={<Home/>}/>
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
+                <Route path="/client" element={<ClientDashboard />}/>
             </Routes>
         </Router>
     )
