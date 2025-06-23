@@ -10,6 +10,7 @@ const Layout = () => {
     const { updateBtn, btnContext } = useAuth()
     const [activeBtns, setActiveBtns] = useState({login: true, signup: false})
     const {login, signup} = (btnContext || activeBtns);
+    
     return (
         <div className="layout w-screen h-screen bg-black flex flex-col items-center text-white pt-3 relative">
             <div className="auth-layout-content self-start flex flex-col justify-between align-start text-left pl-3 lg:pl-5">

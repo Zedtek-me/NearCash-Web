@@ -10,6 +10,8 @@
   "dependencies": {
     "@apollo/client": "^3.13.8",
     "@babel/runtime": "^7.27.1",
+    "apollo-link-context": "^1.0.20",
+    "framer-motion": "^12.18.1",
     "graphql": "^16.11.0",
     "lucide-react": "^0.515.0",
     "react": "^19.1.0",

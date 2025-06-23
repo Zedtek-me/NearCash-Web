@@ -7,7 +7,7 @@ export const AuthContext = createContext(null)
 
 const AuthProvider = ({ children }) => {
     const [userData, setUserData] = useState({});
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [btnContext, setBtnContext] = useState({login: true, signup: false})
     const [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
 
@@ -23,18 +23,18 @@ const AuthProvider = ({ children }) => {
         setBtnContext(btnValue)
     }
 
-    useEffect(() => {
-        let sessionToken = checkCurrentSession();
-        if(sessionToken){
-            fetchUser().then((result)=>{
-                if(result.data){
-                    let { user: newUserData } = data;
-                    setIsLoading(false)
-                    updateUser(newUserData);
-                }
-            })
-        }
-    }, [])
+    // useEffect(() => {
+    //     let sessionToken = checkCurrentSession();
+    //     if(sessionToken){
+    //         fetchUser().then((result)=>{
+    //             if(result.data){
+    //                 const { user: newUserData } = data;
+    //                 setIsLoading(false)
+    //                 updateUser(newUserData);
+    //             }
+    //         })
+    //     }
+    // }, [])
   
     return (
       <AuthContext.Provider value={{
