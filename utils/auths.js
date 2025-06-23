@@ -75,7 +75,7 @@ export async function handleSocialAuth(authCode, gqlFunc, authType, socialType){
         {
             variables: {
                 code: authCode,
-                authType: "login",
+                authType: authType,
                 socialType: socialType
             },
             onError: (error) =>{

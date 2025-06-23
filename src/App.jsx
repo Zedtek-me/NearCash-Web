@@ -13,6 +13,7 @@ import { checkCurrentSession } from "../utils/auths.js";
 import useAuth from "../Hooks/Auths.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 import ClientDashboard from "../components/Home/Dashboards/ClientDashboard.jsx";
+import BusinessSetUpPage from "../components/Auths/BusinessSetup.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -26,7 +27,7 @@ const App = () => {
                 setIsLoading(false)
                 console.log("result from the user fetcher from app component::: ", result)
                 if(result?.data){
-                    let { user: newUserData } = result.data;
+                    let { user: newUserData } = result?.data;
                     updateUser(newUserData);
                 }
             })
@@ -40,10 +41,12 @@ const App = () => {
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>
                     <Route path="google" element={<SocialAuth socialType="GOOGLE"/>}/>
+                    
                 </Route>
                 <Route path="/dashboard/:user_type" element={ user?.email ? <DashboardLayout/> : <Navigate to="/" replace/> }>
                     <Route index element={<Home/>}/>
                 </Route>
+                <Route path="business-setup" element={<BusinessSetUpPage />}/>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
                 <Route path="/client" element={<ClientDashboard />}/>
             </Routes>

@@ -1,10 +1,23 @@
 import React, {useState} from "react";
-import { useParams } from "react-router-dom";
 import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal } from 'lucide-react';
+import { Subscriber } from "../../../utils/subscriber";
+import { useStateValue } from "../../../providers/stateProvider";
 
 export default function ClientDashboard() {
      let [clientInfo, setClientInfo] = useState({});
-    let { user_type } = useParams();
+    const [
+            {
+              auth,
+            },
+            dispatch
+          ] = Object.values(useStateValue());
+        let authTypeFromContext;
+            Subscriber.subscribe('auth', (data) => {
+        authTypeFromContext = data;
+        });
+        const socialTypeFromContext = localStorage.getItem("auth_type")
+        console.log("error recieved ", auth, authTypeFromContext, socialTypeFromContext)
+    
     return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">

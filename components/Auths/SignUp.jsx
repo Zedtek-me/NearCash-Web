@@ -3,12 +3,89 @@ import { handleSubmit, handleState } from "../../utils/auths.js";
 import Loader from "./Loader.jsx";
 import { MdEmail, MdLockOutline } from "react-icons/md";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
+import { SIGNUP } from "./mutations/userMutations.js";
+import { useMutation } from "@apollo/client";
+import { useStateValue } from "../../providers/stateProvider.jsx";
+import AuthActionTypes from "../../providers/reducers/auth/authTypes.js";
+import useAuth from "../../Hooks/Auths.js";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
+import { Subscriber } from "../../utils/subscriber.js";
 
 export default function SignUp(){
     const [data, setData] = useState({})
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const { updateUser, clearUser, userData } = useAuth()
+    const navigate = useNavigate()
+     const [
+    {
+      auth,
+    },
+    dispatch
+  ] = Object.values(useStateValue());
+
+    const [getAuthUrl, { loading: googleLoading }] = useMutation(SIGNUP, {
+  onCompleted: (data) => {
+    const url = data?.signup?.data?.authUrl;
+    
+    if (url) {
+      window.location.href = url;
+    }
+  },
+  onError: (err) => {
+    console.error("Failed to get Google Auth URL", err);
+  }
+});
+
+ const handleGoogleSignIn = async () => {
+
+   dispatch({
+      type: AuthActionTypes.SET_AUTH_TYPE,
+      payload: 'signup'
+    });
+     Subscriber.report('auth', 'signup');
+     localStorage.setItem("auth_type", "signup");
+  try {
+    await getAuthUrl({
+      variables: {
+        signUpWith: "GOOGLE"
+      }
+    });
+  } catch (err) {
+    console.error("Google Sign-in error", err);
+  }
+};
+
+const handleSignUpWithEmail =  () => {
+
+   dispatch({
+      type: AuthActionTypes.SET_AUTH_TYPE,
+      payload: 'signup'
+    });
+     getAuthUrl({
+      variables: {
+        data: {
+          email: data.email,
+          password: data.password,
+        }
+      }
+    }).then(({ data }) => {
+          const {user, token} = data.signup.data;
+          console.log(user);
+          
+          //localStorage.setItem("nearcash_token", token)
+          updateUser(user)
+          navigate('/business-setup');
+          toast.success(message);
+        })
+        .catch((err) => {
+          toast.error(err?.message);
+        })
+    };
 
     return (
         <div className="w-full md:w-1/3 pt-8">
@@ -84,21 +161,48 @@ export default function SignUp(){
                     </div>
                 </div>
 
-                <div className="pt-20">
-                    {loading ? (
+                <div className="pt-10">
+                    {googleLoading ? (
                         <div className="w-full bg-black text-white py-4 rounded-full flex justify-center items-center">
                             <Loader />
                         </div>
                     ) : (
                         <button 
                             type="submit" 
-                            onClick={async (e) => await handleSubmit(e, setLoading, data, "signup")}
+                            onClick={handleSignUpWithEmail}
                             className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors"
                         >
                             Signup
                         </button>
                     )}
                 </div>
+                 <div className="relative py-4">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-200"></div>
+                          </div>
+                          <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-white text-gray-500">Or</span>
+                          </div>
+                        </div>
+                
+                        <div className="flex space-x-4">
+                          <button 
+                            type="button"
+                            disabled={googleLoading}
+                            onClick={handleGoogleSignIn}
+                            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
+                          >
+                            <FcGoogle className="w-5 h-5 mr-2" />
+                            <span className="text-sm font-medium text-gray-700">Google</span>
+                          </button>
+                          {/* <button 
+                            type="button"
+                            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
+                          >
+                            <FaFacebook className="w-5 h-5 mr-2 text-blue-600" />
+                            <span className="text-sm font-medium">Facebook</span>
+                          </button> */}
+                        </div>
 
                 <div className="text-center pt-2">
                     <span className="text-gray-600 text-sm">Already have an account? </span>

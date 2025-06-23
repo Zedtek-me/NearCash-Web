@@ -5,13 +5,79 @@ import { FcGoogle } from "react-icons/fc";
 import { HiOutlineMail } from "react-icons/hi";
 import { MdLockOutline } from "react-icons/md";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
-import { FaFacebook } from "react-icons/fa";
 import useAuth from "../../Hooks/Auths.js";
+import { useStateValue } from "../../providers/stateProvider.jsx";
+import { useMutation } from "@apollo/client";
+import { LOGIN, SIGNUP } from "./mutations/userMutations.js";
+import { useNavigate } from "react-router";
 
 export default function Login(){
   const [data, setData] = useState({})
-  const { isLoading: loading, setIsLoading: setLoading } = useAuth()
+  const { isLoading: loading, setIsLoading: setLoading, updateUser } = useAuth()
   const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate()
+
+     const [
+    {
+      auth,
+    },
+    dispatch
+  ] = Object.values(useStateValue());
+
+    const [getAuthUrl, { loading: googleLoading }] = useMutation(LOGIN, {
+  onCompleted: (data) => {
+    const url = data?.login?.data?.authUrl;
+    
+    if (url) {
+      window.location.href = url;
+    }
+  },
+  onError: (err) => {
+    console.error("Failed to get Google Auth URL", err);
+  }
+});
+
+ const handleGoogleSignIn = async () => {
+
+   dispatch({
+      type: AuthActionTypes.SET_AUTH_TYPE,
+      payload: 'login'
+    });
+  try {
+    await getAuthUrl({
+      variables: {
+        signUpWith: "GOOGLE"
+      }
+    });
+  } catch (err) {
+    console.error("Google Sign-in error", err);
+  }
+};
+
+const handleLoginUpWithEmail =  () => {
+
+   dispatch({
+      type: AuthActionTypes.SET_AUTH_TYPE,
+      payload: 'login'
+    });
+     getAuthUrl({
+      variables: {
+        data: {
+          email: data.email,
+          password: data.password,
+        }
+      }
+    }).then(({ data }) => {
+          const {user, token} = data.login.data;
+          localStorage.setItem("nearcash_token", token)
+          updateUser(user)
+          navigate('/dashboard');
+          toast.success(message);
+        })
+        .catch((err) => {
+          toast.error(err?.message);
+        })
+    };
 
   return (
     <div className="w-full md:w-1/3 pt-8">
@@ -76,20 +142,21 @@ export default function Login(){
         </div>
 
         <div className="pt-4">
-          {loading ? (
+          {googleLoading ? (
             <div className="w-full bg-black text-white py-4 rounded-full flex justify-center items-center">
               <Loader />
             </div>
           ) : (
             <button 
               type="submit" 
-              onClick={async (e) => await handleSubmit(e, setLoading, data, "login")}
+              onClick={handleLoginUpWithEmail}
               className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors"
             >
               Login
             </button>
           )}
         </div>
+
 
         <div className="relative py-4">
           <div className="absolute inset-0 flex items-center">
@@ -105,16 +172,19 @@ export default function Login(){
             type="button"
             className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
           >
-            <FcGoogle className="w-5 h-5 mr-2" />
+            <FcGoogle  
+              disabled={googleLoading}
+              onClick={handleGoogleSignIn}
+                className="w-5 h-5 mr-2" />
             <span className="text-sm font-medium text-gray-700">Google</span>
           </button>
-          <button 
+          {/* <button 
             type="button"
             className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
           >
             <FaFacebook className="w-5 h-5 mr-2 text-blue-600" />
             <span className="text-sm font-medium">Facebook</span>
-          </button>
+          </button> */}
         </div>
     </div>
     </div>
