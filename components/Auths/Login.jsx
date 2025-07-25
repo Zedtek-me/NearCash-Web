@@ -10,6 +10,8 @@ import { useStateValue } from "../../providers/stateProvider.jsx";
 import { useMutation } from "@apollo/client";
 import { LOGIN, SIGNUP } from "./mutations/userMutations.js";
 import { useNavigate } from "react-router";
+import AuthActionTypes from "../../providers/reducers/auth/authTypes.js";
+import toast from "react-hot-toast";
 
 export default function Login(){
   const [data, setData] = useState({})
@@ -38,6 +40,10 @@ export default function Login(){
 });
 
  const handleGoogleSignIn = async () => {
+     localStorage.setItem("auth_type", "login");
+
+     console.log('jjhghgggggg');
+     
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -46,7 +52,7 @@ export default function Login(){
   try {
     await getAuthUrl({
       variables: {
-        signUpWith: "GOOGLE"
+        signinWith: "GOOGLE"
       }
     });
   } catch (err) {
@@ -54,7 +60,7 @@ export default function Login(){
   }
 };
 
-const handleLoginUpWithEmail =  () => {
+const handleLoginWithEmail =  () => {
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -71,7 +77,7 @@ const handleLoginUpWithEmail =  () => {
           const {user, token} = data.login.data;
           localStorage.setItem("nearcash_token", token)
           updateUser(user)
-          navigate('/dashboard');
+          navigate(`/dashboard/${user?.user_type || 'client'}`);
           toast.success(message);
         })
         .catch((err) => {
@@ -149,7 +155,7 @@ const handleLoginUpWithEmail =  () => {
           ) : (
             <button 
               type="submit" 
-              onClick={handleLoginUpWithEmail}
+              onClick={handleLoginWithEmail}
               className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors"
             >
               Login
@@ -171,10 +177,11 @@ const handleLoginUpWithEmail =  () => {
           <button 
             type="button"
             className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
+            disabled={googleLoading}
+              onClick={handleGoogleSignIn}
           >
             <FcGoogle  
-              disabled={googleLoading}
-              onClick={handleGoogleSignIn}
+              
                 className="w-5 h-5 mr-2" />
             <span className="text-sm font-medium text-gray-700">Google</span>
           </button>

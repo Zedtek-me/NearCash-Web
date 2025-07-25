@@ -10,6 +10,7 @@ export const CURRENT_USER = gql`
             lastName
             username
             meta
+            userType
         }    
     }
 `

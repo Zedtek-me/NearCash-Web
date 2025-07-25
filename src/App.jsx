@@ -14,6 +14,10 @@ import useAuth from "../Hooks/Auths.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 import ClientDashboard from "../components/Home/Dashboards/ClientDashboard.jsx";
 import BusinessSetUpPage from "../components/Auths/BusinessSetup.jsx";
+import VendorDashboard from "../components/Home/Dashboards/VendorDashboard.jsx";
+import CreateStorePage from "../components/Home/Dashboards/CreateStore.jsx";
+import TransactionPolicyPage from "../components/Home/Vendor/Policy.jsx";
+import CategoryManagementPage from "../components/Home/Vendor/Category.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -49,6 +53,11 @@ const App = () => {
                 <Route path="business-setup" element={<BusinessSetUpPage />}/>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
                 <Route path="/client" element={<ClientDashboard />}/>
+                <Route path="/vendor" element={<VendorDashboard />}/>
+                <Route path="/create-store" element={<CreateStorePage />}/>
+                <Route path="policy" element={<TransactionPolicyPage />}/>
+                <Route path="category" element={<CategoryManagementPage />}/>
+
             </Routes>
         </Router>
     )

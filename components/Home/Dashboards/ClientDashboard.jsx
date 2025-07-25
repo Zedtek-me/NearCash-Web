@@ -1,10 +1,46 @@
-import React, {useState} from "react";
-import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, ChevronDown, ChevronUp, X, Navigation, Loader2 } from 'lucide-react';
 import { Subscriber } from "../../../utils/subscriber";
 import { useStateValue } from "../../../providers/stateProvider";
+import Navbar from '../Navs/Headers';
 
 export default function ClientDashboard() {
      let [clientInfo, setClientInfo] = useState({});
+       const transactionHistory = [
+    { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
+    { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
+    { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
+    { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
+    { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
+  ];
+  const storeList = [
+    { id: 1, name: "Walmart Supercenter", location: "123 Main St, New York, NY", category: "Grocery" },
+    { id: 2, name: "Target Store", location: "456 Oak Ave, Los Angeles, CA", category: "Retail" },
+    { id: 3, name: "Best Buy Electronics", location: "789 Pine Rd, Chicago, IL", category: "Electronics" },
+    { id: 4, name: "Home Depot", location: "321 Elm St, Houston, TX", category: "Home Improvement" },
+    { id: 5, name: "Starbucks Coffee", location: "654 Maple Dr, Miami, FL", category: "Food & Beverage" }
+  ];
+
+   const [expandedCards, setExpandedCards] = useState(new Set());
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [mapData, setMapData] = useState(null);
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Done': return 'bg-green-100 text-green-600';
+      case 'Pending': return 'bg-yellow-100 text-yellow-600';
+      case 'Failed': return 'bg-red-100 text-red-600';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
     const [
             {
               auth,
@@ -17,10 +53,466 @@ export default function ClientDashboard() {
         });
         const socialTypeFromContext = localStorage.getItem("auth_type")
         console.log("error recieved ", auth, authTypeFromContext, socialTypeFromContext)
+
+ const stores = [
+    {
+      id: 1,
+      name: "Fresh Market",
+      location: "Downtown",
+      distance: "0.5km",
+      coordinates: { lat: 6.618034, lng: 3.31658 },
+      priceRanges: [
+        { price: 200, range: "3000-5000" },
+        { price: 150, range: "2000-3000" },
+        { price: 300, range: "5000-7000" }
+      ]
+    },
+    {
+      id: 2,
+      name: "Super Store",
+      location: "Mall Road",
+      distance: "1.2km",
+      coordinates: { lat: 6.620034, lng: 3.32658 },
+      priceRanges: [
+        { price: 180, range: "2500-4000" },
+        { price: 220, range: "4000-6000" },
+        { price: 120, range: "1500-2500" }
+      ]
+    },
+    {
+      id: 3,
+      name: "Quick Shop",
+      location: "City Center",
+      distance: "0.8km",
+      coordinates: { lat: 6.619034, lng: 3.31958 },
+      priceRanges: [
+        { price: 160, range: "2000-3500" },
+        { price: 250, range: "3500-5500" }
+      ]
+    }
+  ];
+// Sample route data (your BE response format)
+  const sampleRouteData = {
+    routes: "{\"features\": [{\"type\": \"Feature\", \"properties\": {\"mode\": \"walk\", \"waypoints\": [{\"location\": [3.31658, 6.618034], \"original_index\": 0}, {\"location\": [3.31658, 6.618034], \"original_index\": 1}], \"units\": \"metric\", \"distance\": 0, \"distance_units\": \"meters\", \"time\": 0, \"legs\": [{\"distance\": 0, \"time\": 0, \"steps\": [{\"from_index\": 0, \"to_index\": 1, \"distance\": 0, \"time\": 0, \"instruction\": {\"text\": \"Walk north on Tijani Street.\"}}, {\"from_index\": 1, \"to_index\": 1, \"distance\": 0, \"time\": 0, \"instruction\": {\"text\": \"You have arrived at your destination.\"}}]}]}, \"geometry\": {\"type\": \"MultiLineString\", \"coordinates\": [[[3.31658, 6.618034], [3.31658, 6.618034]]]}}], \"properties\": {\"mode\": \"walk\", \"waypoints\": [{\"lat\": 6.618034317294, \"lon\": 3.316580112845776}, {\"lat\": 6.618034317294, \"lon\": 3.316580112845776}], \"units\": \"metric\"}, \"type\": \"FeatureCollection\"}"
+  };
+
+  // Check for stored location on component mount
+  useEffect(() => {
+    const storedLocation = JSON.parse(localStorage.getItem('userLocation') || 'null');
+    if (storedLocation) {
+      console.log('storedLocation', storedLocation);
+      
+      setUserLocation(storedLocation);
+    }
+  }, []);
+
+  // Load Leaflet CSS and JS
+  useEffect(() => {
+    // Add Leaflet CSS
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Add Leaflet JS
+    if (!window.L && !document.getElementById('leaflet-js')) {
+      const script = document.createElement('script');
+      script.id = 'leaflet-js';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+      script.onload = () => {
+        console.log('Leaflet loaded successfully');
+      };
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  const getAvatarColor = (index) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-orange-500',
+      'bg-pink-500',
+      'bg-indigo-500'
+    ];
+    return colors[index % colors.length];
+  };
+
+  const toggleExpanded = (storeId) => {
+    const newExpanded = new Set(expandedCards);
+    if (newExpanded.has(storeId)) {
+      newExpanded.delete(storeId);
+    } else {
+      newExpanded.add(storeId);
+    }
+    setExpandedCards(newExpanded);
+  };
+
+  const requestLocationPermission = () => {
+    setIsLoadingLocation(true);
     
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by this browser.');
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    // Try with high accuracy first, then fallback to less accurate
+    const tryHighAccuracy = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setUserLocation(location);
+          localStorage.setItem('userLocation', JSON.stringify(location));
+          setShowLocationModal(false);
+          setIsLoadingLocation(false);
+          
+          // Automatically call the route query after getting location
+          if (selectedStore) {
+            fetchRouteData(location, selectedStore);
+          }
+        },
+        (error) => {
+          console.log('High accuracy failed, trying low accuracy...', error);
+          tryLowAccuracy();
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    };
+
+    const tryLowAccuracy = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setUserLocation(location);
+          localStorage.setItem('userLocation', JSON.stringify(location));
+          setShowLocationModal(false);
+          setIsLoadingLocation(false);
+          
+          if (selectedStore) {
+            fetchRouteData(location, selectedStore);
+          }
+        },
+        (error) => {
+          setIsLoadingLocation(false);
+          console.error('Geolocation error:', error);
+          
+          // For demo purposes, use a default location (Lagos, Nigeria)
+          const defaultLocation = { lat: 6.5244, lng: 3.3792 };
+          setUserLocation(defaultLocation);
+          localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
+          setShowLocationModal(false);
+          
+          alert('Unable to get your exact location. Using default location (Lagos) for demo purposes.');
+          
+          if (selectedStore) {
+            fetchRouteData(defaultLocation, selectedStore);
+          }
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 15000,
+          maximumAge: 300000
+        }
+      );
+    };
+
+    tryHighAccuracy();
+  };
+
+  const fetchRouteData = async (userLoc, store) => {
+    setIsLoadingRoute(true);
+    
+    try {
+      // For demo purposes, use sample data
+      // In production, replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      
+      const parsedRoutes = JSON.parse(sampleRouteData.routes);
+      setMapData(parsedRoutes);
+      setShowMap(true);
+      
+      // Uncomment and modify this for actual API call:
+      /*
+      const response = await fetch('/api/route', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          origin: { lat: userLoc.lat, lng: userLoc.lng },
+          destination: { lat: store.coordinates.lat, lng: store.coordinates.lng },
+          mode: 'walk'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch route data');
+      }
+
+      const data = await response.json();
+      const parsedRoutes = JSON.parse(data.routes);
+      setMapData(parsedRoutes);
+      setShowMap(true);
+      */
+      
+    } catch (error) {
+      console.error('Error fetching route data:', error);
+      alert('Failed to load route data. Please try again.');
+    } finally {
+      setIsLoadingRoute(false);
+    }
+  };
+
+  const initializeMap = () => {
+    if (!window.L || !mapRef.current || !mapData || !userLocation) return;
+
+    // Clear existing map
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+    }
+
+    try {
+      const waypoints = mapData.properties.waypoints;
+      const coordinates = mapData.features[0].geometry.coordinates[0];
+      
+      // Create map centered on user location
+      const map = window.L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
+      mapInstanceRef.current = map;
+
+      // Add tile layer
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Add user location marker
+      const userIcon = window.L.divIcon({
+        className: 'user-location-marker',
+        html: '<div style="background-color: #3b82f6; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+      
+      window.L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('Your Location')
+        .openPopup();
+
+      // Add store location marker
+      const storeIcon = window.L.divIcon({
+        className: 'store-location-marker',
+        html: '<div style="background-color: #ef4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+      
+      window.L.marker([selectedStore.coordinates.lat, selectedStore.coordinates.lng], { icon: storeIcon })
+        .addTo(map)
+        .bindPopup(selectedStore.name);
+
+      // Add route line if coordinates exist
+      if (coordinates && coordinates.length > 0) {
+        const routeCoordinates = coordinates.map(coord => [coord[1], coord[0]]); // Swap lng,lat to lat,lng
+        
+        const routeLine = window.L.polyline(routeCoordinates, {
+          color: '#3b82f6',
+          weight: 4,
+          opacity: 0.8
+        }).addTo(map);
+
+        // Fit map to show both markers and route
+        const group = new window.L.featureGroup([
+          window.L.marker([userLocation.lat, userLocation.lng]),
+          window.L.marker([selectedStore.coordinates.lat, selectedStore.coordinates.lng]),
+          routeLine
+        ]);
+        map.fitBounds(group.getBounds().pad(0.1));
+      } else {
+        // Fit map to show both markers
+        const group = new window.L.featureGroup([
+          window.L.marker([userLocation.lat, userLocation.lng]),
+          window.L.marker([selectedStore.coordinates.lat, selectedStore.coordinates.lng])
+        ]);
+        map.fitBounds(group.getBounds().pad(0.1));
+      }
+
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
+  };
+
+  // Initialize map when data is ready
+  useEffect(() => {
+    if (showMap && mapData && userLocation && selectedStore) {
+      const timer = setTimeout(() => {
+        initializeMap();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showMap, mapData, userLocation, selectedStore]);
+
+  const handleViewOnMap = (store) => {
+    setSelectedStore(store);
+    
+    if (!userLocation) {
+      setShowLocationModal(true);
+    } else {
+      fetchRouteData(userLocation, store);
+    }
+  };
+
+  const closeMap = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+    setShowMap(false);
+    setMapData(null);
+    setSelectedStore(null);
+  };
+
+  const LocationModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Location Permission Required</h3>
+          <button
+            onClick={() => {
+              setShowLocationModal(false);
+              setSelectedStore(null);
+            }}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="mb-6">
+          <div className="flex items-center mb-3">
+            <Navigation className="text-blue-500 mr-3" size={24} />
+            <span className="text-gray-700">Enable Location Access</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            This app needs access to your location to show you the best route to the store and provide accurate directions.
+          </p>
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-xs text-blue-700">
+              Your location data is only used to calculate routes and is stored locally on your device.
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex space-x-3">
+          <button
+            onClick={() => {
+              setShowLocationModal(false);
+              setSelectedStore(null);
+            }}
+            className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={requestLocationPermission}
+            disabled={isLoadingLocation}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+          >
+            {isLoadingLocation ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={16} />
+                Getting Location...
+              </>
+            ) : (
+              'Allow Location'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const getRouteInstructions = () => {
+    if (!mapData || !mapData.features || !mapData.features[0]) return [];
+    
+    const legs = mapData.features[0].properties.legs;
+    if (!legs || !legs[0] || !legs[0].steps) return [];
+    
+    return legs[0].steps.map(step => step.instruction.text);
+  };
+
+  const MapModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-800">
+            Route to {selectedStore?.name}
+          </h3>
+          <button
+            onClick={closeMap}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="flex h-[600px]">
+          <div className="flex-1 relative">
+            {isLoadingRoute ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="animate-spin mr-2" size={24} />
+                <span>Loading route...</span>
+              </div>
+            ) : (
+              <div ref={mapRef} className="w-full h-full" />
+            )}
+          </div>
+          
+          {mapData && (
+            <div className="w-80 bg-gray-50 p-4 overflow-y-auto">
+              <h4 className="font-semibold text-gray-800 mb-3">Route Instructions</h4>
+              <div className="space-y-2">
+                {getRouteInstructions().map((instruction, index) => (
+                  <div key={index} className="flex items-start space-x-2">
+                    <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-medium mt-0.5">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm text-gray-700 flex-1">{instruction}</p>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-white rounded-lg">
+                <h5 className="font-medium text-gray-800 mb-2">Route Details</h5>
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p>Mode: {mapData.properties?.mode || 'Walking'}</p>
+                  <p>Distance: {mapData.features[0]?.properties?.distance || 0}m</p>
+                  <p>Duration: {mapData.features[0]?.properties?.time || 0}min</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
     return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <Navbar />
+      <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, Riyad Capital 👋</h1>
           <p className="text-sm text-gray-500">Member Since April 30, 2025</p>
@@ -72,7 +564,7 @@ export default function ClientDashboard() {
             </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
@@ -277,8 +769,120 @@ export default function ClientDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
+
+        <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-10 md:mx-[10rem]'>
+              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
+                {/* <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                  See All
+                </button> */}
+              </div>
+            <div className="space-y-4">
+        {stores.map((store, index) => (
+          <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 transition-all duration-300">
+              <div className="flex items-center">
+                <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
+                  <span className="text-white text-sm font-medium">
+                    {store.name.split(' ').map(n => n[0]).join('')}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-800">{store.name}</div>
+                  <div className="text-sm text-gray-500">{store.location} • {store.distance}</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleViewOnMap(store)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                  title="View on map"
+                >
+                  <MapPin size={20} />
+                </button>
+                <button
+                  onClick={() => toggleExpanded(store.id)}
+                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                  title={expandedCards.has(store.id) ? "Collapse" : "Expand"}
+                >
+                  {expandedCards.has(store.id) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </button>
+              </div>
+            </div>
+            
+            {expandedCards.has(store.id) && (
+              <div className="px-3 pb-5 border-t border-gray-100">
+                <div className="pt-4">
+                 <div className="flex justify-between">
+                   <h4 className="font-medium text-gray-800 mb-3">Cash Range</h4>
+                   <p>Charges</p>
+                 </div>
+                  <div className="space-y-2">
+                    {store.priceRanges.map((priceRange, idx) => (
+                      <div key={idx} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-600">Range: {priceRange.range}</span>
+                        <span className="font-medium text-green-600">₦{priceRange.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+        {/* <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-20'>
+                    <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
+                      <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                        See All
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {transactionHistory.map((transaction, index) => (
+                        <div key={transaction.id} className="bg-white flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                          <div className="flex items-center">
+                            <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
+                              <span className="text-white text-sm font-medium">
+                                {transaction.name.split(' ').map(n => n[0]).join('')}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-800">{transaction.name}</div>
+                              <div className="text-sm text-gray-500">{transaction.date}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <span className={`font-medium mr-3 ${
+                              transaction.amount.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {transaction.amount}
+                            </span>
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                              {transaction.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+      
+          
+                  </div> */}
+
+
+      {showLocationModal && <LocationModal />}
+      {showMap && <MapModal />}
+            </div>
+
+           
+            </div>
     </div>
   );
 }

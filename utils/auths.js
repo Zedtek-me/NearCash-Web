@@ -1,5 +1,9 @@
+import React from "react";
+
 import axios from "axios";
-import { redirect } from "react-router";
+import { nav } from "framer-motion/client";
+import { redirect, useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 const axiosInstance = axios.create({
     baseURL: process.env.NEARCASH_REST_API_URL,
@@ -69,8 +73,7 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
     }
 }
 
-export async function handleSocialAuth(authCode, gqlFunc, authType, socialType){
-    // sends auth code to the backend for authorization and user data.
+export async function handleSocialAuth(authCode, gqlFunc, authType, socialType, navigate){
     await gqlFunc(
         {
             variables: {
@@ -80,6 +83,8 @@ export async function handleSocialAuth(authCode, gqlFunc, authType, socialType){
             },
             onError: (error) =>{
                 console.log(`this is the error message returned: ${error.message}`)
+                toast.error(`Invalid User!`);
+                navigate("/auth/login");
             },
             onCompleted: (data) => {
                 console.log("mutation completed! Data here::: ", data);

@@ -73,7 +73,7 @@ export default function AccountTypePage() {
         })
         .then(({ data }) => {
             const { message, user } = data?.updateUser || {};
-            navigate(`/dashboard/${user?.firstName || 'client'}`);
+            navigate(`/dashboard/${user?.userType || 'client'}`);
             toast.success(message);
         })
         .catch((err) => {

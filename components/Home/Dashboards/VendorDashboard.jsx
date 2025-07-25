@@ -1,12 +1,202 @@
-import React, {useState} from "react";
+import React from 'react';
+import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import Navbar from '../Navs/Headers';
 
+const Dashboard = () => {
+    const navigate = useNavigate()
 
-export default function VendorDashboard() {
-    let [clientInfo, setClientInfo] = useState({});
-    return (
-        <div className="dashboard vendor-dashboard">
-            <h1>Vendor Dashboard</h1>
-            <p>This is the vendor dashboard.</p>
+  const transactionHistory = [
+    { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
+    { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
+    { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
+    { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
+    { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
+  ];
+
+  const storeList = [
+    { id: 1, name: "Walmart Supercenter", location: "123 Main St, New York, NY", category: "Grocery" },
+    { id: 2, name: "Target Store", location: "456 Oak Ave, Los Angeles, CA", category: "Retail" },
+    { id: 3, name: "Best Buy Electronics", location: "789 Pine Rd, Chicago, IL", category: "Electronics" },
+    { id: 4, name: "Home Depot", location: "321 Elm St, Houston, TX", category: "Home Improvement" },
+    { id: 5, name: "Starbucks Coffee", location: "654 Maple Dr, Miami, FL", category: "Food & Beverage" }
+  ];
+
+  const getAvatarColor = (index) => {
+    const colors = ['bg-blue-400', 'bg-gray-400', 'bg-teal-400', 'bg-amber-400', 'bg-orange-400'];
+    return colors[index % colors.length];
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Done': return 'bg-green-100 text-green-600';
+      case 'Pending': return 'bg-yellow-100 text-yellow-600';
+      case 'Failed': return 'bg-red-100 text-red-600';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'Grocery': return 'bg-green-100 text-green-600';
+      case 'Retail': return 'bg-blue-100 text-blue-600';
+      case 'Electronics': return 'bg-purple-100 text-purple-600';
+      case 'Home Improvement': return 'bg-orange-100 text-orange-600';
+      case 'Food & Beverage': return 'bg-pink-100 text-pink-600';
+      default: return 'bg-gray-100 text-gray-600';
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      <Navbar />
+
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>
+
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Left Column */}
+          <div className="xl:col-span-12 space-y-12">
+            {/* Top Stats Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Total Balance */}
+              <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm opacity-90">Total transactions
+</span>
+                </div>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-lg font-bold">$</span>
+                  </div>
+                </div>
+                <div className="text-2xl font-bold">$35,543</div>
+              </div>
+
+              {/* Income */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600">Total Profit</span>
+                  <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
+                </div>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-teal-600 text-lg">$</span>
+                  </div>
+                </div>
+                <div className="text-xl font-bold text-gray-800">$15,654</div>
+                <div className="text-xs text-red-500 mt-1">-11% last week</div>
+              </div>
+
+              {/* Spending */}
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600">Transaction Count</span>
+                  <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
+                </div>
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-purple-600 text-lg">$</span>
+                  </div>
+                </div>
+                <div className="text-xl font-bold text-gray-800">$1,654</div>
+                <div className="text-xs text-red-500 mt-1">-11% last Months</div>
+              </div>
+
+              {/* EMI */}
+              <div className="flex justify-end px-6 py-2">
+               <button
+                  className="flex items-center h-12 gap-2 px-4 py-2 bg-black text-white hover:bg-white hover:text-black border border-black transition-all duration-200 rounded-2xl text-sm font-medium"
+                  onClick={() => navigate('/create-store')}
+                >
+                  <Plus size={16} />
+                  <span>Create Store</span>
+                </button>
+              </div>
+            </div>
+
+            <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-20'>
+              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
+                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                  See All
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {transactionHistory.map((transaction, index) => (
+                  <div key={transaction.id} className="bg-white flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
+                        <span className="text-white text-sm font-medium">
+                          {transaction.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">{transaction.name}</div>
+                        <div className="text-sm text-gray-500">{transaction.date}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <span className={`font-medium mr-3 ${
+                        transaction.amount.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {transaction.amount}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                        {transaction.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border  border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Store List</h2>
+                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                  See All
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {storeList.map((store, index) => (
+                  <div key={store.id} className="bg-white hover:scale-105 flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group">
+                    <div className="flex items-center flex-1">
+                      <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
+                        <span className="text-white text-sm font-medium">
+                          {store.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 truncate">{store.name}</div>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{store.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center ml-4">
+                      {/* <span className={`px-2 py-1 rounded-full text-xs font-medium mr-3 ${getCategoryColor(store.category)}`}>
+                        {store.category}
+                      </span> */}
+                      <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-    )
-}
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;

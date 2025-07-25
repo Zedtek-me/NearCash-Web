@@ -29,6 +29,9 @@ export default function SocialAuth({ authType, socialType }){
     authTypeFromContext = localStorage.getItem("auth_type")
     console.log("error recieved ", auth, authTypeFromContext)
 
+    console.log('data', data);
+    
+
     useEffect(()=>{
         if (authenticated) {
                 if (authTypeFromContext == "signup") {
@@ -37,7 +40,7 @@ export default function SocialAuth({ authType, socialType }){
                 navigate(`/dashboard/${userData?.user_type || 'client'}`);
                 }
             } else {
-                handleSocialAuth(authCode, mutationFunc, authTypeFromContext, socialType);
+                handleSocialAuth(authCode, mutationFunc, authTypeFromContext, socialType, navigate);
             }
 
     }, [authCode])

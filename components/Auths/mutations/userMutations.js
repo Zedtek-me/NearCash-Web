@@ -14,6 +14,7 @@ export const AUTHORIZE_WITH_SOCIAL_CODE = gql`
                         lastName
                         username
                         meta
+                        userType
                     }
                     token
                 }
@@ -39,6 +40,7 @@ export const SIGNUP = gql`
                         lastName
                         username
                         password
+                        userType
                     }
                 }
             }
@@ -56,6 +58,7 @@ mutation UpdateUser($data: UpdateUserInputType!){
             lastName
             username
             meta
+            userType
             businesses{
                 id
                 name
@@ -86,6 +89,7 @@ export const LOGIN_WITH_S = gql`
                         lastName
                         username
                         password
+                        userType
                     }
                 }
             }
@@ -105,9 +109,30 @@ mutation Login($signinWith: SignInWithEnum, $email: String, $password: String){
                 lastName
                 username
                 meta
+                userType
             }
             token
         }
     }
 }
 `;
+
+export const CREATE_STORE = gql`
+
+mutation createBusiness(
+    $data: CreateBusinessInputType!, $financialAssets: AssetInputType
+){
+    createBusiness(data: $data, financialAssets: $financialAssets){
+       message
+       business{
+        id
+        name
+        address
+        owner{
+            email
+        }
+        location
+       }
+    }
+}
+`
