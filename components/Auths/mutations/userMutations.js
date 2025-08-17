@@ -120,7 +120,7 @@ mutation Login($signinWith: SignInWithEnum, $email: String, $password: String){
 export const CREATE_STORE = gql`
 
 mutation createBusiness(
-    $data: CreateBusinessInputType!, $financialAssets: AssetInputType
+    $data: CreateBusinessInputType!, $financialAssets: [AssetInputType]
 ){
     createBusiness(data: $data, financialAssets: $financialAssets){
        message
@@ -136,3 +136,4 @@ mutation createBusiness(
     }
 }
 `
+

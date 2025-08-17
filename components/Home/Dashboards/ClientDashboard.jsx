@@ -3,23 +3,11 @@ import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, C
 import { Subscriber } from "../../../utils/subscriber";
 import { useStateValue } from "../../../providers/stateProvider";
 import Navbar from '../Navs/Headers';
+import { VENDOR_LIST } from '../../Auths/queries/userQueries';
+import { useQuery } from '@apollo/client';
 
 export default function ClientDashboard() {
-     let [clientInfo, setClientInfo] = useState({});
-       const transactionHistory = [
-    { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
-    { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
-    { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
-    { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
-    { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
-  ];
-  const storeList = [
-    { id: 1, name: "Walmart Supercenter", location: "123 Main St, New York, NY", category: "Grocery" },
-    { id: 2, name: "Target Store", location: "456 Oak Ave, Los Angeles, CA", category: "Retail" },
-    { id: 3, name: "Best Buy Electronics", location: "789 Pine Rd, Chicago, IL", category: "Electronics" },
-    { id: 4, name: "Home Depot", location: "321 Elm St, Houston, TX", category: "Home Improvement" },
-    { id: 5, name: "Starbucks Coffee", location: "654 Maple Dr, Miami, FL", category: "Food & Beverage" }
-  ];
+  const [clientInfo, setClientInfo] = useState({});
 
    const [expandedCards, setExpandedCards] = useState(new Set());
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -41,6 +29,41 @@ export default function ClientDashboard() {
       default: return 'bg-gray-100 text-gray-600';
     }
   };
+  const { data, loading, error } = useQuery(VENDOR_LIST, {
+    variables: {
+      currentLat: userLocation?.lat || 0,
+      currentLong: userLocation?.lng || 0
+    },
+    skip: !userLocation
+  });
+
+  console.log(userLocation, data);
+  
+
+  useEffect(() => {
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(location);
+        localStorage.setItem("userLocation", JSON.stringify(location));
+      },
+      (err) => {
+        console.error("Location error:", err);
+        if (err.code === 2) { // LOCATION_UNKNOWN
+          setTimeout(getLocation, 2000); // retry after 2s
+        } else {
+          alert("Could not get location. Using default coordinates.");
+          //setUserLocation({ lat: 6.5244, lng: 3.3792 }); // Lagos fallback
+        }
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  };
+  
+  getLocation();
+}, []);
+
     const [
             {
               auth,
@@ -106,9 +129,7 @@ export default function ClientDashboard() {
     }
   }, []);
 
-  // Load Leaflet CSS and JS
   useEffect(() => {
-    // Add Leaflet CSS
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -116,7 +137,6 @@ export default function ClientDashboard() {
       link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';
       document.head.appendChild(link);
     }
-
     // Add Leaflet JS
     if (!window.L && !document.getElementById('leaflet-js')) {
       const script = document.createElement('script');
@@ -160,7 +180,6 @@ export default function ClientDashboard() {
       return;
     }
 
-    // Try with high accuracy first, then fallback to less accurate
     const tryHighAccuracy = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -173,7 +192,6 @@ export default function ClientDashboard() {
           setShowLocationModal(false);
           setIsLoadingLocation(false);
           
-          // Automatically call the route query after getting location
           if (selectedStore) {
             fetchRouteData(location, selectedStore);
           }
@@ -207,20 +225,20 @@ export default function ClientDashboard() {
           }
         },
         (error) => {
-          setIsLoadingLocation(false);
-          console.error('Geolocation error:', error);
+          // setIsLoadingLocation(false);
+          // console.error('Geolocation error:', error);
           
-          // For demo purposes, use a default location (Lagos, Nigeria)
-          const defaultLocation = { lat: 6.5244, lng: 3.3792 };
-          setUserLocation(defaultLocation);
-          localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
-          setShowLocationModal(false);
+          // // For demo purposes, use a default location (Lagos, Nigeria)
+          // const defaultLocation = { lat: 6.5244, lng: 3.3792 };
+          // setUserLocation(defaultLocation);
+          // localStorage.setItem('userLocation', JSON.stringify(defaultLocation));
+          // setShowLocationModal(false);
           
-          alert('Unable to get your exact location. Using default location (Lagos) for demo purposes.');
+          // alert('Unable to get your exact location. Using default location (Lagos) for demo purposes.');
           
-          if (selectedStore) {
-            fetchRouteData(defaultLocation, selectedStore);
-          }
+          // if (selectedStore) {
+          //   fetchRouteData(defaultLocation, selectedStore);
+          // }
         },
         {
           enableHighAccuracy: false,
@@ -237,37 +255,12 @@ export default function ClientDashboard() {
     setIsLoadingRoute(true);
     
     try {
-      // For demo purposes, use sample data
-      // In production, replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
       
       const parsedRoutes = JSON.parse(sampleRouteData.routes);
       setMapData(parsedRoutes);
       setShowMap(true);
       
-      // Uncomment and modify this for actual API call:
-      /*
-      const response = await fetch('/api/route', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          origin: { lat: userLoc.lat, lng: userLoc.lng },
-          destination: { lat: store.coordinates.lat, lng: store.coordinates.lng },
-          mode: 'walk'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch route data');
-      }
-
-      const data = await response.json();
-      const parsedRoutes = JSON.parse(data.routes);
-      setMapData(parsedRoutes);
-      setShowMap(true);
-      */
       
     } catch (error) {
       console.error('Error fetching route data:', error);
@@ -453,6 +446,11 @@ export default function ClientDashboard() {
     return legs[0].steps.map(step => step.instruction.text);
   };
 
+  const handleInitiateTransaction = (vendor) => {
+    console.log("Initiating transaction with vendor:", vendor);
+    // You can route to transaction page or open modal
+  };
+
   const MapModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden">
@@ -564,212 +562,7 @@ export default function ClientDashboard() {
             </div>
         </div>
 
-        {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Portfolio</h2>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
-              </div>
-              
-              <div className="mb-6">
-                <div className="text-3xl font-bold text-gray-900 mb-2">₦ 492 <span className="text-gray-400 font-normal">800</span></div>
-                
-                <div className="flex space-x-1 mb-4">
-                  <div className="h-2 bg-blue-500 rounded-full flex-1"></div>
-                  <div className="h-2 bg-pink-400 rounded-full flex-1"></div>
-                  <div className="h-2 bg-teal-400 rounded-full flex-1"></div>
-                  <div className="h-2 bg-yellow-400 rounded-full flex-1"></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="font-semibold text-gray-900">₦ 175 200</div>
-                    <div className="text-gray-500">Due</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">₦ 136 500</div>
-                    <div className="text-gray-500">Paid</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">₦ 42 900</div>
-                    <div className="text-gray-500">Late</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">₦ 82 400</div>
-                    <div className="text-gray-500">Canceled</div>
-                  </div>
-                </div>
-
-                <div className="flex space-x-6 mt-4">
-                  <div className="flex items-center space-x-1">
-                    <ArrowUp className="w-4 h-4 text-green-500" />
-                    <span className="text-green-500 font-semibold">24%</span>
-                    <span className="text-gray-600">Received</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <ArrowUp className="w-4 h-4 text-blue-500" />
-                    <span className="text-blue-500 font-semibold">19%</span>
-                    <span className="text-gray-600">Expected</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Transactions</h2>
-                  <p className="text-sm text-gray-500">Wallet & Portfolio Movements</p>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                      <ArrowUp className="w-4 h-4 text-red-500 rotate-45" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Portfolio</div>
-                      <div className="text-sm text-gray-500">Sent</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-red-600">- ₦ 30 700</div>
-                    <div className="text-sm text-gray-500">2025-05-11</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <ArrowDown className="w-4 h-4 text-green-500" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Investment Wallet</div>
-                      <div className="text-sm text-gray-500">Received</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-green-600">+ ₦ 48 250</div>
-                    <div className="text-sm text-gray-500">2025-04-30</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Best Opportunities</h2>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Saudi Electric</h3>
-                      <p className="text-sm text-gray-500">Energy Sector Investment</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <span className="px-2 py-1 bg-pink-100 text-pink-600 text-xs rounded-full">A - Low Risk</span>
-                      <span className="px-2 py-1 bg-teal-100 text-teal-600 text-xs rounded-full">Upcoming</span>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-3">
-                    <div className="text-xl font-bold text-gray-900 mb-1">₦ 815 <span className="text-gray-400 font-normal">300</span></div>
-                    <div className="text-sm text-gray-500">Amount Needed</div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-1">
-                      <ArrowUp className="w-4 h-4 text-blue-500" />
-                      <span className="text-blue-500 font-semibold">14%</span>
-                      <span className="text-gray-600 text-sm">Expected Return</span>
-                    </div>
-                  </div>
-
-                  <button className="text-sm font-medium text-gray-700 underline">Invest Now</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-           
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Loan Request</h2>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
-              </div>
-
-              <div className="mb-4">
-                <div className="text-xl font-bold text-gray-900 mb-1">₦ 507 <span className="text-gray-400 font-normal">100</span></div>
-                <div className="text-sm text-gray-500 mb-3">Amount Needed</div>
-                
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-600 text-sm rounded-full">Ready to Apply</span>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <div>
-                    <span className="text-lg font-semibold text-gray-900">1.8%</span>
-                    <div className="text-sm text-gray-500">Interest Rate</div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">12 months</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">₦ 602 500</div>
-                  </div>
-                </div>
-
-                <button className="bg-green-100 text-green-700 px-4 py-2 rounded-lg text-sm font-medium">
-                  Apply Now
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Fund</h2>
-                <div className="flex items-center space-x-2">
-                  <ArrowUpRight className="w-5 h-5 text-gray-400" />
-                  <MoreHorizontal className="w-5 h-5 text-gray-400" />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Purchase Order (PO)</h3>
-                    <p className="text-sm text-gray-500">Office Equipment Purchase</p>
-                  </div>
-                  <span className="px-2 py-1 bg-orange-100 text-orange-600 text-xs rounded-full">Pending</span>
-                </div>
-                
-                <div className="mb-3">
-                  <div className="text-xl font-bold text-gray-900 mb-1">₦ 267 <span className="text-gray-400 font-normal">900</span></div>
-                  <div className="text-sm text-gray-500">Amount Needed</div>
-                </div>
-
-                <div className="mb-3">
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-green-500 h-1.5 rounded-full" style={{width: '40%'}}></div>
-                  </div>
-                </div>
-
-                <button className="text-sm font-medium text-gray-700 underline">View Details</button>
-              </div>
-            </div>
-          </div>
-        </div> */}
+      
       </div>
 
         <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-10 md:mx-[10rem]'>
@@ -796,12 +589,18 @@ export default function ClientDashboard() {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button
+                {/* <button
                   onClick={() => handleViewOnMap(store)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors duration-200"
                   title="View on map"
                 >
                   <MapPin size={20} />
+                </button> */}
+                 <button
+                  onClick={() => handleInitiateTransaction(vendor)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Initiate Transaction
                 </button>
                 <button
                   onClick={() => toggleExpanded(store.id)}
@@ -833,49 +632,9 @@ export default function ClientDashboard() {
             )}
           </div>
         ))}
+
+        
       </div>
-
-        {/* <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-20'>
-                    <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                      <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                        See All
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {transactionHistory.map((transaction, index) => (
-                        <div key={transaction.id} className="bg-white flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                          <div className="flex items-center">
-                            <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
-                              <span className="text-white text-sm font-medium">
-                                {transaction.name.split(' ').map(n => n[0]).join('')}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-800">{transaction.name}</div>
-                              <div className="text-sm text-gray-500">{transaction.date}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <span className={`font-medium mr-3 ${
-                              transaction.amount.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {transaction.amount}
-                            </span>
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                              {transaction.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-      
-          
-                  </div> */}
-
 
       {showLocationModal && <LocationModal />}
       {showMap && <MapModal />}

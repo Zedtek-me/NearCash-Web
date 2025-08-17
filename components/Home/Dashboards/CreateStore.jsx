@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, MapPin, ChevronDown, Plus, X, Check, Search } from 'lucide-react';
 
+import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
+import { CREATE_STORE } from '../../Auths/mutations/userMutations';
+import { useMutation } from '@apollo/client';
+import useAuth from '../../../Hooks/Auths';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
+
+
 const CreateStorePage = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -10,7 +18,22 @@ const CreateStorePage = () => {
     description: '',
     country: ''
   });
-  
+
+  const {
+  ready,
+  value,
+  suggestions: { status, data },
+  setValue,
+  clearSuggestions
+} = usePlacesAutocomplete({
+  requestOptions: {
+    componentRestrictions: { country: "ng" },
+  },
+  debounce: 300
+});
+      const { userData } = useAuth();
+    const navigate = useNavigate()
+
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
@@ -18,6 +41,8 @@ const CreateStorePage = () => {
   const [showCustomRange, setShowCustomRange] = useState(false);
   const [customRange, setCustomRange] = useState({ min: '', max: '', commission: '' });
   const [errors, setErrors] = useState({});
+  const [createStore, { loadingStore }] = useMutation(CREATE_STORE);
+  
   
   const addressInputRef = useRef(null);
   const rangeDropdownRef = useRef(null);
@@ -32,76 +57,51 @@ const CreateStorePage = () => {
     { label: '100001+', value: '100001+:700', commission: '700' }
   ];
 
-  // Simulated Geoapify API call (replace with actual API)
-  const fetchAddressSuggestions = async (query) => {
-    if (!query || query.length < 3) {
-      setAddressSuggestions([]);
-      return;
-    }
-    
-    setIsLoadingAddress(true);
-    
-    try {
-      // Replace this with actual Geoapify API call
-      // const response = await fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&apiKey=YOUR_API_KEY`);
-      // const data = await response.json();
-      
-      // Simulated response for demo
-      setTimeout(() => {
-        const mockSuggestions = [
-          {
-            properties: {
-              formatted: "20 Tijani Street, Agege 100282, Lagos State, Nigeria",
-              lat: 6.618034317294,
-              lon: 3.316580112845776
-            }
-          },
-          {
-            properties: {
-              formatted: "15 Victoria Island, Lagos, Nigeria",
-              lat: 6.4281,
-              lon: 3.4219
-            }
-          },
-          {
-            properties: {
-              formatted: "30 Allen Avenue, Ikeja, Lagos, Nigeria",
-              lat: 6.6018,
-              lon: 3.3515
-            }
-          }
-        ].filter(item => 
-          item.properties.formatted.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        setAddressSuggestions(mockSuggestions);
-        setShowSuggestions(true);
-        setIsLoadingAddress(false);
-      }, 500);
-    } catch (error) {
-      console.error('Error fetching address suggestions:', error);
-      setIsLoadingAddress(false);
-    }
-  };
+ const fetchAddressSuggestions = async (input) => {
+  if (!input) return [];
 
-  const handleAddressChange = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, address: value }));
-    fetchAddressSuggestions(value);
-  };
+  try {
+    const res = await fetch(
+      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+        input
+      )}&apiKey=63c5a80943bb422bb32c1a54c1c50040`
+    );
+    const data = await res.json();
+
+    return data.features.map((feature) => ({
+      id: feature.properties.place_id,
+      description: feature.properties.formatted,
+      lat: feature.geometry.coordinates[1], // GeoJSON format: [lng, lat]
+      lng: feature.geometry.coordinates[0]
+    }));
+  } catch (err) {
+    console.error("Geoapify error:", err);
+    return [];
+  }
+};
+
+
+  const handleAddressChange = async (e) => {
+  const value = e.target.value;
+  setFormData((prev) => ({ ...prev, address: value }));
+
+  const results = await fetchAddressSuggestions(value);
+  setShowSuggestions(true);
+  setAddressSuggestions(results);
+};
+
+console.log(userData);
+
 
   const handleAddressSelect = (suggestion) => {
-    setFormData(prev => ({
-      ...prev,
-      address: suggestion.properties.formatted,
-      location: {
-        latitude: suggestion.properties.lat,
-        longitude: suggestion.properties.lon
-      }
-    }));
+  setFormData((prev) => ({
+    ...prev,
+    address: suggestion.description,
+    location: { latitude: suggestion.lat, longitude: suggestion.lng }
+  }));
     setShowSuggestions(false);
-    setAddressSuggestions([]);
-  };
+  setAddressSuggestions([]);
+};
 
   const handleRangeSelect = (option) => {
     const isSelected = formData.range.some(r => r.value === option.value);
@@ -154,14 +154,45 @@ const CreateStorePage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      console.log('Form submitted:', formData);
-      // Handle form submission here
-    }
-  };
+  const handleSubmit = async () => {
+  // if (!validateForm()) return;
 
-  // Close dropdowns when clicking outside
+  const data = {
+          parentBusinessId: userData.id,
+          businessName: formData.name,
+          address: formData.address,
+          description: formData.description,
+          country: formData.country,
+          // location: {
+          //   latitude: formData.location.latitude,
+          //   longitude: formData.location.longitude
+          // }
+    }
+
+    const backendData = formData?.range.map(item => ({
+      range: item.label,                
+      chargeRate: Number(item.commission) 
+    }));
+
+    
+  const financialAssets = [...backendData]
+
+   createStore({
+          variables: {
+         data,
+         financialAssets
+          }
+          })
+          .then(({ data }) => {
+              navigate(`/dashboard}`);
+              toast.success(message);
+          })
+          .catch((err) => {
+              toast.error(err?.message);
+          })
+};
+
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (rangeDropdownRef.current && !rangeDropdownRef.current.contains(event.target)) {
@@ -265,7 +296,7 @@ const CreateStorePage = () => {
                     className="w-full px-4 py-5 text-left hover:bg-gray-50 transition-colors duration-200 flex items-center"
                   >
                     <MapPin className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{suggestion.properties.formatted}</span>
+                    <span className="text-sm text-gray-700">{suggestion.description}</span>
                   </button>
                 ))}
               </div>
@@ -275,8 +306,7 @@ const CreateStorePage = () => {
             {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
           </div>
 
-          {/* Location Display */}
-          {formData.location.latitude && formData.location.longitude && (
+          {/* {formData.location.latitude && formData.location.longitude && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex items-center text-sm text-gray-600">
                 <MapPin className="w-4 h-4 mr-2" />
@@ -285,9 +315,8 @@ const CreateStorePage = () => {
                 </span>
               </div>
             </div>
-          )}
+          )} */}
 
-          {/* Range Selection */}
           <div className="space-y-2 relative" ref={rangeDropdownRef}>
             <label className="block text-sm font-semibold text-black">
              Price Range *

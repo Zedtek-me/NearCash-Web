@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router';
 
 export default function AccountTypePage() {
   const [selectedType, setSelectedType] = useState(null);
-    const { updateUser, clearUser, userData } = useAuth()
+    const { updateUser, clearUser, userData } = useAuth();
     const navigate = useNavigate()
 
   const [formData, setFormData] = useState({

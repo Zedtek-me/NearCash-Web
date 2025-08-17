@@ -21,7 +21,8 @@
     "react-router": "^7.6.0",
     "react-router-dom": "^7.6.0",
     "react-toastify": "^11.0.5",
-    "recharts": "^3.0.2"
+    "recharts": "^3.0.2",
+    "use-places-autocomplete": "^4.0.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.27.1",

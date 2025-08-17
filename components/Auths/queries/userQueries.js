@@ -13,4 +13,19 @@ export const CURRENT_USER = gql`
             userType
         }    
     }
-`
+`;
+
+export const VENDOR_LIST = gql`
+query VendorsNearMe(
+    $currentLat: Float!, $currentLong: Float!
+){
+    businessesAroundMe(
+        currentLat: $currentLat, currentLong: $currentLong
+    ){
+        id
+        name
+        description
+        address
+        location
+    }
+}`;

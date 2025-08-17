@@ -40,7 +40,7 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={ user?.email ? <Navigate to={`/dashboard/${user.firstName}`} replace/> : <GetStarted/> }/>
+                <Route path="/" element={ user?.email ? <Navigate to={`/dashboard/${user.userType}`} replace/> : <GetStarted/> }/>
                 <Route path="/auth" element={<AuthLayout/>}>
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>
@@ -55,8 +55,8 @@ const App = () => {
                 <Route path="/client" element={<ClientDashboard />}/>
                 <Route path="/vendor" element={<VendorDashboard />}/>
                 <Route path="/create-store" element={<CreateStorePage />}/>
-                <Route path="policy" element={<TransactionPolicyPage />}/>
-                <Route path="category" element={<CategoryManagementPage />}/>
+                <Route path="/policy" element={<TransactionPolicyPage />}/>
+                <Route path="/category" element={<CategoryManagementPage />}/>
 
             </Routes>
         </Router>
