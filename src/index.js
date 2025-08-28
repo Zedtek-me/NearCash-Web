@@ -6,6 +6,9 @@ import AuthProvider from "../components/Auths/AuthContextProvider.jsx";
 import StateProvider from "../providers/stateProvider.jsx";
 import { ApolloProvider } from "@apollo/client";
 import getApolloClient from "../utils/graphQl.js";
+import CToaster from "../utils/components/CToaster/index.js";
+import NotificationSocket from "../components/Notification/web-socket.jsx";
+
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -13,13 +16,18 @@ const renderApp = async () => {
   const apolloClient = await getApolloClient();
 
   root.render(
+    <React.StrictMode>
+      <CToaster />
     <ApolloProvider client={apolloClient}>
       <StateProvider>
         <AuthProvider>
           <App />
+          <NotificationSocket />
         </AuthProvider>
       </StateProvider>
-    </ApolloProvider>
+    </ApolloProvider> 
+    </React.StrictMode>
+    
   );
 };
 

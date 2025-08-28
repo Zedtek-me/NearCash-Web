@@ -9,14 +9,16 @@ import { useNavigate } from 'react-router';
 
 export default function AccountTypePage() {
   const [selectedType, setSelectedType] = useState(null);
-    const { updateUser, clearUser, userData } = useAuth()
+    const { updateUser, clearUser, userData } = useAuth();
+    const [addressSuggestions, setAddressSuggestions] = useState([]);
+      const [showSuggestions, setShowSuggestions] = useState(false);
     const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
     businessName: '',
     description: '',
     address: '',
-    country: ''
+    country: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateUserInfo, { loading }] = useMutation(UpdateUserMutation);
@@ -26,12 +28,54 @@ export default function AccountTypePage() {
     setSelectedType(type);
   };
 
+  const fetchAddressSuggestions = async (input) => {
+  if (!input) return [];
+
+  try {
+    const res = await fetch(
+      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+        input
+      )}&apiKey=63c5a80943bb422bb32c1a54c1c50040`
+    );
+    const data = await res.json();
+
+    return data.features.map((feature) => ({
+      id: feature.properties.place_id,
+      description: feature.properties.formatted,
+      lat: feature.geometry.coordinates[1], // GeoJSON format: [lng, lat]
+      lng: feature.geometry.coordinates[0]
+    }));
+  } catch (err) {
+    console.error("Geoapify error:", err);
+    return [];
+  }
+};
+
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
+
+  const handleAddressChange = async (e) => {
+  const value = e.target.value;
+  setFormData((prev) => ({ ...prev, address: value }));
+
+  const results = await fetchAddressSuggestions(value);
+  setShowSuggestions(true);
+  setAddressSuggestions(results);
+};
+
+const handleAddressSelect = (suggestion) => {
+  setFormData((prev) => ({
+    ...prev,
+    address: suggestion.description,
+    location: { latitude: suggestion.lat, longitude: suggestion.lng }
+  }));
+    setShowSuggestions(false);
+  setAddressSuggestions([]);
+};
 
   const isFormValid = formData.businessName && formData.description && formData.address && formData.country;
 
@@ -73,10 +117,12 @@ export default function AccountTypePage() {
         })
         .then(({ data }) => {
             const { message, user } = data?.updateUser || {};
-            navigate(`/dashboard/${user?.firstName || 'client'}`);
+            navigate(`/dashboard/${user?.userType || 'client'}`);
             toast.success(message);
         })
         .catch((err) => {
+          console.log(err);
+          
             toast.error(err?.message);
         })
     }
@@ -235,6 +281,22 @@ export default function AccountTypePage() {
                     />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   </div>
+
+                   {showSuggestions && addressSuggestions.length > 0 && (
+                                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                  {addressSuggestions.map((suggestion, index) => (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => handleAddressSelect(suggestion)}
+                                      className="w-full px-4 py-5 text-left hover:bg-gray-50 transition-colors duration-200 flex items-center"
+                                    >
+                                      <MapPin className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" />
+                                      <span className="text-sm text-gray-700">{suggestion.description}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                 </div>
 
                 <div className="group">

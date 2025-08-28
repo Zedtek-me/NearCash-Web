@@ -14,6 +14,7 @@ export const AUTHORIZE_WITH_SOCIAL_CODE = gql`
                         lastName
                         username
                         meta
+                        userType
                     }
                     token
                 }
@@ -30,7 +31,9 @@ export const SIGNUP = gql`
                 signUpWith: $signUpWith, data: $data
             ){
                 message
+                
                 data{
+                token
                     authUrl
                     user{
                         id
@@ -39,6 +42,7 @@ export const SIGNUP = gql`
                         lastName
                         username
                         password
+                        userType
                     }
                 }
             }
@@ -56,6 +60,7 @@ mutation UpdateUser($data: UpdateUserInputType!){
             lastName
             username
             meta
+            userType
             businesses{
                 id
                 name
@@ -86,6 +91,7 @@ export const LOGIN_WITH_S = gql`
                         lastName
                         username
                         password
+                        userType
                     }
                 }
             }
@@ -105,8 +111,65 @@ mutation Login($signinWith: SignInWithEnum, $email: String, $password: String){
                 lastName
                 username
                 meta
+                userType
             }
             token
+        }
+    }
+}
+`;
+
+export const CREATE_STORE = gql`
+
+mutation createBusiness(
+    $data: CreateBusinessInputType!, $financialAssets: [AssetInputType]
+){
+    createBusiness(data: $data, financialAssets: $financialAssets){
+       message
+       business{
+        id
+        name
+        address
+        owner{
+            email
+        }
+        location
+       }
+    }
+}
+`
+
+export const CREATE_TRANSACTION = gql`
+mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
+    initiateTransaction(
+        transactionData: $transactionData
+    ){
+        message
+        transaction{
+            id
+            status
+            business{
+                id
+                name
+                location
+            }
+            client{
+                id
+                email
+                username
+                userType
+            }
+            vendor{
+                id
+                email
+                username
+                userType
+            }
+            collectionMode
+            txnLocation
+            amount
+            charge
+            currency
         }
     }
 }

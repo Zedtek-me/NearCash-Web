@@ -77,7 +77,7 @@ const handleSignUpWithEmail =  () => {
           const {user, token} = data.signup.data;
           console.log(user);
           
-          //localStorage.setItem("nearcash_token", token)
+          localStorage.setItem("nearcash_token", token)
           updateUser(user)
           navigate('/business-setup');
           toast.success(message);
