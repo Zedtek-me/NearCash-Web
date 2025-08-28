@@ -184,7 +184,7 @@ console.log(userData);
           }
           })
           .then(({ data }) => {
-              navigate(`/dashboard}`);
+              navigate(`/dashboard/VENDOR`);
               toast.success(message);
           })
           .catch((err) => {

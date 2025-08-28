@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
+import { toast } from "react-toastify";
+import NotificationDialog from "./NotificationDialog";
 
 const NotificationSocket = () => {
-  const [messages, setMessages] = useState([]);
-    const { userData } = useAuth();
-    const baseURL = process.env.SOCKET_URL;
-    const token = localStorage.getItem('nearcash_token');
-    console.log(baseURL, token, userData);
-    
+  const [messages, setMessages] = useState('');
+  const { userData } = useAuth();
+  const baseURL = process.env.SOCKET_URL;
+  const token = localStorage.getItem("nearcash_token");
 
   useEffect(() => {
-  
+    if (!userData?.id || !token) return;
 
-    const socket = new WebSocket(`${baseURL}/notification/${userData.id}/?token=${token}`);
+    const socket = new WebSocket(
+      `${baseURL}/notification/${userData.id}/?token=${token}`
+    );
 
     socket.onopen = () => {
       console.log("Connected to WebSocket ✅");
@@ -20,7 +22,19 @@ const NotificationSocket = () => {
 
     socket.onmessage = (event) => {
       console.log("New message:", event.data);
-      setMessages((prev) => [...prev, event.data]);
+
+      // store locally
+      setMessages(event.data);
+
+      // show toast
+      toast.info(event.data, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     };
 
     socket.onerror = (error) => {
@@ -34,16 +48,11 @@ const NotificationSocket = () => {
     return () => {
       socket.close();
     };
-  }, [userData]);
+  }, [userData, token, baseURL]);
 
   return (
     <div>
-      <h2>Notifications</h2>
-      <ul>
-        {messages.map((msg, idx) => (
-          <li key={idx}>{msg}</li>
-        ))}
-      </ul>
+         {!messages ? '' : <NotificationDialog message={messages} setMessage={setMessages} />}
     </div>
   );
 };

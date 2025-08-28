@@ -3,11 +3,15 @@ import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, C
 import { Subscriber } from "../../../utils/subscriber";
 import { useStateValue } from "../../../providers/stateProvider";
 import Navbar from '../Navs/Headers';
-import { VENDOR_LIST } from '../../Auths/queries/userQueries';
-import { useQuery } from '@apollo/client';
+import { VENDOR_LIST, GET_VENDOR_POLICIES, GET_ASSETS } from '../../Auths/queries/userQueries';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { CREATE_TRANSACTION } from '../../Auths/mutations/userMutations';
+import useAuth from '../../../Hooks/Auths';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
+    const {  userData } = useAuth();
+
 
    const [expandedCards, setExpandedCards] = useState(new Set());
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -19,6 +23,11 @@ export default function ClientDashboard() {
   const [selectedStore, setSelectedStore] = useState(null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [assetId, setAssets] = useState(null);
 
 
   const getStatusColor = (status) => {
@@ -37,7 +46,18 @@ export default function ClientDashboard() {
     skip: !userLocation
   });
 
+  const [fetchPolicies, { data: policiesData, loading: policiesLoading }] =
+    useLazyQuery(GET_VENDOR_POLICIES);
+
+  const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
+
+  const [fetchAsset, { data: assetData, loading: assetLoading }] =
+    useLazyQuery(GET_ASSETS);
+
+
   console.log(userLocation, data);
+  console.log('assetData', userData);
+  
   
 
   useEffect(() => {
@@ -255,7 +275,7 @@ export default function ClientDashboard() {
     setIsLoadingRoute(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       const parsedRoutes = JSON.parse(sampleRouteData.routes);
       setMapData(parsedRoutes);
@@ -446,10 +466,56 @@ export default function ClientDashboard() {
     return legs[0].steps.map(step => step.instruction.text);
   };
 
-  const handleInitiateTransaction = (vendor) => {
-    console.log("Initiating transaction with vendor:", vendor);
-    // You can route to transaction page or open modal
+
+  const handleInitiateTransaction = (vendor, assetId) => {
+    setSelectedVendor(vendor);
+    setAssets(assetId);
+    console.log('assetId', assetId);
+    
+    setShowTransactionModal(true);
+    fetchPolicies({ variables: { businessId: String(vendor.id) } });
   };
+
+  const handleSubmitTransaction = async () => {
+    if (!amount || !selectedPolicy) {
+      alert("Please enter an amount and select a policy");
+      return;
+    }
+
+    console.log(assetId);
+    
+
+    try {
+      const variables = {
+        transactionData: {
+          assetId: assetId,
+          vendorId: selectedVendor.id.toString(),
+          amountToWithdraw: parseFloat(amount),
+          clientCurrentCoordinates: {
+            latitude: userLocation.lat,
+            longitude: userLocation.lng,
+          },
+          collectionMode: policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
+          collectionLocation: "",
+        },
+      };
+
+      await createTransaction({ variables });
+      alert("Transaction Created Successfully");
+      setShowTransactionModal(false);
+      setAmount("");
+      setSelectedPolicy(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create transaction");
+    }
+  };
+
+  const ViewAssets = (vendorId) => {
+     toggleExpanded(vendorId);
+    fetchAsset({ variables: { businessId: String(vendorId) } });
+  };
+
 
   const MapModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -512,8 +578,8 @@ export default function ClientDashboard() {
       <Navbar />
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, Riyad Capital 👋</h1>
-          <p className="text-sm text-gray-500">Member Since April 30, 2025</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.username ?? userData?.email} 👋</h1>
+          {/* <p className="text-sm text-gray-500">Member Since April 30, 2025</p> */}
         </div>
 
         <div className="mb-8">
@@ -574,7 +640,7 @@ export default function ClientDashboard() {
                 </button> */}
               </div>
             <div className="space-y-4">
-        {stores.map((store, index) => (
+        {data?.businessesAroundMe?.map((store, index) => (
           <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 transition-all duration-300">
               <div className="flex items-center">
@@ -584,8 +650,8 @@ export default function ClientDashboard() {
                   </span>
                 </div>
                 <div>
-                  <div className="font-medium text-gray-800">{store.name}</div>
-                  <div className="text-sm text-gray-500">{store.location} • {store.distance}</div>
+                  <div className="font-medium text-gray-800">{store?.name}</div>
+                  <div className="text-sm text-gray-500"> {store?.distance}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -596,14 +662,9 @@ export default function ClientDashboard() {
                 >
                   <MapPin size={20} />
                 </button> */}
-                 <button
-                  onClick={() => handleInitiateTransaction(vendor)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Initiate Transaction
-                </button>
+                 
                 <button
-                  onClick={() => toggleExpanded(store.id)}
+                  onClick={() => ViewAssets(store.id)}
                   className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
                   title={expandedCards.has(store.id) ? "Collapse" : "Expand"}
                 >
@@ -620,10 +681,16 @@ export default function ClientDashboard() {
                    <p>Charges</p>
                  </div>
                   <div className="space-y-2">
-                    {store.priceRanges.map((priceRange, idx) => (
+                    {assetData?.businessAssets?.map((priceRange, idx) => (
                       <div key={idx} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
                         <span className="text-sm text-gray-600">Range: {priceRange.range}</span>
-                        <span className="font-medium text-green-600">₦{priceRange.price}</span>
+                        <span className="font-medium text-green-600">₦{priceRange.chargeRate}</span>
+                        <button
+                          onClick={() => handleInitiateTransaction(store, priceRange?.id)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                          Request Cash
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -635,6 +702,72 @@ export default function ClientDashboard() {
 
         
       </div>
+
+       {showTransactionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
+          <div className="bg-black border border-gray-700 rounded-xl w-full max-w-lg p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowTransactionModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <h2 className="text-xl font-bold mb-4 text-gray-400">
+              Withdraw from {selectedVendor?.name}
+            </h2>
+
+            {/* Amount Input */}
+            <div className="mb-4">
+              <label className="block text-sm mb-1 text-gray-400">Amount to Withdraw</label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
+                placeholder="Enter amount"
+              />
+            </div>
+
+            {/* Policies */}
+            <div className="mb-4">
+              <p className="text-sm mb-2 text-gray-400">Select mode of collection</p>
+              {policiesLoading ? (
+                <p>Loading policies...</p>
+              ) : (
+                <div className="space-y-2">
+                  {/* {policiesData?.businessTransactionPolicyForUser?.map((policy) => (
+                    
+                  ))} */}
+                  <div
+                      onClick={() => setSelectedPolicy(policiesData?.businessTransactionPolicyForUser?.cashCollectionMode)}
+                      className={`p-3 border rounded-lg cursor-pointer ${
+                        selectedPolicy?.id === policiesData?.businessTransactionPolicyForUser?.cashCollectionMode
+                          ? "border-white bg-gray-800"
+                          : "border-gray-600"
+                      }`}
+                    >
+                      <p className="text-sm text-gray-400">
+                        Mode: {policiesData?.businessTransactionPolicyForUser?.cashCollectionMode}
+                      </p>
+                    </div>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmitTransaction}
+              disabled={creating}
+              className="w-full py-2 bg-white text-black rounded-lg font-semibold flex items-center justify-center"
+            >
+              {creating && <Loader2 className="animate-spin mr-2" size={16} />}
+              Create Transaction
+            </button>
+          </div>
+        </div>
+      )}
 
       {showLocationModal && <LocationModal />}
       {showMap && <MapModal />}

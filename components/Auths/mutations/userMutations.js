@@ -31,7 +31,9 @@ export const SIGNUP = gql`
                 signUpWith: $signUpWith, data: $data
             ){
                 message
+                
                 data{
+                token
                     authUrl
                     user{
                         id
@@ -137,3 +139,38 @@ mutation createBusiness(
 }
 `
 
+export const CREATE_TRANSACTION = gql`
+mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
+    initiateTransaction(
+        transactionData: $transactionData
+    ){
+        message
+        transaction{
+            id
+            status
+            business{
+                id
+                name
+                location
+            }
+            client{
+                id
+                email
+                username
+                userType
+            }
+            vendor{
+                id
+                email
+                username
+                userType
+            }
+            collectionMode
+            txnLocation
+            amount
+            charge
+            currency
+        }
+    }
+}
+`;
