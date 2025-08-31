@@ -58,7 +58,8 @@ const TransactionPolicyPage = () => {
         return 'Store Walk-in';
       case 'MEET_UP_AND_STORE_WALK_IN':
         return 'Meet-up & Store Walk-in';
-    
+      case 'MEET_UP':
+        return 'Meet-up Only';
       default:
         return mode;
     }
@@ -142,6 +143,7 @@ const TransactionPolicyPage = () => {
                   >
                     <option value="STORE_WALK_IN">Store Walk-in</option>
                     <option value="MEET_UP_AND_STORE_WALK_IN">Meet-up & Store Walk-in</option>
+                    <option value="MEET_UP">Meet-up Only</option>
                   </select>
                 </div>
               </div>

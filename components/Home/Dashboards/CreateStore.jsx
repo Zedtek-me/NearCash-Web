@@ -39,7 +39,7 @@ const CreateStorePage = () => {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [showRangeDropdown, setShowRangeDropdown] = useState(false);
   const [showCustomRange, setShowCustomRange] = useState(false);
-  const [customRange, setCustomRange] = useState({ min: '', max: '', commission: '' });
+  const [customRange, setCustomRange] = useState({ min: '', max: '', charge: '' });
   const [errors, setErrors] = useState({});
   const [createStore, { loadingStore }] = useMutation(CREATE_STORE);
   
@@ -49,12 +49,12 @@ const CreateStorePage = () => {
   
   // Predefined range options
   const rangeOptions = [
-    { label: '1000-5000', value: '1000-5000:200', commission: '200' },
-    { label: '5001-10000', value: '5001-10000:300', commission: '300' },
-    { label: '10001-20000', value: '10001-20000:400', commission: '400' },
-    { label: '20001-50000', value: '20001-50000:500', commission: '500' },
-    { label: '50001-100000', value: '50001-100000:600', commission: '600' },
-    { label: '100001+', value: '100001+:700', commission: '700' }
+    { label: '1000-5000', value: '1000-5000:200', charge: '200' },
+    { label: '5001-10000', value: '5001-10000:300', charge: '300' },
+    { label: '10001-20000', value: '10001-20000:400', charge: '400' },
+    { label: '20001-50000', value: '20001-50000:500', charge: '500' },
+    { label: '50001-100000', value: '50001-100000:600', charge: '600' },
+    { label: '100001+', value: '100001+:700', charge: '700' }
   ];
 
  const fetchAddressSuggestions = async (input) => {
@@ -122,11 +122,11 @@ console.log(userData);
   };
 
   const handleCustomRangeSubmit = () => {
-    if (customRange.min && customRange.max && customRange.commission) {
+    if (customRange.min && customRange.max && customRange.charge) {
       const customOption = {
         label: `${customRange.min}-${customRange.max}`,
-        value: `${customRange.min}-${customRange.max}:${customRange.commission}`,
-        commission: customRange.commission
+        value: `${customRange.min}-${customRange.max}:${customRange.charge}`,
+        charge: customRange.charge
       };
       
       setFormData(prev => ({
@@ -135,7 +135,7 @@ console.log(userData);
       }));
       
       setShowCustomRange(false);
-      setCustomRange({ min: '', max: '', commission: '' });
+      setCustomRange({ min: '', max: '', charge: '' });
     }
   };
 
@@ -171,7 +171,7 @@ console.log(userData);
 
     const backendData = formData?.range.map(item => ({
       range: item.label,                
-      chargeRate: Number(item.commission) 
+      chargeRate: Number(item.charge)
     }));
 
     
@@ -384,7 +384,7 @@ console.log(userData);
                         <div className="flex-1">
                           <div className="font-medium">{option.label}</div>
                           <div className={`text-xs ${isSelected ? 'text-gray-200' : 'text-gray-500'}`}>
-                            Commission: {option.commission}
+                            charge: {option.charge}
                           </div>
                         </div>
                       </div>
@@ -423,9 +423,9 @@ console.log(userData);
                       </div>
                       <input
                         type="number"
-                        placeholder="Commission"
-                        value={customRange.commission}
-                        onChange={(e) => setCustomRange(prev => ({ ...prev, commission: e.target.value }))}
+                        placeholder="charge"
+                        value={customRange.charge}
+                        onChange={(e) => setCustomRange(prev => ({ ...prev, charge: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
                       />
                       <div className="flex gap-2">
