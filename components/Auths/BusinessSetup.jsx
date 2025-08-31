@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useMutation } from '@apollo/client';
 import useAuth from '../../Hooks/Auths';
 import { useNavigate } from 'react-router';
-import { geoapify_key } from '../../configs/environs';
+import { geoapify_key } from  '../../configs/environs';
 
 export default function AccountTypePage() {
   const [selectedType, setSelectedType] = useState(null);
