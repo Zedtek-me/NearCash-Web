@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useMutation } from '@apollo/client';
 import useAuth from '../../Hooks/Auths';
 import { useNavigate } from 'react-router';
+import { geoapify_key } from '../../configs/environs';
 
 export default function AccountTypePage() {
   const [selectedType, setSelectedType] = useState(null);
@@ -35,7 +36,7 @@ export default function AccountTypePage() {
     const res = await fetch(
       `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
         input
-      )}&apiKey=63c5a80943bb422bb32c1a54c1c50040`
+      )}&apiKey=${geoapify_key}`
     );
     const data = await res.json();
 
