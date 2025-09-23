@@ -72,11 +72,11 @@ const handleLoginWithEmail =  () => {
           password: data.password,
       }
     }).then(({ data }) => {
-          const {user, token} = data.login.data;
+          const {user, token} = data?.login?.data;
           localStorage.setItem("nearcash_token", token)
           updateUser(user)
-          navigate(`/dashboard/${user?.user_type || 'client'}`);
-          toast.success(data.login.message);
+          navigate(`/dashboard/${user?.user_type?.toLowerCase() || 'client'}`);
+          toast.success(data?.login?.message);
         })
         .catch((err) => {
           toast.error(err?.message);
