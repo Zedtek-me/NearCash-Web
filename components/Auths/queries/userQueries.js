@@ -14,6 +14,7 @@ export const CURRENT_USER = gql`
             businesses {
             id
             name
+            isPrimary
             }
             
         }    
@@ -32,6 +33,7 @@ query VendorsNearMe(
         description
         address
         location
+        distance
     }
 }`;
 
@@ -105,6 +107,9 @@ export const GET_TRANSACTIONS = gql`
         firstName
         lastName
       }
+        business{
+        id
+        }
     }
     pagination
   }

@@ -677,7 +677,7 @@ const handlePrevious = () => {
                 </div>
                 <div>
                   <div className="font-medium text-gray-800">{store?.name}</div>
-                  <div className="text-sm text-gray-500"> {store?.distance}</div>
+                  <div className="text-sm text-gray-500"> {store?.distance} km away</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">

@@ -15,8 +15,10 @@ const Dashboard = () => {
     const [subBizPage, setSubBizPage] = useState(1);
     const { userData } = useAuth();
 
+    const vendorBusinessId = userData?.businesses?.find(item => item.isPrimary);
+
     const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
-  variables: { pageCount: 10, pageNumber  },
+  variables: { pageCount: 10, pageNumber, businessId: vendorBusinessId?.id || "" },
   fetchPolicy: "network-only",
 });
 
