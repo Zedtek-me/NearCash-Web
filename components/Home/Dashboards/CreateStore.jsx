@@ -58,33 +58,38 @@ const CreateStorePage = () => {
     { label: '100001+', value: '100001+:700', charge: '700' }
   ];
 
- const fetchAddressSuggestions = async (input) => {
-  if (!input) return [];
+ const fetchAddressSuggestions = (input) => {
+  return new Promise((resolve, reject) => {
+    if (!input) {
+      resolve([]);
+      return;
+    }
 
-  try {
-    const res = await fetch(
-      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-        input
-      )}&apiKey=${geoapify_key}`
+    const service = new window.google.maps.places.AutocompleteService();
+
+    service.getPlacePredictions(
+      { input, types: ["geocode"] }, // "geocode" = only addresses
+      (predictions, status) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+          resolve([]);
+          return;
+        }
+
+        resolve(
+          predictions.map((p) => ({
+            id: p.place_id,
+            description: p.description,
+          }))
+        );
+      }
     );
-    const data = await res.json();
-
-    return data.features.map((feature) => ({
-      id: feature.properties.place_id,
-      description: feature.properties.formatted,
-      lat: feature.geometry.coordinates[1], // GeoJSON format: [lng, lat]
-      lng: feature.geometry.coordinates[0]
-    }));
-  } catch (err) {
-    console.error("Geoapify error:", err);
-    return [];
-  }
+  });
 };
 
 
   const handleAddressChange = async (e) => {
   const value = e.target.value;
-  setFormData((prev) => ({ ...prev, address: value }));
+  //setFormData((prev) => ({ ...prev, address: value }));
 
   const results = await fetchAddressSuggestions(value);
   setShowSuggestions(true);
@@ -94,15 +99,32 @@ const CreateStorePage = () => {
 console.log(userData);
 
 
-  const handleAddressSelect = (suggestion) => {
-  setFormData((prev) => ({
-    ...prev,
-    address: suggestion.description,
-    location: { latitude: suggestion.lat, longitude: suggestion.lng }
-  }));
-    setShowSuggestions(false);
+
+const handleAddressSelect = (suggestion) => {
+  const service = new window.google.maps.places.PlacesService(
+    document.createElement("div")
+  );
+
+  service.getDetails(
+    { placeId: suggestion.id, fields: ["geometry", "formatted_address"] },
+    (place, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+        setFormData((prev) => ({
+          ...prev,
+          address: place.formatted_address,
+          location: {
+            latitude: place.geometry.location.lat(),
+            longitude: place.geometry.location.lng(),
+          },
+        }));
+      }
+    }
+  );
+
+  setShowSuggestions(false);
   setAddressSuggestions([]);
 };
+
 
   const handleRangeSelect = (option) => {
     const isSelected = formData.range.some(r => r.value === option.value);
@@ -145,9 +167,9 @@ console.log(userData);
     
     if (!formData.name.trim()) newErrors.name = 'Store name is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
-    if (!formData.location.latitude || !formData.location.longitude) {
-      newErrors.location = 'Please select a valid address from suggestions';
-    }
+    // if (!formData.location.latitude || !formData.location.longitude) {
+    //   newErrors.location = 'Please select a valid address from suggestions';
+    // }
     if (!formData.range.length) newErrors.range = 'At least one range must be selected';
     if (!formData.country.trim()) newErrors.country = 'Country is required';
     
@@ -217,10 +239,10 @@ console.log(userData);
             <button className="mr-4 p-2 hover:bg-gray-800 rounded-full transition-colors duration-200">
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold">Create New Store</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Create Sub Business</h1>
           </div>
           <p className="text-gray-300 text-sm sm:text-base">
-            Fill in the details below to create your new store
+            Fill in the details below to create your new sub business
           </p>
         </div>
       </div>
@@ -231,7 +253,7 @@ console.log(userData);
           {/* Store Name */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-black">
-              Store Name *
+              Business Name *
             </label>
             <input
               type="text"
@@ -271,7 +293,7 @@ console.log(userData);
               <input
                 type="text"
                 value={formData.address}
-                onChange={handleAddressChange}
+                onChange={(e) => handleAddressChange(e )}
                 className={`w-full px-4 py-5 pr-10 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
                   errors.address ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
                 }`}
@@ -479,7 +501,7 @@ console.log(userData);
               onClick={handleSubmit}
               className="w-full bg-black text-white py-4 rounded-lg font-semibold hover:bg-gray-800 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             >
-              Create Store
+              Create Sub Business
             </button>
           </div>
         </div>

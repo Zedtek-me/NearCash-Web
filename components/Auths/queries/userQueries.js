@@ -11,6 +11,11 @@ export const CURRENT_USER = gql`
             username
             meta
             userType
+            businesses {
+            id
+            name
+            }
+            
         }    
     }
 `;
@@ -67,4 +72,120 @@ query BusinessAssets(
         chargeRate
     }
 }
+`;
+
+
+export const GET_TRANSACTIONS = gql`
+  query GetTransactions(
+    $status: String
+    $businessId: String
+    $walletId: String
+    $search: String
+    $pageCount: Int
+    $pageNumber: Int
+  ) {
+    transactions(
+      status: $status
+      businessId: $businessId
+      walletId: $walletId
+      search: $search
+      pageCount: $pageCount
+      pageNumber: $pageNumber
+    ) {
+      id
+      description
+      status
+      dateCreated
+      vendor {
+        firstName
+        lastName
+        email
+      }
+      client {
+        firstName
+        lastName
+      }
+    }
+    pagination
+  }
+`;
+
+
+export const GET_SUB_BUSINESSES = gql`
+  query Businesses(
+    $address: String
+    $id: String
+    $name: String
+    $ownerId: String
+    $pageCount: Int
+    $pageNumber: Int
+  ) {
+    businesses(
+      address: $address
+      id: $id
+      name: $name
+      ownerId: $ownerId
+      pageCount: $pageCount
+      pageNumber: $pageNumber
+    ) {
+      id
+      name
+      address
+      location 
+    }
+  }
+`;
+
+
+export const FETCH_TRANSACTION_POLICIES = gql`
+  query FetchBusinessTransactionPolicies(
+    $id: String
+    $name: String
+    $businessId: String!
+    $meetUpCharge: Float
+    $cashCollectionMode: CashCollectionModes
+  ) {
+    businessTransactionPolicies(
+      id: $id
+      name: $name
+      businessId: $businessId
+      meetUpCharge: $meetUpCharge
+      cashCollectionMode: $cashCollectionMode
+    ) {
+      id
+      name
+      description
+      cashCollectionMode
+      meetUpCharge
+      dateCreated
+      lastUpdated
+      business {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const FETCH_BUSINESS_CLIENTS = gql`
+  query BusinessClients($businessId: String, $categoryId: String) {
+    businessClients(businessId: $businessId, categoryId: $categoryId) {
+      client {
+        id
+        email
+        firstName
+        lastName
+        username
+      }
+      category {
+        id
+        name
+      }
+      business {
+        id
+        name
+      }
+      lastPatronized
+    }
+  }
 `;

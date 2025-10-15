@@ -29,28 +29,34 @@ export default function AccountTypePage() {
     setSelectedType(type);
   };
 
-  const fetchAddressSuggestions = async (input) => {
-  if (!input) return [];
+  const fetchAddressSuggestions = (input) => {
+  return new Promise((resolve, reject) => {
+    if (!input) {
+      resolve([]);
+      return;
+    }
 
-  try {
-    const res = await fetch(
-      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
-        input
-      )}&apiKey=${geoapify_key}`
+    const service = new window.google.maps.places.AutocompleteService();
+
+    service.getPlacePredictions(
+      { input, types: ["geocode"] }, // "geocode" = only addresses
+      (predictions, status) => {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+          resolve([]);
+          return;
+        }
+
+        resolve(
+          predictions.map((p) => ({
+            id: p.place_id,
+            description: p.description,
+          }))
+        );
+      }
     );
-    const data = await res.json();
-
-    return data.features.map((feature) => ({
-      id: feature.properties.place_id,
-      description: feature.properties.formatted,
-      lat: feature.geometry.coordinates[1], // GeoJSON format: [lng, lat]
-      lng: feature.geometry.coordinates[0]
-    }));
-  } catch (err) {
-    console.error("Geoapify error:", err);
-    return [];
-  }
+  });
 };
+
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -61,7 +67,7 @@ export default function AccountTypePage() {
 
   const handleAddressChange = async (e) => {
   const value = e.target.value;
-  setFormData((prev) => ({ ...prev, address: value }));
+  // setFormData((prev) => ({ ...prev, address: value }));
 
   const results = await fetchAddressSuggestions(value);
   setShowSuggestions(true);
@@ -69,14 +75,30 @@ export default function AccountTypePage() {
 };
 
 const handleAddressSelect = (suggestion) => {
-  setFormData((prev) => ({
-    ...prev,
-    address: suggestion.description,
-    location: { latitude: suggestion.lat, longitude: suggestion.lng }
-  }));
-    setShowSuggestions(false);
+  const service = new window.google.maps.places.PlacesService(
+    document.createElement("div")
+  );
+
+  service.getDetails(
+    { placeId: suggestion.id, fields: ["geometry", "formatted_address"] },
+    (place, status) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+        setFormData((prev) => ({
+          ...prev,
+          address: place.formatted_address,
+          location: {
+            latitude: place.geometry.location.lat(),
+            longitude: place.geometry.location.lng(),
+          },
+        }));
+      }
+    }
+  );
+
+  setShowSuggestions(false);
   setAddressSuggestions([]);
 };
+
 
   const isFormValid = formData.businessName && formData.description && formData.address && formData.country;
 
@@ -275,7 +297,7 @@ const handleAddressSelect = (suggestion) => {
                     <input
                       type="text"
                       value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      onChange={(e) => handleAddressChange(e )}
                         className="w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:bg-black transition-all duration-300"
                       placeholder="Enter your full business address"
                       required

@@ -71,6 +71,10 @@ const Navbar = ({
   ];
 
   const handleNavigation = (href) => {
+    if (href === 'logout') {
+      localStorage.removeItem('nearcash_token');
+      return  navigate('/auth/login');
+    }
     navigate(href);
     setIsOpen(false);
   };
@@ -160,7 +164,6 @@ const Navbar = ({
     `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
               <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-900 rounded-lg flex items-center justify-center">
@@ -192,7 +195,6 @@ const Navbar = ({
               {showNotifications && <NotificationDropdown />}
             </div>
 
-            {/* User Menu */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -207,7 +209,6 @@ const Navbar = ({
             </div>
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -219,7 +220,6 @@ const Navbar = ({
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       <div className={`
         md:hidden mobile-menu transition-all duration-300 ease-in-out
         ${isOpen 
@@ -228,12 +228,10 @@ const Navbar = ({
         }
       `}>
         <div className="px-4 pt-2 pb-6 space-y-1 bg-white border-t border-gray-200">
-          {/* Mobile Navigation Items */}
           {navigation.map((item) => (
             <NavItem key={item.name} item={item} isMobile />
           ))}
           
-          {/* Mobile User Section */}
           <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="flex items-center space-x-3 px-3 py-2 mb-3">
               <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
@@ -260,7 +258,6 @@ const Navbar = ({
             })}
           </div>
 
-          {/* Mobile Notifications */}
           <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="flex items-center justify-between px-3 py-2 mb-2">
               <h3 className="font-medium text-gray-900">Notifications</h3>
@@ -280,7 +277,6 @@ const Navbar = ({
         </div>
       </div>
 
-      {/* Overlay for mobile menu */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-25 z-30 md:hidden"

@@ -40,7 +40,7 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={ user?.email ? <Navigate to={`/dashboard/${user.userType}`} replace/> : <GetStarted/> }/>
+                <Route path="/" element={ user?.email ? <Navigate to={`/dashboard/${user?.userType?.toLowerCase()}`} replace/> : <GetStarted/> }/>
                 <Route path="/auth" element={<AuthLayout/>}>
                     <Route path="signup" element={<SignUp/>}/>
                     <Route index path="login" element={<Login/>}/>

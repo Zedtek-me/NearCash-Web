@@ -42,6 +42,10 @@ export default function SignUp(){
 });
 
  const handleGoogleSignIn = async () => {
+     
+      localStorage.removeItem('nearcash_token');
+     
+
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -61,6 +65,7 @@ export default function SignUp(){
 };
 
 const handleSignUpWithEmail =  () => {
+      localStorage.removeItem('nearcash_token');
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -75,8 +80,6 @@ const handleSignUpWithEmail =  () => {
       }
     }).then(({ data }) => {
           const {user, token} = data.signup.data;
-          console.log(user);
-          
           localStorage.setItem("nearcash_token", token)
           updateUser(user)
           navigate('/business-setup');

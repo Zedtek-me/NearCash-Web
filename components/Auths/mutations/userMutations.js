@@ -174,3 +174,76 @@ mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
     }
 }
 `;
+
+export const UPDATE_TRANSACTION_STATUS = gql`
+  mutation UpdateTransactionStatus($id: ID!, $status: String!) {
+    updateTransactionStatus(id: $id, status: $status) {
+      id
+      status
+    }
+  }
+`;
+
+export const CREATE_TRANSACTION_POLICY = gql`
+  mutation CreateTransactionPolicy($businessId: String!, $data: CreateTransactionPolicyInputType!) {
+    createTransactionPolicy(businessId: $businessId, data: $data) {
+      message
+      policy {
+        id
+        name
+        description
+        cashCollectionMode
+        meetUpCharge
+        dateCreated
+        business {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const CREATE_CLIENT_CATEGORY = gql`
+  mutation CreateClientCategory($businessId: String!, $categoryInfo: CreateClientCategoryInputType!) {
+    createClientCategory(businessId: $businessId, categoryInfo: $categoryInfo) {
+      message
+      category {
+        id
+        name
+        description
+        txnPolicy {
+          id
+          name
+          cashCollectionMode
+          meetUpCharge
+          meta
+        }
+      }
+    }
+  }
+`;
+
+export const ADD_CLIENTS_TO_CATEGORY = gql`
+  mutation AddClientsToCategory($data: AddClientsToCategoryInputType!) {
+    addClientsToACategory(data: $data) {
+      message
+      categoryClients {
+        id
+        category {
+          name
+          description
+        }
+        client {
+          email
+          firstName
+          lastName
+        }
+        business {
+          id
+          name
+        }
+      }
+    }
+  }
+`;

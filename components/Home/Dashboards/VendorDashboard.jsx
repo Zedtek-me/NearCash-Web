@@ -1,18 +1,79 @@
-import React from 'react';
-import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
+import { useMutation, useQuery } from '@apollo/client';
+import { GET_SUB_BUSINESSES, GET_TRANSACTIONS } from '../../Auths/queries/userQueries';
+import useAuth from '../../../Hooks/Auths';
+import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
+import TransactionCard from '../TransactionCard';
+
 
 const Dashboard = () => {
     const navigate = useNavigate()
+    const [pageNumber, setPageNumber] = useState(1);
+    const [subBizPage, setSubBizPage] = useState(1);
+    const { userData } = useAuth();
 
-  const transactionHistory = [
-    { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
-    { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
-    { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
-    { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
-    { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
-  ];
+    const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
+  variables: { pageCount: 10, pageNumber  },
+  fetchPolicy: "network-only",
+});
+
+const {
+  data: subBizData,
+  loading: subBizLoading,
+  error: subBizError,
+  refetch: refetchSubBiz,
+} = useQuery(GET_SUB_BUSINESSES, {
+  variables: { pageCount: 10, pageNumber: subBizPage, ownerId: userData?.id || "" },
+  fetchPolicy: "network-only",
+});
+
+const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
+
+console.log(userData);
+
+
+const handleNext = () => {
+  setPageNumber((prev) => prev + 1);
+};
+
+const handlePrevious = () => {
+  if (pageNumber > 1) setPageNumber((prev) => prev - 1);
+};
+
+const handleSubBizNext = () => {
+  setSubBizPage((prev) => prev + 1);
+};
+
+const handleSubBizPrevious = () => {
+  if (subBizPage > 1) setSubBizPage((prev) => prev - 1);
+};
+
+const subBusinessList = subBizData?.businesses || [];
+
+const handleUpdateStatus = async (id, newStatus) => {
+  try {
+    await updateStatus({ variables: { id, status: newStatus } });
+    refetch(); // refresh transactions after update
+  } catch (err) {
+    console.error("Failed to update status:", err);
+  }
+};
+
+
+
+
+  // const transactionHistory = [
+  //   { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
+  //   { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
+  //   { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
+  //   { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
+  //   { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
+  // ];
+
+  const transactionHistory = data?.transactions || [];
 
   const storeList = [
     { id: 1, name: "Walmart Supercenter", location: "123 Main St, New York, NY", category: "Grocery" },
@@ -52,15 +113,11 @@ const Dashboard = () => {
       <Navbar />
 
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Left Column */}
           <div className="xl:col-span-12 space-y-12">
-            {/* Top Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Total Balance */}
               <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm opacity-90">Total transactions
@@ -74,7 +131,6 @@ const Dashboard = () => {
                 <div className="text-2xl font-bold">$35,543</div>
               </div>
 
-              {/* Income */}
               <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-600">Total Profit</span>
@@ -111,7 +167,7 @@ const Dashboard = () => {
                   onClick={() => navigate('/create-store')}
                 >
                   <Plus size={16} />
-                  <span>Create Store</span>
+                  <span>Create Sub Business</span>
                 </button>
               </div>
             </div>
@@ -120,76 +176,100 @@ const Dashboard = () => {
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                  See All
-                </button>
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={pageNumber === 1}
+                    className="p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400 disabled:opacity-50"
+                  >
+                    <ArrowLeft />
+                  </button>
+
+
+                  <button
+                    onClick={handleNext}
+                    className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400"
+                  >
+                    <ArrowRight />
+                  </button>
+                </div>
+
               </div>
               
               <div className="space-y-4">
-                {transactionHistory.map((transaction, index) => (
-                  <div key={transaction.id} className="bg-white flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                    <div className="flex items-center">
-                      <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
-                        <span className="text-white text-sm font-medium">
-                          {transaction.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-800">{transaction.name}</div>
-                        <div className="text-sm text-gray-500">{transaction.date}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className={`font-medium mr-3 ${
-                        transaction.amount.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.amount}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {transaction.status}
-                      </span>
-                    </div>
-                  </div>
+                {transactionHistory.map((tx, index) => (
+                  <TransactionCard
+                      transaction={tx}
+                      index={index}
+                      onApprove={(id) => console.log("Approve:", id)}
+                      onReject={(id) => console.log("Reject:", id)}
+                      onViewDetails={(id) => navigate(`/transactions/${id}`)}
+                    />
+
                 ))}
               </div>
             </div>
 
             <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border  border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-800">Store List</h2>
-                <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
-                  See All
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {storeList.map((store, index) => (
-                  <div key={store.id} className="bg-white hover:scale-105 flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group">
-                    <div className="flex items-center flex-1">
-                      <div className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}>
-                        <span className="text-white text-sm font-medium">
-                          {store.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-800 truncate">{store.name}</div>
-                        <div className="flex items-center text-sm text-gray-500 mt-1">
-                          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="truncate">{store.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center ml-4">
-                      {/* <span className={`px-2 py-1 rounded-full text-xs font-medium mr-3 ${getCategoryColor(store.category)}`}>
-                        {store.category}
-                      </span> */}
-                      <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+             <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-semibold text-gray-800">Sub Business List</h2>
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handleSubBizPrevious}
+            disabled={subBizPage === 1}
+            className="p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400 disabled:opacity-50"
+          >
+            <ArrowLeft />
+          </button>
+          <button
+            onClick={handleSubBizNext}
+            className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400"
+          >
+            <ArrowRight />
+          </button>
+        </div>
+      </div>
+
+<div className="space-y-4">
+  {subBizLoading ? (
+    <p className="text-gray-500 text-sm">Loading...</p>
+  ) : subBusinessList.length > 0 ? (
+    subBusinessList.map((store, index) => (
+      <div
+        key={store.id}
+        className="bg-white hover:scale-105 flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group"
+      >
+        <div className="flex items-center flex-1">
+          <div
+            className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}
+          >
+            <span className="text-white text-sm font-medium">
+              {store.name.split(" ").map((n) => n[0]).join("")}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-gray-800 truncate">{store.name}</div>
+            <div className="flex items-center text-sm text-gray-500 mt-1">
+              <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{store.address}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center ml-4">
+          <button
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
+            onClick={() => navigate(`/sub-business/${store.id}`)}
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-500 text-sm">No sub businesses found.</p>
+  )}
+</div>
+
             </div>
             </div>
           </div>

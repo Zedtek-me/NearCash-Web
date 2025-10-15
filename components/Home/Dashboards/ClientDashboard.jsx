@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, ChevronDown, ChevronUp, X, Navigation, Loader2 } from 'lucide-react';
+import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, ChevronDown, ChevronUp, X, Navigation, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Subscriber } from "../../../utils/subscriber";
 import { useStateValue } from "../../../providers/stateProvider";
 import Navbar from '../Navs/Headers';
-import { VENDOR_LIST, GET_VENDOR_POLICIES, GET_ASSETS } from '../../Auths/queries/userQueries';
+import { VENDOR_LIST, GET_VENDOR_POLICIES, GET_ASSETS, GET_TRANSACTIONS } from '../../Auths/queries/userQueries';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { CREATE_TRANSACTION } from '../../Auths/mutations/userMutations';
 import useAuth from '../../../Hooks/Auths';
+import TransactionCard from '../TransactionCard';
+import { useNavigate } from 'react-router';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
     const {  userData } = useAuth();
+        const navigate = useNavigate()
+    
 
 
    const [expandedCards, setExpandedCards] = useState(new Set());
@@ -28,6 +32,8 @@ export default function ClientDashboard() {
   const [amount, setAmount] = useState("");
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [assetId, setAssets] = useState(null);
+      const [pageNumber, setPageNumber] = useState(1);
+  
 
 
   const getStatusColor = (status) => {
@@ -53,6 +59,20 @@ export default function ClientDashboard() {
 
   const [fetchAsset, { data: assetData, loading: assetLoading }] =
     useLazyQuery(GET_ASSETS);
+
+    const { data: transactionData, loading: transactionLoading, error: transactionError, refetch } = useQuery(GET_TRANSACTIONS, {
+      variables: { pageCount: 10, pageNumber },
+      fetchPolicy: "network-only",
+    });
+
+    const handleNext = () => {
+  setPageNumber((prev) => prev + 1);
+};
+
+const handlePrevious = () => {
+  if (pageNumber > 1) setPageNumber((prev) => prev - 1);
+};
+
 
 
   console.log(userLocation, data);
@@ -516,6 +536,9 @@ export default function ClientDashboard() {
     fetchAsset({ variables: { businessId: String(vendorId) } });
   };
 
+  const transactionHistory = transactionData?.transactions || [];
+
+
 
   const MapModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -586,44 +609,46 @@ export default function ClientDashboard() {
              <div className="flex gap-4">
               <div className="bg-white rounded-2xl p-6 shadow-sm w-[300px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Investment Wallet</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Total transaction</h2>
                   <ArrowUpRight className="w-5 h-5 text-gray-400" />
                 </div>
                 
-                <div className="mb-4">
+                 <div className="mb-4">
                   <div className="text-2xl font-bold text-gray-900 mb-1">₦ 63 <span className="text-gray-400 font-normal">500</span></div>
-                  <div className="text-sm text-gray-500">Your Balance</div>
-                </div>
+                 
+                </div> 
 
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <div className="font-semibold text-gray-900">₦ 58 200 <span className="text-sm font-normal text-gray-500">Available Funds</span></div>
-                </div>
+                </div> */}
 
-                <div className="flex space-x-3">
+                {/* <div className="flex space-x-3">
                   <button className="text-sm font-medium text-gray-700 underline">Deposit</button>
                   <button className="text-sm font-medium text-gray-700 underline">Withdraw</button>
-                </div>
+                </div> */}
               </div>
 
               <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm w-[300px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Borrowing</h2>
+                  <h2 className="text-lg font-semibold">Monthly transaction</h2>
                   <ArrowUpRight className="w-5 h-5 text-white/80" />
                 </div>
+                 <div className="mb-4">
+                  <div className="text-2xl font-bold text-white/80 mb-1">₦ 63 <span className=" font-normal">500</span></div>
+                 
+                </div> 
                 
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <div className="text-2xl font-bold mb-1">₦ 70 <span className="text-white/60 font-normal">250</span></div>
                   <div className="text-sm text-white/80">Loan Amount</div>
-                </div>
+                </div> */}
 
-                <div className="flex items-center space-x-2 mb-4">
+                {/* <div className="flex items-center space-x-2 mb-4">
                   <Clock className="w-4 h-4 text-white/80" />
                   <span className="text-sm text-white/80">2026-09-01</span>
-                </div>
+                </div> */}
 
-                <button className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30 transition-colors">
-                  Pay Now
-                </button>
+                
               </div>
             </div>
         </div>
@@ -631,7 +656,8 @@ export default function ClientDashboard() {
       
       </div>
 
-        <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-10 md:mx-[10rem]'>
+
+        <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-10'>
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
@@ -773,7 +799,50 @@ export default function ClientDashboard() {
       {showMap && <MapModal />}
             </div>
 
+             <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    onClick={handlePrevious}
+                    disabled={pageNumber === 1}
+                    className="p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400 disabled:opacity-50"
+                  >
+                    <ArrowLeft />
+                  </button>
+
+
+                  <button
+                    onClick={handleNext}
+                    className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-[100%] hover:bg-gray-400"
+                  >
+                    <ArrowRight />
+                  </button>
+                </div>
+
+              </div>
+              
+              <div className="space-y-4">
+                {transactionHistory.map((tx, index) => (
+                  <TransactionCard
+                      transaction={tx}
+                      index={index}
+                      onApprove={(id) => console.log("Approve:", id)}
+                      onReject={(id) => console.log("Reject:", id)}
+                      onViewDetails={(id) => navigate(`/transactions/${tx.id}`)}
+                    />
+
+                ))}
+              </div>
+            </div>
+
            
+            </div>
+
+             <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-20'>
+             
+
+         
             </div>
     </div>
   );

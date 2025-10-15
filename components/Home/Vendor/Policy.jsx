@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { Plus, FileText, DollarSign, MapPin, Store, Users, Edit, Trash2, CheckCircle } from 'lucide-react';
 import Navbar from '../Navs/Headers';
+import { CREATE_TRANSACTION_POLICY } from '../../Auths/mutations/userMutations';
+import useAuth from '../../../Hooks/Auths';
+import { useMutation, useQuery } from '@apollo/client';
+import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
+import toast from 'react-hot-toast';
 
 const TransactionPolicyPage = () => {
-  const [policies, setPolicies] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -12,6 +16,10 @@ const TransactionPolicyPage = () => {
     meetUpCharge: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+    const { userData } = useAuth();
+
+  
+  const vendorBusinessId = userData?.businesses?.[0]?.id;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,38 +28,84 @@ const TransactionPolicyPage = () => {
       [name]: value
     }));
   };
+  const { data, loading, error, refetch } = useQuery(FETCH_TRANSACTION_POLICIES, {
+    variables: { businessId:  vendorBusinessId, pageCount: 10, pageNumber: 1 },
+    fetchPolicy: "network-only",
+  });
+
+  const policies = data?.businessTransactionPolicies || [];
+
+
+  const [createPolicy, { loading: creating }] = useMutation(CREATE_TRANSACTION_POLICY);
+
+  // const handleSubmit = async () => {
+  //   if (!formData.name) return;
+  //   setIsSubmitting(true);
+    
+  //   await new Promise(resolve => setTimeout(resolve, 1000));
+    
+  //   const newPolicy = {
+  //     id: Date.now(),
+  //     businessId: "12",
+  //     data: {
+  //       ...formData,
+  //       meetUpCharge: formData.meetUpCharge ? parseFloat(formData.meetUpCharge) : 0
+  //     },
+  //     createdAt: new Date().toISOString()
+  //   };
+    
+  //   setPolicies(prev => [newPolicy, ...prev]);
+  //   setFormData({
+  //     name: '',
+  //     description: '',
+  //     cashCollectionMode: 'STORE_WALK_IN',
+  //     meetUpCharge: ''
+  //   });
+  //   setShowForm(false);
+  //   setIsSubmitting(false);
+  // };
+
+  // const deletePolicy = (id) => {
+  //   setPolicies(prev => prev.filter(policy => policy.id !== id));
+  // };
 
   const handleSubmit = async () => {
-    if (!formData.name) return;
-    setIsSubmitting(true);
+    console.log(formData);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newPolicy = {
-      id: Date.now(),
-      businessId: "12",
-      data: {
-        ...formData,
-        meetUpCharge: formData.meetUpCharge ? parseFloat(formData.meetUpCharge) : 0
+  if (!formData.name) {
+    toast.error("Policy name is required.");
+    return;
+  }
+
+  try {
+
+    const { data } = await createPolicy({
+      variables: {
+        businessId: vendorBusinessId,
+        data: {
+          ...formData,
+          meetUpCharge: formData.meetUpCharge
+            ? parseFloat(formData.meetUpCharge)
+            : 0,
+        },
       },
-      createdAt: new Date().toISOString()
-    };
-    
-    setPolicies(prev => [newPolicy, ...prev]);
-    setFormData({
-      name: '',
-      description: '',
-      cashCollectionMode: 'STORE_WALK_IN',
-      meetUpCharge: ''
     });
-    setShowForm(false);
-    setIsSubmitting(false);
-  };
 
-  const deletePolicy = (id) => {
-    setPolicies(prev => prev.filter(policy => policy.id !== id));
-  };
-
+    if (data?.createTransactionPolicy?.policy) {
+      setFormData({
+        name: "",
+        description: "",
+        cashCollectionMode: "STORE_WALK_IN",
+        meetUpCharge: "",
+      });
+      refetch()
+      toast.success("Policy created successfully!");
+      setShowForm(false);
+    }
+  } catch (err) {
+    console.error("Error creating policy:", err);
+  }
+};
   const getCashCollectionModeDisplay = (mode) => {
     switch(mode) {
       case 'STORE_WALK_IN':
@@ -81,8 +135,7 @@ const TransactionPolicyPage = () => {
       <Navbar />
 
      <div className=" bg-white">
-      {/* Header */}
-      <div className="bg-white backdrop-blur-sm border-b border-t border-gray-800 mt-16">
+      <div className="bg-white backdrop-blur-sm border-t border-gray-800 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -106,7 +159,6 @@ const TransactionPolicyPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Create Policy Form */}
         <div className={`transition-all duration-500 ease-in-out ${showForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
             <div className="bg-gradient-to-r from-gray-900 to-gray-700 px-6 py-4">
@@ -189,10 +241,10 @@ const TransactionPolicyPage = () => {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={creating}
                   className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  {isSubmitting ? (
+                  {creating ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Creating...
@@ -216,16 +268,17 @@ const TransactionPolicyPage = () => {
           </div>
         </div>
 
-        {/* Policies List */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-slate-900">Active Policies</h2>
             <div className="text-sm text-slate-500">
-              {policies.length} {policies.length === 1 ? 'policy' : 'policies'}
+              {policies?.length} {policies?.length === 1 ? 'policy' : 'policies'}
             </div>
           </div>
 
-          {policies.length === 0 ? (
+          { loading ? (
+          <p className="text-gray-500">Loading policies...</p>
+        ) : policies?.length === 0 ? (
             <div className="bg-gray-900 rounded-2xl border border-gray-800  shadow-lg  p-12 text-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8 text-slate-400" />
@@ -254,33 +307,33 @@ const TransactionPolicyPage = () => {
                           <FileText className="w-5 h-5 text-gray-900" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-slate-100 text-lg">{policy.data.name}</h3>
-                          <p className="text-sm text-slate-300">Policy #{policy.id}</p>
+                          <h3 className="font-semibold text-slate-100 text-lg">{policy?.name}</h3>
+                          <p className="text-sm text-slate-300">Policy #{policy?.id}</p>
                         </div>
                       </div>
                       <button
-                        onClick={() => deletePolicy(policy.id)}
+                        onClick={() => deletePolicy(policy?.id)}
                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <p className="text-slate-200 mb-4 line-clamp-3">{policy.data.description}</p>
+                    <p className="text-slate-200 mb-4 line-clamp-3">{policy?.description}</p>
 
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                        {getCashCollectionModeIcon(policy.data.cashCollectionMode)}
+                        {getCashCollectionModeIcon(policy?.cashCollectionMode)}
                         <span className="text-sm font-medium text-slate-700">
-                          {getCashCollectionModeDisplay(policy.data.cashCollectionMode)}
+                          {getCashCollectionModeDisplay(policy.cashCollectionMode)}
                         </span>
                       </div>
 
-                      {policy.data.meetUpCharge > 0 && (
-                        <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+                      {policy?.meetUpCharge > 0 && (
+                        <div className="flex items-center gap-2 p-3  rounded-lg">
                           <DollarSign className="w-4 h-4 text-gray-200" />
                           <span className="text-sm font-medium text-gray-300">
-                            Meet-up Charge: ${policy.data.meetUpCharge}
+                            Meet-up Charge: ${policy?.meetUpCharge}
                           </span>
                         </div>
                       )}
@@ -288,7 +341,7 @@ const TransactionPolicyPage = () => {
 
                     <div className="mt-4 pt-4 border-t border-slate-100">
                       <p className="text-xs text-slate-200">
-                        Created {new Date(policy.createdAt).toLocaleDateString()}
+                        Created {new Date(policy.dateCreated).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

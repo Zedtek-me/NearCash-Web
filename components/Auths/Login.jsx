@@ -41,9 +41,8 @@ export default function Login(){
 
  const handleGoogleSignIn = async () => {
      localStorage.setItem("auth_type", "login");
+      localStorage.removeItem('nearcash_token');
 
-     console.log('jjhghgggggg');
-     
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -61,6 +60,7 @@ export default function Login(){
 };
 
 const handleLoginWithEmail =  () => {
+      localStorage.removeItem('nearcash_token');
 
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
@@ -75,7 +75,7 @@ const handleLoginWithEmail =  () => {
           const {user, token} = data?.login?.data;
           localStorage.setItem("nearcash_token", token)
           updateUser(user)
-          navigate(`/dashboard/${user?.user_type?.toLowerCase() || 'client'}`);
+          navigate(`/dashboard/${user?.userType?.toLowerCase() || 'client'}`);
           toast.success(data?.login?.message);
         })
         .catch((err) => {

@@ -1,28 +1,31 @@
 import React, { useState } from 'react';
 import { Plus, Users, Tag, UserPlus, X, ChevronDown, Search, Edit, Trash2, CheckCircle } from 'lucide-react';
 import Navbar from '../Navs/Headers';
+import { ADD_CLIENTS_TO_CATEGORY, CREATE_CLIENT_CATEGORY } from '../../Auths/mutations/userMutations';
+import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
+import { useMutation, useQuery } from '@apollo/client';
+import useAuth from '../../../Hooks/Auths';
 
 const CategoryManagementPage = () => {
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+   const { userData } = useAuth();
   
-  // Mock data for transaction policies and clients
-  const [transactionPolicies] = useState([
-    { id: "1", name: "Special Patron Policy" },
-    { id: "2", name: "Regular Customer Policy" },
-    { id: "3", name: "VIP Policy" }
-  ]);
+  const vendorBusinessId = userData?.businesses?.[0]?.id;
   
-  const [availableClients] = useState([
-    { id: "1", name: "John Doe", email: "john@example.com" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com" },
-    { id: "3", name: "Mike Johnson", email: "mike@example.com" },
-    { id: "4", name: "Sarah Wilson", email: "sarah@example.com" },
-    { id: "5", name: "David Brown", email: "david@example.com" },
-    { id: "6", name: "Emma Davis", email: "emma@example.com" }
-  ]);
+
+  const { data: policiesData } = useQuery(FETCH_TRANSACTION_POLICIES, {
+    variables: { businessId: vendorBusinessId, pageCount: 20, pageNumber: 1 },
+  });
+
+  const { data: clientsData } = useQuery(FETCH_BUSINESS_CLIENTS, {
+    variables: { businessId: vendorBusinessId },
+  });
+
+  const [createCategory, { loading: creatingCategory }] = useMutation(CREATE_CLIENT_CATEGORY);
+  const [addClients, { loading: addingClients }] = useMutation(ADD_CLIENTS_TO_CATEGORY);
 
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
@@ -46,61 +49,66 @@ const CategoryManagementPage = () => {
     }));
   };
 
-  const handleCreateCategory = async () => {
-    if (!categoryFormData.name || !categoryFormData.transactionPolicyId) return;
-    
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newCategory = {
-      id: Date.now().toString(),
-      businessId: "12",
-      categoryInfo: {
-        ...categoryFormData
-      },
-      clients: [],
-      createdAt: new Date().toISOString()
-    };
-    
-    setCategories(prev => [newCategory, ...prev]);
-    setCategoryFormData({
-      name: '',
-      description: '',
-      transactionPolicyId: ''
-    });
-    setShowCategoryForm(false);
-    setIsSubmitting(false);
+
+  
+
+ const handleCreateCategory = async () => {
+    try {
+      const { data } = await createCategory({
+        variables: {
+          businessId: vendorBusinessId,
+          categoryInfo: {
+            ...categoryFormData,
+            transactionPolicyId: categoryFormData.transactionPolicyId,
+          },
+        },
+      });
+
+      if (data?.createClientCategory?.category) {
+        setCategories(prev => [data.createClientCategory.category, ...prev]);
+        setCategoryFormData({ name: "", description: "", transactionPolicyId: "" });
+        setShowCategoryForm(false);
+      }
+    } catch (err) {
+      console.error("Error creating category:", err);
+    }
   };
 
-  const handleAddClients = async () => {
-    if (!clientFormData.clientIds.length || !clientFormData.categoryId) return;
-    
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    setCategories(prev => prev.map(category => {
-      if (category.id === clientFormData.categoryId) {
-        const newClients = clientFormData.clientIds
-          .filter(clientId => !category.clients.some(c => c.id === clientId))
-          .map(clientId => availableClients.find(c => c.id === clientId))
-          .filter(Boolean);
-        
-        return {
-          ...category,
-          clients: [...category.clients, ...newClients]
-        };
+ const handleAddClients = async () => {
+    try {
+      const { data } = await addClients({
+        variables: {
+          data: {
+            clientIds: clientFormData.clientIds,
+            categoryId: clientFormData.categoryId,
+            businessId: userData?.id,
+          },
+        },
+      });
+
+      if (data?.addClientsToACategory?.categoryClients) {
+        const updatedClients = data.addClientsToACategory.categoryClients.map(c => ({
+          id: c.client.id,
+          name: `${c.client.firstName} ${c.client.lastName}`,
+          email: c.client.email,
+        }));
+
+        setCategories(prev =>
+          prev.map(cat =>
+            cat.id === clientFormData.categoryId
+              ? { ...cat, clients: [...(cat.clients || []), ...updatedClients] }
+              : cat
+          )
+        );
+
+        setShowClientForm(false);
+        setClientFormData({ clientIds: [], categoryId: "" });
       }
-      return category;
-    }));
-    
-    setClientFormData({
-      clientIds: [],
-      categoryId: ''
-    });
-    setShowClientForm(false);
-    setSelectedCategory(null);
-    setIsSubmitting(false);
+    } catch (err) {
+      console.error("Error adding clients:", err);
+    }
   };
+
 
   const toggleClientSelection = (clientId) => {
     setClientFormData(prev => ({
@@ -141,6 +149,13 @@ const CategoryManagementPage = () => {
     return policy ? policy.name : 'Unknown Policy';
   };
 
+  const transactionPolicies = policiesData?.businessTransactionPolicies || [];
+  const availableClients = clientsData?.businessClients?.map(c => ({
+    id: c.client.id,
+    name: `${c.client.firstName} ${c.client.lastName}`,
+    email: c.client.email,
+  })) || [];
+
   const filteredClients = availableClients.filter(client =>
     client.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(clientSearchTerm.toLowerCase())
@@ -153,8 +168,7 @@ const CategoryManagementPage = () => {
 
          <div className=" bg-white text-black">
 
-      {/* Header */}
-      <div className="border-b border-t border-gray-800 mt-16">
+      <div className=" border-t border-gray-800 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -178,7 +192,6 @@ const CategoryManagementPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Create Category Form */}
         <div className={`transition-all duration-500 ease-in-out ${showCategoryForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
           <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
             <div className="bg-white px-6 py-4">
@@ -238,7 +251,7 @@ const CategoryManagementPage = () => {
               <div className="flex gap-4 pt-4">
                 <button
                   onClick={handleCreateCategory}
-                  disabled={isSubmitting || !categoryFormData.name || !categoryFormData.transactionPolicyId}
+                  //disabled={isSubmitting || !categoryFormData.name || !categoryFormData.transactionPolicyId}
                   className="flex-1 sm:flex-none px-8 py-3 bg-white text-black rounded-xl font-medium hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isSubmitting ? (
@@ -264,7 +277,6 @@ const CategoryManagementPage = () => {
           </div>
         </div>
 
-        {/* Add Clients Form */}
         <div className={`transition-all duration-500 ease-in-out ${showClientForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
           <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
             <div className="bg-white px-6 py-4 flex items-center justify-between">
