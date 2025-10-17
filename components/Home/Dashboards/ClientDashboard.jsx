@@ -12,12 +12,12 @@ import { useNavigate } from 'react-router';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
-    const {  userData } = useAuth();
-        const navigate = useNavigate()
+  const { userData } = useAuth();
+  const navigate = useNavigate();
     
 
 
-   const [expandedCards, setExpandedCards] = useState(new Set());
+  const [expandedCards, setExpandedCards] = useState(new Set());
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
