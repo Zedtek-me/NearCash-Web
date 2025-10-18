@@ -206,6 +206,7 @@ const handleUpdateStatus = async (id, newStatus) => {
                       onApprove={(id) => console.log("Approve:", id)}
                       onReject={(id) => console.log("Reject:", id)}
                       onViewDetails={(id) => navigate(`/transactions/${id}`)}
+                      key={tx.id}
                     />
 
                 ))}

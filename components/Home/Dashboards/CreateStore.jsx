@@ -8,6 +8,7 @@ import useAuth from '../../../Hooks/Auths';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
 import { geoapify_key } from '../../../configs/environs';
+import { backArrowReturnFunc } from '../../../utils/auths';
 
 
 const CreateStorePage = () => {
@@ -64,7 +65,7 @@ const CreateStorePage = () => {
       resolve([]);
       return;
     }
-
+    setIsLoadingAddress(true)
     const service = new window.google.maps.places.AutocompleteService();
 
     service.getPlacePredictions(
@@ -72,6 +73,7 @@ const CreateStorePage = () => {
       (predictions, status) => {
         if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
           resolve([]);
+          setIsLoadingAddress(false)
           return;
         }
 
@@ -81,6 +83,7 @@ const CreateStorePage = () => {
             description: p.description,
           }))
         );
+        setIsLoadingAddress(false);
       }
     );
   });
@@ -89,7 +92,7 @@ const CreateStorePage = () => {
 
   const handleAddressChange = async (e) => {
   const value = e.target.value;
-  //setFormData((prev) => ({ ...prev, address: value }));
+  setFormData((prev) => ({ ...prev, address: value }));
 
   const results = await fetchAddressSuggestions(value);
   setShowSuggestions(true);
@@ -237,7 +240,7 @@ const handleAddressSelect = (suggestion) => {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-4">
             <button className="mr-4 p-2 hover:bg-gray-800 rounded-full transition-colors duration-200">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" onClick={() => backArrowReturnFunc(navigate)}/>
             </button>
             <h1 className="text-xl sm:text-2xl font-bold">Create Sub Business</h1>
           </div>
