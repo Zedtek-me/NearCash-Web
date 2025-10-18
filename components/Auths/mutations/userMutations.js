@@ -90,6 +90,7 @@ export const LOGIN_WITH_S = gql`
                         firstName
                         lastName
                         username
+                        fullName
                         password
                         userType
                     }
@@ -110,6 +111,7 @@ mutation Login($signinWith: SignInWithEnum, $email: String, $password: String){
                 firstName
                 lastName
                 username
+                fullName
                 meta
                 userType
             }
