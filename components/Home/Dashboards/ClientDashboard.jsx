@@ -76,7 +76,7 @@ const handlePrevious = () => {
 
 
   console.log(userLocation, data);
-  console.log('assetData', userData);
+  console.log('userData', userData);
   
   
 
@@ -598,7 +598,7 @@ const handlePrevious = () => {
 
     return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <Navbar />
+      <Navbar user={ userData } />
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.username ?? userData?.email} 👋</h1>

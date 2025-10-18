@@ -112,7 +112,7 @@ const handleUpdateStatus = async (id, newStatus) => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <Navbar />
+      <Navbar user={userData}/>
 
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>

@@ -12,8 +12,10 @@ const NotificationSocket = () => {
   useEffect(() => {
     if (!userData?.id || !token) return;
 
+    const websocketURL = `${baseURL}/notification/${userData.id}/?token=${token}`;
+
     const socket = new WebSocket(
-      `${baseURL}/notification/${userData.id}/?token=${token}`
+      websocketURL
     );
 
     socket.onopen = () => {
@@ -21,11 +23,11 @@ const NotificationSocket = () => {
     };
 
     socket.onmessage = (event) => {
-      console.log("New message:", event.data);
+      let data = JSON.parse(event.data)
+      console.log("New message:", data);
 
       // store locally
       setMessages(event.data);
-
       // show toast
       toast.info(event.data, {
         position: "top-right",
