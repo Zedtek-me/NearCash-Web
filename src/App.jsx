@@ -22,14 +22,11 @@ import CategoryManagementPage from "../components/Home/Vendor/Category.jsx";
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
     const [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
-    console.log("user from app component::: ", user)
     useEffect(() => {
         let sessionToken = checkCurrentSession();
         if(sessionToken){
-            console.log(`found the localStorage session toke: ${sessionToken}`)
             fetchUser().then((result)=>{
                 setIsLoading(false)
-                console.log("result from the user fetcher from app component::: ", result)
                 if(result?.data){
                     let { user: newUserData } = result?.data;
                     updateUser(newUserData);

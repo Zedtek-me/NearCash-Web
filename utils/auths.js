@@ -98,3 +98,7 @@ export function checkCurrentSession(){
     let authToken = localStorage.getItem("nearcash_token")
    return authToken;
 }
+
+export const backArrowReturnFunc = (navigate) => {
+    navigate(-1);
+}

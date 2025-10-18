@@ -830,6 +830,7 @@ const handlePrevious = () => {
                       onApprove={(id) => console.log("Approve:", id)}
                       onReject={(id) => console.log("Reject:", id)}
                       onViewDetails={(id) => navigate(`/transactions/${tx.id}`)}
+                      key={tx.id}
                     />
 
                 ))}
