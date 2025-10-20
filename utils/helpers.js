@@ -1,4 +1,5 @@
 
+
 export function toTitleCase(str) {
     if (!str) {
       return "";
@@ -29,7 +30,7 @@ export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, aut
 }
 
 
-export const fetchUserCurrentLocation = (updateFunc, errorFunc, userData, socket) => {
+export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userData, socket) => {
   let watchID = navigator.geolocation.watchPosition(
     (pos) => {
         console.log("postion gotten with the 'watchPosition' method call::: ", pos)
@@ -46,14 +47,25 @@ export const fetchUserCurrentLocation = (updateFunc, errorFunc, userData, socket
 
 
 export const updateUserPosition = (coordinates, userData, socket) => {
-  console.log("got into the position coordinate update function call for vendor!!!!!!!!!!!!!!")
   let isVendorLocation = userData?.userType === "VENDOR";
-  console.log(`is vendor value:::: ${isVendorLocation}`)
   let data = {
     vendor_id: userData?.id,
     message_type: isVendorLocation ? "vendor_location_update" : "client_location_update",
-    location: coordinates
+    location: coordinates,
+    business_id: userData?.selectedBusiness
   };
+  console.log("payload to send to the backend for vendor current location::::: ", data)
   data = JSON.stringify(data);
   socket.send(data)
+}
+
+
+export const fetchUserLatestLocation = (userData, socket, txnId) => {
+  let data = JSON.stringify({
+    message_type: "retrieve_vendor_latest_location",
+    vendor_id: userData?.id,
+    txn_id: txnId
+  })
+  socket.send(data);
+  return data;
 }
