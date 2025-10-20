@@ -29,19 +29,31 @@ export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, aut
 }
 
 
-export const fetchUserCurrentLocation = (userType) => {
-  if (userType.toLowerCase() === "vendor"){
-      navigator.geolocation.watchPosition(
-        (pos) => {
-            console.log("postion gotten with the 'watchPosition' method call::: ", pos)
-            let { coords: currentCoords } = pos
-            console.log("current coordinates gotten:::: ", currentCoords)
-            return currentCoords
-        },
-        (err) => {
-            console.log("error gotten with the 'watchPosition' method call::: ", err)
-            return {}
-        }
-    )
-  }
+export const fetchUserCurrentLocation = (updateFunc, errorFunc, userData, socket) => {
+  let watchID = navigator.geolocation.watchPosition(
+    (pos) => {
+        console.log("postion gotten with the 'watchPosition' method call::: ", pos)
+        let { coords: currentCoords } = pos
+        updateFunc(currentCoords, userData, socket)
+    },
+    (err) => {
+        console.log("error gotten with the 'watchPosition' method call::: ", err)
+        errorFunc(err)
+    }
+)
+  return navigator.geolocation.clearWatch(watchID)
+}
+
+
+export const updateUserPosition = (coordinates, userData, socket) => {
+  console.log("got into the position coordinate update function call for vendor!!!!!!!!!!!!!!")
+  let isVendorLocation = userData?.userType === "VENDOR";
+  console.log(`is vendor value:::: ${isVendorLocation}`)
+  let data = {
+    vendor_id: userData?.id,
+    message_type: isVendorLocation ? "vendor_location_update" : "client_location_update",
+    location: coordinates
+  };
+  data = JSON.stringify(data);
+  socket.send(data)
 }

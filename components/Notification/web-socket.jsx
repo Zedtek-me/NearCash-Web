@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
 import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
-import { fetchUserCurrentLocation } from "../../utils/helpers";
+import { fetchUserCurrentLocation, updateUserPosition } from "../../utils/helpers";
 
 const NotificationSocket = () => {
   const [messages, setMessages] = useState('');
@@ -29,17 +29,22 @@ const NotificationSocket = () => {
       let data = JSON.parse(event.data)
       console.log("New message:", data);
 
-      // store locally
-      setMessages(event.data);
-      // show toast
-      toast.info(event.data, {
-        position: "top-right",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      let { message_type } = data;
+  
+      //Only show relevant messages to users.
+      if(message_type !== "vendor_location_update_ack"){
+        // store locally
+        setMessages(event.data);
+        // show toast
+        toast.info(event.data, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
     };
 
     socket.onerror = (error) => {
@@ -50,26 +55,14 @@ const NotificationSocket = () => {
       console.log("WebSocket closed ❌");
     };
 
-    setInterval(
-      () => {
-        const { userType , id: userId} = userData;
-        let currCoords = {};
-        if(userType?.toLowerCase() === "vendor"){
-          currCoords = fetchUserCurrentLocation(userType)
-          console.log("new coordinates gotten::::: ", currCoords);
-        }
-        if(currCoords && Object.keys(currCoords).length > 0){
-            socket.send(
-              JSON.stringify({
-                "message_type": "vendor_current_location",
-                "vendor_id": userId,
-                "location": currCoords
-              })
-            )
-        }
-      },
-      2000
-    )
+    const { userType } = userData;
+    if(userType?.toLowerCase() === "vendor"){
+      fetchUserCurrentLocation(
+        updateUserPosition,
+        (err) => console.log("error fetching user latest coordinates:::: ", err),
+        userData, socket
+      )
+    }
     return () => {
       socket.close();
     };
