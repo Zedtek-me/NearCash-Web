@@ -67,7 +67,7 @@ export default function AccountTypePage() {
 
   const handleAddressChange = async (e) => {
   const value = e.target.value;
-  // setFormData((prev) => ({ ...prev, address: value }));
+  setFormData((prev) => ({ ...prev, address: value }));
 
   const results = await fetchAddressSuggestions(value);
   setShowSuggestions(true);
@@ -123,7 +123,7 @@ const handleAddressSelect = (suggestion) => {
     })
       .then(({ data }) => {
         const { message, user } = data?.updateUser || {};
-        navigate(`/dashboard/${user?.firstName || 'client'}`);
+        navigate(`/dashboard/${user?.userType || 'client'}`);
         toast.success(message);
       })
       .catch((err) => {
@@ -297,7 +297,7 @@ const handleAddressSelect = (suggestion) => {
                     <input
                       type="text"
                       value={formData.address}
-                      onChange={(e) => handleAddressChange(e )}
+                      onChange={(e) => handleAddressChange(e)}
                         className="w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:bg-black transition-all duration-300"
                       placeholder="Enter your full business address"
                       required

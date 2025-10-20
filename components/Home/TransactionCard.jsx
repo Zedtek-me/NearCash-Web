@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { MoreVertical } from "lucide-react";
+import { UPDATE_TRANSACTION_STATUS } from "../Auths/mutations/userMutations";
+import { useNavigate } from "react-router";
+import { useMutation } from "@apollo/client";
 
 export default function TransactionCard({ transaction, index, onApprove, onReject, onViewDetails }) {
   const [open, setOpen] = useState(false);
+   const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
+    const navigate = useNavigate()
+
 
   const getAvatarColor = (index) => {
     const colors = ['bg-blue-400', 'bg-gray-400', 'bg-teal-400', 'bg-amber-400', 'bg-orange-400'];
@@ -17,17 +23,19 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
       default: return 'bg-gray-100 text-gray-600';
     }
   };
-
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'Grocery': return 'bg-green-100 text-green-600';
-      case 'Retail': return 'bg-blue-100 text-blue-600';
-      case 'Electronics': return 'bg-purple-100 text-purple-600';
-      case 'Home Improvement': return 'bg-orange-100 text-orange-600';
-      case 'Food & Beverage': return 'bg-pink-100 text-pink-600';
-      default: return 'bg-gray-100 text-gray-600';
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      const { data } = await updateStatus({ variables: { transactionId: id } });
+      toast.success(`Transaction approved: ${data.approveTransaction.message}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to approve transaction");
     }
   };
+
+  const handleViewTransactionDetails = (id) => {
+    navigate(`/transaction-details/${id}`)
+  }
+
 
   return (
     <div
@@ -45,7 +53,14 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
         </div>
         <div>
           <div className="font-medium text-gray-800">{transaction?.name}</div>
-          <div className="text-sm text-gray-500">{transaction.dateCreated}</div>
+          <div className="text-sm text-gray-500"> {new Date(transaction.dateCreated).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).replace(',', ':')}</div>
         </div>
       </div>
 
@@ -79,7 +94,7 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
           <div className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
             <button
               onClick={() => {
-                onApprove(transaction.id);
+                handleUpdateStatus(transaction.id, 'approve');
                 setOpen(false);
               }}
               className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"

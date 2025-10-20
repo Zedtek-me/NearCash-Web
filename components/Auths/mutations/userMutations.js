@@ -178,7 +178,7 @@ mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
 `;
 
 export const UPDATE_TRANSACTION_STATUS = gql`
-  mutation UpdateTransactionStatus($id: ID!, $status: String!) {
+  mutation UpdateTransactionStatus($id: String!, $status: String!) {
     updateTransactionStatus(id: $id, status: $status) {
       id
       status

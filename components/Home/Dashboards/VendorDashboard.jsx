@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft } from 'lucide-react';
+import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
 import { useMutation, useQuery } from '@apollo/client';
@@ -7,6 +7,8 @@ import { GET_SUB_BUSINESSES, GET_TRANSACTIONS } from '../../Auths/queries/userQu
 import useAuth from '../../../Hooks/Auths';
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import TransactionCard from '../TransactionCard';
+import EmptyTableState from '../components/EmptyTable';
+import toast from 'react-hot-toast';
 
 
 const Dashboard = () => {
@@ -14,11 +16,12 @@ const Dashboard = () => {
     const [pageNumber, setPageNumber] = useState(1);
     const [subBizPage, setSubBizPage] = useState(1);
     const { userData } = useAuth();
+    const [subBusiness, setSubBusiness] = useState(null);
 
     const vendorBusinessId = userData?.businesses?.find(item => item.isPrimary);
 
     const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
-  variables: { pageCount: 10, pageNumber, businessId: vendorBusinessId?.id || "" },
+  variables: { pageCount: 10, pageNumber, businessId: subBusiness ?? vendorBusinessId?.id },
   fetchPolicy: "network-only",
 });
 
@@ -63,6 +66,11 @@ const handleUpdateStatus = async (id, newStatus) => {
     console.error("Failed to update status:", err);
   }
 };
+
+const handleSwitchBusiness = (id) =>{
+  setSubBusiness(id)
+  toast.success('Business updated sucessfully')
+}
 
 
 
@@ -199,6 +207,9 @@ const handleUpdateStatus = async (id, newStatus) => {
               </div>
               
               <div className="space-y-4">
+                 {!transactionHistory?.length && (
+                <EmptyTableState />
+              )}
                 {transactionHistory.map((tx, index) => (
                   <TransactionCard
                       transaction={tx}
@@ -234,6 +245,9 @@ const handleUpdateStatus = async (id, newStatus) => {
       </div>
 
 <div className="space-y-4">
+    {!subBusinessList?.length && (
+                <EmptyTableState />
+              )}
   {subBizLoading ? (
     <p className="text-gray-500 text-sm">Loading...</p>
   ) : subBusinessList.length > 0 ? (
@@ -260,10 +274,11 @@ const handleUpdateStatus = async (id, newStatus) => {
         </div>
         <div className="flex items-center ml-4">
           <button
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
-            onClick={() => navigate(`/sub-business/${store.id}`)}
+            className=" flxe gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
+            onClick={() => handleSwitchBusiness(store?.id)}
           >
-            <Eye className="w-4 h-4" />
+            Switch Business
+            <SwitchCamera className="w-4 h-4" />
           </button>
         </div>
       </div>
