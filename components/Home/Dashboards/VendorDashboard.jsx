@@ -18,9 +18,8 @@ const Dashboard = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [subBizPage, setSubBizPage] = useState(1);
   const { userData } = useAuth();
-  // const [subBusiness, setSubBusiness] = useState(null);
 
-  const vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true));
+  const vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
   const [
     {
       businessStates: { selectedBusiness }
@@ -28,7 +27,7 @@ const Dashboard = () => {
     dispatch
   ] = Object.values(useStateValue())
   const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
-  variables: { pageCount: 10, pageNumber, businessId: selectedBusiness ?? vendorBusinessId?.id },
+  variables: { pageCount: 10, pageNumber, businessId: selectedBusiness ?? vendorBusinessId},
   fetchPolicy: "network-only",
 });
 
@@ -46,6 +45,12 @@ const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
 console.log(userData);
 
+if(vendorBusinessId && !selectedBusiness){
+  dispatch({
+    type: "UPDATE_SELECTED_BUSINESS",
+    value: vendorBusinessId
+  })
+}
 
 const handleNext = () => {
   setPageNumber((prev) => prev + 1);
@@ -75,7 +80,6 @@ const handleUpdateStatus = async (id, newStatus) => {
 };
 
 const handleSwitchBusiness = (id) =>{
-  // setSubBusiness(id);
   dispatch({
     type: "UPDATE_SELECTED_BUSINESS",
     value: id

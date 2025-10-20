@@ -2,11 +2,20 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
 import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
-import { fetchUserCurrentLocation, updateUserPosition } from "../../utils/helpers";
+import { fetchAndUpdateUserCurrentLocation, updateUserPosition } from "../../utils/helpers";
+import { useStateValue } from "../../providers/stateProvider";
 
 const NotificationSocket = () => {
   const [messages, setMessages] = useState('');
   const { userData } = useAuth();
+  const [
+    {
+      businessStates: {
+        selectedBusiness
+      }
+    },
+    dispatch
+  ] = Object.values(useStateValue())
   const baseURL = process.env.SOCKET_URL;
   const token = localStorage.getItem("nearcash_token");
 
@@ -56,11 +65,16 @@ const NotificationSocket = () => {
     };
 
     const { userType } = userData;
+    const updatedUserData = {
+      ...userData,
+      selectedBusiness: selectedBusiness
+    }
+
     if(userType?.toLowerCase() === "vendor"){
-      fetchUserCurrentLocation(
+      fetchAndUpdateUserCurrentLocation(
         updateUserPosition,
         (err) => console.log("error fetching user latest coordinates:::: ", err),
-        userData, socket
+        updatedUserData, socket
       )
     }
     return () => {
