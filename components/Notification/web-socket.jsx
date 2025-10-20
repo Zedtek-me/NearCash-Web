@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
 import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
+import { fetchUserCurrentLocation, updateUserPosition } from "../../utils/helpers";
 
 const NotificationSocket = () => {
   const [messages, setMessages] = useState('');
@@ -10,10 +11,14 @@ const NotificationSocket = () => {
   const token = localStorage.getItem("nearcash_token");
 
   useEffect(() => {
+    // define a function to constantly fetch the location of the vendor
+    // and send it to the backend for storing every 2 seconds
     if (!userData?.id || !token) return;
 
+    const websocketURL = `${baseURL}/notification/${userData.id}/?token=${token}`;
+
     const socket = new WebSocket(
-      `${baseURL}/notification/${userData.id}/?token=${token}`
+      websocketURL
     );
 
     socket.onopen = () => {
@@ -21,20 +26,25 @@ const NotificationSocket = () => {
     };
 
     socket.onmessage = (event) => {
-      console.log("New message:", event.data);
+      let data = JSON.parse(event.data)
+      console.log("New message:", data);
 
-      // store locally
-      setMessages(event.data);
-
-      // show toast
-      toast.info(event.data, {
-        position: "top-right",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      let { message_type } = data;
+  
+      //Only show relevant messages to users.
+      if(message_type !== "vendor_location_update_ack"){
+        // store locally
+        setMessages(event.data);
+        // show toast
+        toast.info(event.data, {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
     };
 
     socket.onerror = (error) => {
@@ -45,6 +55,14 @@ const NotificationSocket = () => {
       console.log("WebSocket closed ❌");
     };
 
+    const { userType } = userData;
+    if(userType?.toLowerCase() === "vendor"){
+      fetchUserCurrentLocation(
+        updateUserPosition,
+        (err) => console.log("error fetching user latest coordinates:::: ", err),
+        userData, socket
+      )
+    }
     return () => {
       socket.close();
     };

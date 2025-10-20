@@ -9,6 +9,7 @@ export const CURRENT_USER = gql`
             firstName
             lastName
             username
+            fullName
             meta
             userType
             businesses {
@@ -101,11 +102,13 @@ export const GET_TRANSACTIONS = gql`
       vendor {
         firstName
         lastName
+        fullName
         email
       }
       client {
         firstName
         lastName
+        fullName
       }
         business{
         id
@@ -181,6 +184,7 @@ export const FETCH_BUSINESS_CLIENTS = gql`
         firstName
         lastName
         username
+        fullName
       }
       category {
         id

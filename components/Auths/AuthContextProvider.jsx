@@ -9,7 +9,6 @@ const AuthProvider = ({ children }) => {
     const [userData, setUserData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [btnContext, setBtnContext] = useState({login: true, signup: false})
-    const [ fetchUser, { data } ] = useLazyQuery(CURRENT_USER)
 
     const updateUser = (user) => {
       setUserData(user);

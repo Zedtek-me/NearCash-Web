@@ -67,6 +67,11 @@ export default function SignUp(){
 const handleSignUpWithEmail =  () => {
       localStorage.removeItem('nearcash_token');
 
+      if (!data.firstName || !data.lastName || !data.email || !data.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
    dispatch({
       type: AuthActionTypes.SET_AUTH_TYPE,
       payload: 'signup'
@@ -76,6 +81,8 @@ const handleSignUpWithEmail =  () => {
         data: {
           email: data.email,
           password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
         }
       }
     }).then(({ data }) => {
@@ -93,6 +100,42 @@ const handleSignUpWithEmail =  () => {
     return (
         <div className="w-full md:w-1/3 pt-8">
             <div className="flex flex-col space-y-6">
+              <div className="relative">
+          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+            <div className="flex-1">
+              <label htmlFor="firstName" className="block text-xs text-gray-500">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                id="firstName"
+                onChange={(e) => handleState(e, setData)}
+                className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+                placeholder="John"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* LAST NAME */}
+        <div className="relative">
+          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+            <div className="flex-1">
+              <label htmlFor="lastName" className="block text-xs text-gray-500">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                id="lastName"
+                onChange={(e) => handleState(e, setData)}
+                className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+        </div>
                 <div className="relative">
                     <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
                         <div className="flex items-center justify-center w-6 h-6 mr-3">

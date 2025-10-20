@@ -18,6 +18,7 @@ import VendorDashboard from "../components/Home/Dashboards/VendorDashboard.jsx";
 import CreateStorePage from "../components/Home/Dashboards/CreateStore.jsx";
 import TransactionPolicyPage from "../components/Home/Vendor/Policy.jsx";
 import CategoryManagementPage from "../components/Home/Vendor/Category.jsx";
+import TransactionDetails from "../components/Home/components/TransactionDetails.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -54,6 +55,7 @@ const App = () => {
                 <Route path="/create-store" element={<CreateStorePage />}/>
                 <Route path="/policy" element={<TransactionPolicyPage />}/>
                 <Route path="/category" element={<CategoryManagementPage />}/>
+                <Route path="/transaction-details/:id" element={<TransactionDetails />} />
 
             </Routes>
         </Router>

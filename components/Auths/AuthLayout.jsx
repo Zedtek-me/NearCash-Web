@@ -22,7 +22,7 @@ const Layout = () => {
                     </p>
                 </div>
             </div>
-            <div className="flex flex-col self-center items-center bg-white text-black w-full h-3/4 rounded-t-3xl pt-6 px-4 mt-6">
+            <div className="flex flex-col self-center items-center bg-white text-black w-full rounded-t-3xl pt-6 px-4 mt-6">
                 <div className="auth-shuffle self-center flex flex-row justify-between align-center w-full md:w-1/3 rounded-3xl bg-[#EFEFEF] shadow text-black">
                     <button type="button"
                         className={login ? "active-btn login-btn w-[50%]": "login-btn flex flex-row justify-center align-center w-[50%] rounded-3xl w-1/ text-center pt-2 pb-2 cursor-pointer"}

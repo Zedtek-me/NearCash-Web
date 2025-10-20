@@ -14,6 +14,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import useAuth from "../../../Hooks/Auths";
 
 const Navbar = ({ 
   onNavigate = () => {}, 
@@ -25,7 +26,8 @@ const Navbar = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const { userType } = (user || {});
 
   // Handle scroll effect
   useEffect(() => {
@@ -131,13 +133,16 @@ const Navbar = ({
   );
 
   const UserDropdown = () => (
-    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transform opacity-100 scale-100 transition-all duration-200">
-      <div className="p-4 border-b border-gray-100">
-        <p className="font-semibold text-gray-800">{user?.name || 'John Doe'}</p>
-        <p className="text-sm text-gray-500">{user?.email || 'john@example.com'}</p>
+    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transform opacity-100 scale-100 transition-all duration-200">
+      <div className="px-4 pt-4 border-b border-gray-100 flex-wrap text-wrap">
+        <p className="font-semibold text-gray-800 w-fit">{user?.fullName || 'John Doe'}</p>
+        <p className="text-sm text-gray-500 w-fit">{user?.email || 'john@example.com'}</p>
       </div>
       <div className="py-2">
-        {userMenuItems.map((item) => {
+        {
+        (userType?.toLowerCase() === "client" ? userMenuItems.filter((item) => ["profile", "settings", "logout"]
+        .includes(item.name.toLowerCase())) : userMenuItems)
+        .map((item) => {
           const Icon = item.icon;
           return (
             <button
@@ -149,7 +154,8 @@ const Navbar = ({
               <span>{item.name}</span>
             </button>
           );
-        })}
+        })
+        }
       </div>
     </div>
   );

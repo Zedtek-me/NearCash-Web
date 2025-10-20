@@ -90,6 +90,7 @@ export const LOGIN_WITH_S = gql`
                         firstName
                         lastName
                         username
+                        fullName
                         password
                         userType
                     }
@@ -110,6 +111,7 @@ mutation Login($signinWith: SignInWithEnum, $email: String, $password: String){
                 firstName
                 lastName
                 username
+                fullName
                 meta
                 userType
             }
@@ -176,7 +178,7 @@ mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
 `;
 
 export const UPDATE_TRANSACTION_STATUS = gql`
-  mutation UpdateTransactionStatus($id: ID!, $status: String!) {
+  mutation UpdateTransactionStatus($id: String!, $status: String!) {
     updateTransactionStatus(id: $id, status: $status) {
       id
       status

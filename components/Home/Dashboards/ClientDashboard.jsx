@@ -9,6 +9,7 @@ import { CREATE_TRANSACTION } from '../../Auths/mutations/userMutations';
 import useAuth from '../../../Hooks/Auths';
 import TransactionCard from '../TransactionCard';
 import { useNavigate } from 'react-router';
+import EmptyTableState from '../components/EmptyTable';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
@@ -76,7 +77,7 @@ const handlePrevious = () => {
 
 
   console.log(userLocation, data);
-  console.log('assetData', userData);
+  console.log('userData', userData);
   
   
 
@@ -598,7 +599,7 @@ const handlePrevious = () => {
 
     return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <Navbar />
+      <Navbar user={ userData } />
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.username ?? userData?.email} 👋</h1>
@@ -666,6 +667,9 @@ const handlePrevious = () => {
                 </button> */}
               </div>
             <div className="space-y-4">
+              {!data?.businessesAroundMe?.length && (
+                <EmptyTableState />
+              )}
         {data?.businessesAroundMe?.map((store, index) => (
           <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 transition-all duration-300">
@@ -823,6 +827,9 @@ const handlePrevious = () => {
               </div>
               
               <div className="space-y-4">
+                 {!transactionHistory?.length && (
+                <EmptyTableState />
+              )}
                 {transactionHistory.map((tx, index) => (
                   <TransactionCard
                       transaction={tx}

@@ -296,7 +296,7 @@ const handleAddressSelect = (suggestion) => {
               <input
                 type="text"
                 value={formData.address}
-                onChange={(e) => handleAddressChange(e )}
+                onChange={(e) => handleAddressChange(e)}
                 className={`w-full px-4 py-5 pr-10 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
                   errors.address ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
                 }`}
