@@ -27,3 +27,21 @@ export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, aut
       setTimeout(()=> navigator?.("/auth/signup"), 500);
     }
 }
+
+
+export const fetchUserCurrentLocation = (userType) => {
+  if (userType.toLowerCase() === "vendor"){
+      navigator.geolocation.watchPosition(
+        (pos) => {
+            console.log("postion gotten with the 'watchPosition' method call::: ", pos)
+            let { coords: currentCoords } = pos
+            console.log("current coordinates gotten:::: ", currentCoords)
+            return currentCoords
+        },
+        (err) => {
+            console.log("error gotten with the 'watchPosition' method call::: ", err)
+            return {}
+        }
+    )
+  }
+}

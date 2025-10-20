@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
 import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
+import { fetchUserCurrentLocation } from "../../utils/helpers";
 
 const NotificationSocket = () => {
   const [messages, setMessages] = useState('');
@@ -10,6 +11,8 @@ const NotificationSocket = () => {
   const token = localStorage.getItem("nearcash_token");
 
   useEffect(() => {
+    // define a function to constantly fetch the location of the vendor
+    // and send it to the backend for storing every 2 seconds
     if (!userData?.id || !token) return;
 
     const websocketURL = `${baseURL}/notification/${userData.id}/?token=${token}`;
@@ -47,6 +50,26 @@ const NotificationSocket = () => {
       console.log("WebSocket closed ❌");
     };
 
+    setInterval(
+      () => {
+        const { userType , id: userId} = userData;
+        let currCoords = {};
+        if(userType?.toLowerCase() === "vendor"){
+          currCoords = fetchUserCurrentLocation(userType)
+          console.log("new coordinates gotten::::: ", currCoords);
+        }
+        if(currCoords && Object.keys(currCoords).length > 0){
+            socket.send(
+              JSON.stringify({
+                "message_type": "vendor_current_location",
+                "vendor_id": userId,
+                "location": currCoords
+              })
+            )
+        }
+      },
+      2000
+    )
     return () => {
       socket.close();
     };
