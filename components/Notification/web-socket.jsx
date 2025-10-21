@@ -70,13 +70,11 @@ const NotificationSocket = () => {
       selectedBusiness: selectedBusiness
     }
 
-    if(userType?.toLowerCase() === "vendor"){
-      fetchAndUpdateUserCurrentLocation(
-        updateUserPosition,
-        (err) => console.log("error fetching user latest coordinates:::: ", err),
-        updatedUserData, socket
-      )
-    }
+    fetchAndUpdateUserCurrentLocation(
+      updateUserPosition,
+      (err) => console.log("error fetching user latest coordinates:::: ", err),
+      updatedUserData, socket
+    )
     return () => {
       socket.close();
     };
