@@ -223,7 +223,7 @@ const handleSwitchBusiness = (id) =>{
               
               <div className="space-y-4">
                  {!transactionHistory?.length && (
-                <EmptyTableState />
+                <EmptyTableState description="All transactions initiated to this business will appear here."/>
               )}
                 {transactionHistory.map((tx, index) => (
                   <TransactionCard

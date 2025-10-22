@@ -440,7 +440,7 @@ const handlePrevious = () => {
             <span className="text-gray-700">Enable Location Access</span>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            This app needs access to your location to show you the best route to the store and provide accurate directions.
+            This app needs access to your location to show you the best route to the vendors and provide accurate directions.
           </p>
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-xs text-blue-700">
@@ -602,7 +602,7 @@ const handlePrevious = () => {
       <Navbar user={ userData } />
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.username ?? userData?.email} 👋</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.fullName ?? userData?.email} 👋</h1>
           {/* <p className="text-sm text-gray-500">Member Since April 30, 2025</p> */}
         </div>
 
@@ -668,7 +668,7 @@ const handlePrevious = () => {
               </div>
             <div className="space-y-4">
               {!data?.businessesAroundMe?.length && (
-                <EmptyTableState />
+                <EmptyTableState title="No nearby vendor within your current location." description="Vendors within 200miles from you will show up here."/>
               )}
         {data?.businessesAroundMe?.map((store, index) => (
           <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
@@ -828,7 +828,7 @@ const handlePrevious = () => {
               
               <div className="space-y-4">
                  {!transactionHistory?.length && (
-                <EmptyTableState />
+                <EmptyTableState description='All your transactions will appear here.'/>
               )}
                 {transactionHistory.map((tx, index) => (
                   <TransactionCard
