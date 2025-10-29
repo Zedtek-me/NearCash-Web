@@ -838,7 +838,7 @@ const handlePrevious = () => {
                   <TransactionCard
                       transaction={tx}
                       index={index}
-                      onApprove={(id) => console.log("Approve:", id)}
+                      refetch={refetch}
                       onReject={(id) => console.log("Reject:", id)}
                       key={tx.id}
                     />

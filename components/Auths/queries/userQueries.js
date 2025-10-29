@@ -198,3 +198,42 @@ export const FETCH_BUSINESS_CLIENTS = gql`
     }
   }
 `;
+
+export const TRANSACTION_DETIALS = gql`
+query Transactiion(
+    $transactionId: String!
+){
+    transaction(
+        transactionId: $transactionId
+    ){
+        id
+        description
+        status
+        dateCreated
+        lastUpdated
+        amount
+        charge
+        currency
+        collectionMode
+        txnLocation
+        meta
+        business{
+            id
+            name
+            address
+        }
+        vendor{
+            id
+            firstName
+            lastName
+            email
+        }
+        client{
+             id
+            firstName
+            lastName
+            email
+        }
+    }
+}
+`

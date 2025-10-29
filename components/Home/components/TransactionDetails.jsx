@@ -20,38 +20,22 @@ import {
   HandHelping
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { GET_TRANSACTION } from '../Dashboards/queries/analytics';
 import useAuth from '../../../Hooks/Auths';
 import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/helpers';
+import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
+import Navbar from '../Navs/Headers';
+import toast from 'react-hot-toast';
 
 export default function TransactionDetails() {
-  const [transaction] = useState({
-    id: "TXN-2024-001234",
-    name: "John Doe",
-    amount: "+$1,234.56",
-    status: "Done",
-    dateCreated: "Jan 15, 2024",
-    time: "10:30 AM",
-    type: "Credit",
-    category: "Payment Received",
-    description: "Payment for professional services rendered in January 2024",
-    paymentMethod: "Bank Transfer",
-    accountNumber: "**** **** **** 4532",
-    transactionFee: "$2.50",
-    netAmount: "$1,232.06",
-    reference: "REF-2024-JAN-001",
-    customerEmail: "johndoe@example.com",
-    customerPhone: "+1 (555) 123-4567",
-    billingAddress: "123 Main Street, Suite 100",
-    city: "New York, NY 10001",
-    notes: "Regular monthly payment - Invoice #INV-2024-001"
-  });
+  const { userData } = useAuth();
   const params = useParams()
   const navigate = useNavigate()
   const { userData: { userType } } = useAuth()
 
   const transactionId = params?.id
+  const id = transactionId
 
   const {
     data: transactionData,
@@ -85,6 +69,9 @@ export default function TransactionDetails() {
   const trxnClient = transactionData?.transaction?.client;
   const trxnVendor = transactionData?.transaction?.vendor;
   const trxnBusiness = transactionData?.transaction?.business
+  const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
+  
+  const transaction = transactionData?.transaction || {}
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -166,39 +153,45 @@ export default function TransactionDetails() {
     </div>
   );
 
+  const date = new Date(transaction.dateCreated).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).replace(',', ':');
+
+  function formatLabel(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()  
+    .split('_')      
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');  
+}
+
+const handleUpdateStatus = async (id, status) => {
+    try {
+      const { data } = await updateStatus({ variables: { id, status } });
+      refetch()
+      toast.success(`Transaction approved: ${data.updateTransactionStatus.message}`);
+    } catch (err) {
+      toast.error(err.message || "Failed to approve transaction");
+    }
+  };
+
+  const goBack = () => {
+    navigate(-1);
+  };
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-black via-gray-900 to-black shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200" onClick={() => handleBackToggle(navigate, -1)}>
-                <ArrowLeft className="w-6 h-6 text-white" />
-              </button>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Transaction Details</h1>
-                <p className="text-gray-400 text-sm mt-1">View complete transaction information</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-2 sm:px-4 sm:py-2 bg-white text-black hover:bg-gray-100 rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-lg">
-                <Download className="w-5 h-5" />
-                <span className="hidden sm:inline font-medium">Download</span>
-              </button>
-              <button className="p-2 sm:px-4 sm:py-2 bg-white text-black hover:bg-gray-100 rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-lg">
-                <Share2 className="w-5 h-5" />
-                <span className="hidden sm:inline font-medium">Share</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Navbar user={userData}/>
+      <div className="max-w-7xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
         
-        {/* Status Card */}
         <div className="bg-gradient-to-br from-black to-gray-900 rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-gray-800">
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="text-center sm:text-left">
@@ -206,27 +199,26 @@ export default function TransactionDetails() {
               <div className={`text-4xl sm:text-5xl font-bold ${
                 formattedAmount?.startsWith('+') ? 'text-green-400' : 'text-red-400'
               }`}>
-                {formattedAmount}
+                ₦ {formattedAmount}
               </div>
-              <div className="text-gray-500 text-sm mt-2">charge: {transactionData?.transaction?.charge}</div>
+              <div className="text-gray-500 text-sm mt-2">Net: {parseFloat(formattedAmount) + transaction?.charge}</div>
             </div>
-            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transactionData?.transaction?.status)} shadow-lg`}>
-              {getStatusIcon(transactionData?.transaction?.status)}
-              <span className="text-lg">{transactionData?.transaction?.status}</span>
+            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction?.status)} shadow-lg`}>
+              {getStatusIcon(transaction?.status)}
+              <span className="text-lg">{transaction?.status}</span>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
           
-          {/* Transaction Information */}
           <Section title="Transaction Information">
             <div className="space-y-2">
-              <InfoRow icon={Hash} label="Transaction ID" value={transactionData?.transaction?.id} />
-              <InfoRow icon={FileText} label="Reference" value={transactionData?.transaction?.txnRef} />
+              <InfoRow icon={Hash} label="Transaction ID" value={transaction?.id} />
+              <InfoRow icon={FileText} label="Reference" value={transaction?.txnRef} />
               <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
-              <InfoRow icon={CreditCard} label="Amount Demanded" value={transactionData?.transaction?.amount} />
-              <InfoRow icon={Hash} label="Transaction Fee" value={transactionData?.transaction?.charge} />
+              <InfoRow icon={CreditCard} label="Amount Demanded" value={transaction?.amount} />
+              <InfoRow icon={Hash} label="Transaction Fee" value={transaction?.charge} />
               <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
               <InfoRow icon={FileText} label="Category" value={transaction.category} />
             </div>
@@ -239,9 +231,10 @@ export default function TransactionDetails() {
               <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
               <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
               {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}
-              <InfoRow icon={Building} label="City" value={transaction.city} />
+              <InfoRow icon={Building} label="City" value={trxnUserInfo?.city} />
             </div>
           </Section>
+         
 
           {/* <Section title="Financial Breakdown">
             <div className="space-y-4">
@@ -285,16 +278,35 @@ export default function TransactionDetails() {
 
         </div>
 
-        {/* Action Buttons */}
         <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-          <button className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+          {transaction.status === 'INITIATED' && userData?.userType === 'VENDOR' && (
+            <button  onClick={() => {
+                handleUpdateStatus(transaction.id, 'IN_PROGRESS');
+              }}  className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
             <Check className="w-5 h-5" />
             <span>Approve Transaction</span>
           </button>
-          <button className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+          )}
+
+          {userData?.userType === 'VENDOR' && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
+          <button onClick={() => {
+                handleUpdateStatus(transaction.id, 'DECLINED');
+              }} className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
             <X className="w-5 h-5" />
             <span>Reject Transaction</span>
           </button>
+          )}
+
+          {userData?.userType !== 'VENDOR' && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
+          <button onClick={() => {
+                handleUpdateStatus(transaction.id, 'CANCELLED');
+              }} className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+            <X className="w-5 h-5" />
+            <span>Cancel Transaction</span>
+          </button>
+          )}
+          
+         
           
         </div>
       </div>

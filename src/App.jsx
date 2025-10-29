@@ -55,7 +55,7 @@ const App = () => {
                 <Route path="/create-store" element={<CreateStorePage />}/>
                 <Route path="/policy" element={<TransactionPolicyPage />}/>
                 <Route path="/category" element={<CategoryManagementPage />}/>
-                <Route path="/transaction-details/:id" element={<TransactionDetails />} />
+                <Route path="/transactions/:id" element={<TransactionDetails />} />
 
             </Routes>
         </Router>
