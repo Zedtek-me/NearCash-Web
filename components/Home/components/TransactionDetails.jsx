@@ -15,50 +15,118 @@ import {
   Mail,
   Phone,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Hand,
+  HandHelping
 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router';
-import { TRANSACTION_DETIALS } from '../../Auths/queries/userQueries';
-import useAuth from '../../../Hooks/Auths';
+import { useParams, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@apollo/client';
+import { GET_TRANSACTION } from '../Dashboards/queries/analytics';
+import useAuth from '../../../Hooks/Auths';
+import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/helpers';
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 
 export default function TransactionDetails() {
-  const { id } = useParams();
-      const { userData } = useAuth();
-      const navigate = useNavigate()
-  
+  const { userData } = useAuth();
+  const params = useParams()
+  const navigate = useNavigate()
+  const { userData: { userType } } = useAuth()
 
-    const { data, loading, error, refetch } = useQuery(TRANSACTION_DETIALS, {
-    variables: { transactionId: id },
-    fetchPolicy: "network-only",
-  });
-     const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
-  
+  const transactionId = params?.id
+  const id = transactionId
 
-  console.log(id);
+  const {
+    data: transactionData,
+    error: tranactionError,
+    loading: transactionLoading,
+    refetch
+  } = useQuery(
+    GET_TRANSACTION, {
+      variables: {
+        transactionId: transactionId
+      },
+      skip: !transactionId
+    }
+  )
+
+  const formatTrxnAmount = (amount) => {
+    switch(userType){
+      case "VENDOR":
+        if(amount.includes("+")) return amount?.replace("+", "-");
+        return `-${amount}`;
+      case "CLIENT":
+        if(!amount?.includes("+")) return `+${amount}`;
+        return amount
+      default:
+        return amount;
+    }
+  }
+  const formattedAmount = formatTrxnAmount(String(transactionData?.transaction?.amount))
+  const [localDate, localTime] = getDateAndTimeFromDateTimeStr(transactionData?.transaction?.dateCreated || Date.now())
+
+  const trxnClient = transactionData?.transaction?.client;
+  const trxnVendor = transactionData?.transaction?.vendor;
+  const trxnBusiness = transactionData?.transaction?.business
+  const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
   
-  const transaction = data?.transaction || {}
+  const transaction = transactionData?.transaction || {}
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Done': return 'bg-green-100 text-green-700 border-green-200';
-      case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'Failed': return 'bg-red-100 text-red-700 border-red-200';
+      case 'FULFILLED': return 'bg-green-100 text-green-700 border-green-200';
+      case 'INITIATED': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'DECLINED': return 'bg-red-100 text-red-700 border-red-200';
+      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Done': return <Check className="w-5 h-5" />;
-      case 'Pending': return <Clock className="w-5 h-5" />;
-      case 'Failed': return <X className="w-5 h-5" />;
+      case 'FULFILLED': return <Check className="w-5 h-5" />;
+      case 'INITIATED': return <Clock className="w-5 h-5" />;
+      case 'CANCELLED': return <X className="w-5 h-5" />;
+      case 'DECLINED': return <X className="w-5 h-5" />;
       default: return <AlertCircle className="w-5 h-5" />;
     }
   };
+
+  const getSectionTitle = (userType) => {
+    switch (userType){
+      case "VENDOR":
+        return "Customer Information";
+      case "CLIENT":
+        return "Vendor Information";
+      default: return "Transaction Information";
+    }
+  }
+
+  const getTrxnUserInfo = (userType) => {
+    switch(userType){
+      case "VENDOR": return {
+        name: trxnClient?.fullName,
+        email: trxnClient?.email,
+        phoneNumber: trxnClient?.phoneNumber || "N/A",
+        location: trxnBusiness?.address || "N/A"
+      }
+      case "CLIENT": return {
+        name: trxnVendor?.fullName,
+        email: trxnVendor?.email,
+        phoneNumber: trxnVendor?.phoneNumber || "N/A",
+        location: trxnBusiness?.address || "N/A"
+      }
+      default: return {
+        name: trxnClient?.fullName,
+        email: trxnClient?.email,
+        phoneNumber: trxnClient?.phoneNumber || "N/A",
+        location: trxnClient?.transaction?.txnLocation
+      }
+    }
+  }
+
+  const trxnUserInfo = getTrxnUserInfo(userType)
 
   const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
     <div className="flex items-start space-x-3 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-4 -mx-4 rounded-lg transition-colors duration-200">
@@ -121,8 +189,6 @@ const handleUpdateStatus = async (id, status) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <Navbar user={userData}/>
-
-
       <div className="max-w-7xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
         
@@ -130,14 +196,16 @@ const handleUpdateStatus = async (id, status) => {
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="text-center sm:text-left">
               <div className="text-gray-400 text-sm mb-2">Transaction Amount</div>
-              <div className={`text-4xl sm:text-5xl font-bold text-green-400`}>
-                ₦ {transaction.amount}
+              <div className={`text-4xl sm:text-5xl font-bold ${
+                formattedAmount?.startsWith('+') ? 'text-green-400' : 'text-red-400'
+              }`}>
+                ₦ {formattedAmount}
               </div>
-              <div className="text-gray-500 text-sm mt-2">Net: {transaction.amount + transaction.charge}</div>
+              <div className="text-gray-500 text-sm mt-2">Net: {`${parseFloat(formattedAmount.replace("-", "")) - transaction?.charge}`}</div>
             </div>
-            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction.status)} shadow-lg`}>
-              {getStatusIcon(transaction.status)}
-              <span className="text-lg">{transaction.status}</span>
+            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction?.status)} shadow-lg`}>
+              {getStatusIcon(transaction?.status)}
+              <span className="text-lg">{transaction?.status}</span>
             </div>
           </div>
         </div>
@@ -146,36 +214,26 @@ const handleUpdateStatus = async (id, status) => {
           
           <Section title="Transaction Information">
             <div className="space-y-2">
-              <InfoRow icon={Hash} label="Transaction ID" value={transaction.id} />
-              <InfoRow icon={FileText} label="Collection Mode" value={formatLabel(transaction.collectionMode)} />
-              <InfoRow icon={Calendar} label="Date & Time" value={`${date}`} />
-              <InfoRow icon={CreditCard} label="Gross Amount" value={`₦ ${transaction.amount}`} />
-              <InfoRow icon={Hash} label="Transaction Fee" value={`₦ ${transaction.charge}`} />
-              {/* <InfoRow icon={FileText} label="Category" value={transaction.category} /> */}
+              <InfoRow icon={Hash} label="Transaction ID" value={transaction?.id} />
+              <InfoRow icon={FileText} label="Reference" value={transaction?.txnRef} />
+              <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
+              <InfoRow icon={CreditCard} label="Amount Demanded" value={transaction?.amount} />
+              <InfoRow icon={Hash} label="Transaction Fee" value={transaction?.charge} />
+              <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
+              <InfoRow icon={FileText} label="Category" value={transaction.category} />
             </div>
           </Section>
 
-          {userData?.userType === 'VENDOR' ? (
- <Section title="Client Information">
+          {/* Customer Information */}
+          <Section title={getSectionTitle(userType)}>
             <div className="space-y-2">
-              <InfoRow icon={User} label="Customer Name" value={`${transaction.client?.firstName} ${transaction.client?.lastName}`} highlight />
-              <InfoRow icon={Mail} label="Email Address" value={transaction.client?.email} />
-              <InfoRow icon={Phone} label="Phone Number" value={transaction.client?.phoneNumber} />
-              <InfoRow icon={MapPin} label="Address" value={transaction.client?.address} />
-              <InfoRow icon={Building} label="City" value={transaction.client?.city} />
+              <InfoRow icon={User} label={userType == "VENDOR"? "Customer Name": "Vendor Name"} value={trxnUserInfo?.name} highlight />
+              <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
+              <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
+              {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}
+              <InfoRow icon={Building} label="City" value={trxnUserInfo?.city} />
             </div>
           </Section>
-          ) : (
-             <Section title="Vendor Information">
-            <div className="space-y-2">
-              <InfoRow icon={User} label="Vendor" value={transaction.business?.name} highlight />
-              <InfoRow icon={Mail} label="Email Address" value={transaction.vendor?.email} />
-              <InfoRow icon={Phone} label="Phone Number" value={transaction.vendor?.customerPhone} />
-              <InfoRow icon={MapPin} label="Address" value={transaction.business?.address} />
-              <InfoRow icon={Building} label="City" value={transaction.business?.city} />
-            </div>
-          </Section>
-          )}
          
 
           {/* <Section title="Financial Breakdown">

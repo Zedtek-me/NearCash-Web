@@ -136,7 +136,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
            
             <button
               onClick={() => {
-                onViewDetails(transaction.id);
+                handleViewTransactionDetails(transaction.id);
                 setOpen(false);
               }}
               className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"

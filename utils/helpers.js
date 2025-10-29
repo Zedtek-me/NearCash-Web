@@ -69,3 +69,10 @@ export const fetchUserLatestLocation = (userData, socket, txnId) => {
   socket.send(data);
   return data;
 }
+
+export const getDateAndTimeFromDateTimeStr = (dateTime) => {
+  const dT = new Date(dateTime);
+  let date = dT.toLocaleDateString()
+  let time = dT.toTimeString()
+  return [date, time]
+}
