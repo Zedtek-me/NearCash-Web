@@ -112,7 +112,7 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
             </button>
             <button
               onClick={() => {
-                onViewDetails(transaction.id);
+                handleViewTransactionDetails(transaction.id);
                 setOpen(false);
               }}
               className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"

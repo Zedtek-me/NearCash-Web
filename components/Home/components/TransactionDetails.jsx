@@ -140,7 +140,6 @@ export default function TransactionDetails() {
   }
 
   const trxnUserInfo = getTrxnUserInfo(userType)
-  console.log("trxn user info gotten::::::: ", trxnUserInfo);
 
   const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
     <div className="flex items-start space-x-3 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-4 -mx-4 rounded-lg transition-colors duration-200">
@@ -174,7 +173,7 @@ export default function TransactionDetails() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200" onClick={() => handleBackToggle(navigate)}>
+              <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200" onClick={() => handleBackToggle(navigate, -1)}>
                 <ArrowLeft className="w-6 h-6 text-white" />
               </button>
               <div>
@@ -228,7 +227,7 @@ export default function TransactionDetails() {
               <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
               <InfoRow icon={CreditCard} label="Amount Demanded" value={transactionData?.transaction?.amount} />
               <InfoRow icon={Hash} label="Transaction Fee" value={transactionData?.transaction?.charge} />
-              <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replace("_", " ")} />
+              <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
               <InfoRow icon={FileText} label="Category" value={transaction.category} />
             </div>
           </Section>
