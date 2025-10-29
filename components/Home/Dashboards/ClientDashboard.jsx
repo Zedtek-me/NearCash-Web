@@ -6,6 +6,7 @@ import Navbar from '../Navs/Headers';
 import { VENDOR_LIST, GET_VENDOR_POLICIES, GET_ASSETS, GET_TRANSACTIONS } from '../../Auths/queries/userQueries';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { CREATE_TRANSACTION } from '../../Auths/mutations/userMutations';
+import { GET_ANALYTICS } from "./queries/analytics";
 import useAuth from '../../../Hooks/Auths';
 import TransactionCard from '../TransactionCard';
 import { useNavigate } from 'react-router';
@@ -15,7 +16,7 @@ export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
   const { userData } = useAuth();
   const navigate = useNavigate();
-    
+  const { userType } = userData;
 
 
   const [expandedCards, setExpandedCards] = useState(new Set());
@@ -66,7 +67,17 @@ export default function ClientDashboard() {
       fetchPolicy: "network-only",
     });
 
-    const handleNext = () => {
+    const {
+      data: analyticsData,
+      error: analyticsError,
+      loading: analyticsLoading,
+      refetch: refectAnalytics
+    } = useQuery(GET_ANALYTICS, {
+      variables: {
+        userType: userType?.toLowerCase()
+      }
+    })
+  const handleNext = () => {
   setPageNumber((prev) => prev + 1);
 };
 
@@ -607,49 +618,42 @@ const handlePrevious = () => {
         </div>
 
         <div className="mb-8">
-             <div className="flex gap-4">
+            <div className="flex gap-4">
               <div className="bg-white rounded-2xl p-6 shadow-sm w-[300px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Total transaction</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Total Transactions Count</h2>
                   <ArrowUpRight className="w-5 h-5 text-gray-400" />
                 </div>
-                
-                 <div className="mb-4">
-                  <div className="text-2xl font-bold text-gray-900 mb-1">₦ 63 <span className="text-gray-400 font-normal">500</span></div>
-                 
-                </div> 
-
-                {/* <div className="mb-4">
-                  <div className="font-semibold text-gray-900">₦ 58 200 <span className="text-sm font-normal text-gray-500">Available Funds</span></div>
-                </div> */}
-
-                {/* <div className="flex space-x-3">
-                  <button className="text-sm font-medium text-gray-700 underline">Deposit</button>
-                  <button className="text-sm font-medium text-gray-700 underline">Withdraw</button>
-                </div> */}
+                <div className="mb-4">
+                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                    {`${analyticsData?.analytics?.totalTransactions || 0}`}
+                  <div/>
+                </div>
               </div>
+            </div>
 
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm w-[300px]">
+            <div className="flex gap-4">
+              <div className="bg-white rounded-2xl p-6 shadow-sm w-[300px]">
+                <div className="flex itesm-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900">Fulfilled Transactions Value</h2>
+                  <ArrowUpRight className="w-5 h-5 text-gray-400" />
+                </div>
+                <div className="mb-4">
+                  <div className="text-2xl font-bold text-gray-900 mb-1">
+                    {`₦${analyticsData?.analytics?.totalTransactionValue}`}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm w-[300px]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Monthly transaction</h2>
+                  <h2 className="text-lg font-semibold">Current Month Transactions Value</h2>
                   <ArrowUpRight className="w-5 h-5 text-white/80" />
                 </div>
                  <div className="mb-4">
-                  <div className="text-2xl font-bold text-white/80 mb-1">₦ 63 <span className=" font-normal">500</span></div>
-                 
+                  <div className="text-2xl font-bold text-white/80 mb-1">₦{`${analyticsData?.analytics?.currentMonthTransactionValue || 0}`}</div>
                 </div> 
-                
-                {/* <div className="mb-4">
-                  <div className="text-2xl font-bold mb-1">₦ 70 <span className="text-white/60 font-normal">250</span></div>
-                  <div className="text-sm text-white/80">Loan Amount</div>
-                </div> */}
-
-                {/* <div className="flex items-center space-x-2 mb-4">
-                  <Clock className="w-4 h-4 text-white/80" />
-                  <span className="text-sm text-white/80">2026-09-01</span>
-                </div> */}
-
-                
               </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_SUB_BUSINESSES, GET_TRANSACTIONS } from '../../Auths/queries/userQueries';
+import { GET_ANALYTICS } from './queries/analytics';
 import useAuth from '../../../Hooks/Auths';
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import TransactionCard from '../TransactionCard';
@@ -18,6 +19,8 @@ const Dashboard = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [subBizPage, setSubBizPage] = useState(1);
   const { userData } = useAuth();
+
+  const { userType } = userData;
 
   const vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
   const [
@@ -40,6 +43,18 @@ const {
   variables: { pageCount: 10, pageNumber: subBizPage, ownerId: userData?.id || "" },
   fetchPolicy: "network-only",
 });
+
+const {
+  data: analyticsData,
+  error: analyticsError,
+  loading: analyticsLoading,
+  refetch: refectAnalytics
+} = useQuery(GET_ANALYTICS, {
+  variables: {
+    businessId: vendorBusinessId,
+    userType: userType?.toLowerCase()
+  }
+})
 
 const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
@@ -145,7 +160,7 @@ const handleSwitchBusiness = (id) =>{
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm opacity-90">Total transactions
+                  <span className="text-sm opacity-90">Fulfilled Transactions Value
 </span>
                 </div>
                 <div className="flex items-center mb-4">
@@ -153,12 +168,16 @@ const handleSwitchBusiness = (id) =>{
                     <span className="text-lg font-bold">$</span>
                   </div>
                 </div>
-                <div className="text-2xl font-bold">$35,543</div>
+                <div className="text-2xl font-bold">
+                  {`$${analyticsData?.analytics?.totalTransactionValue || 0}`}
+                </div>
               </div>
 
               <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600">Total Profit</span>
+                  <span className="text-sm text-gray-600">
+                    Total Profit (plus extra charges)
+                  </span>
                   <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
                 </div>
                 <div className="flex items-center mb-4">
@@ -166,14 +185,18 @@ const handleSwitchBusiness = (id) =>{
                     <span className="text-teal-600 text-lg">$</span>
                   </div>
                 </div>
-                <div className="text-xl font-bold text-gray-800">$15,654</div>
-                <div className="text-xs text-red-500 mt-1">-11% last week</div>
+                <div className="text-xl font-bold text-gray-800">
+                  {`$${analyticsData?.analytics?.totalChargesPlusExtra || 0}`}
+                </div>
+                <div className="text-xs text-red-500 mt-1">
+                  {`${analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% increase from last Month`}
+                </div>
               </div>
 
               {/* Spending */}
               <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600">Transaction Count</span>
+                  <span className="text-sm text-gray-600">Total Fulfilled Transactions</span>
                   <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
                 </div>
                 <div className="flex items-center mb-4">
@@ -181,8 +204,12 @@ const handleSwitchBusiness = (id) =>{
                     <span className="text-purple-600 text-lg">$</span>
                   </div>
                 </div>
-                <div className="text-xl font-bold text-gray-800">$1,654</div>
-                <div className="text-xs text-red-500 mt-1">-11% last Months</div>
+                <div className="text-xl font-bold text-gray-800">
+                  {`$${analyticsData?.analytics?.fulfilledTransactions || analyticsData?.analytics?.totalTransactions}`}
+                </div>
+                <div className="text-xs text-red-500 mt-1">
+                  {`${analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% increase from last Month`}
+                </div>
               </div>
 
               {/* EMI */}

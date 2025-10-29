@@ -15,8 +15,15 @@ import {
   Mail,
   Phone,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Hand,
+  HandHelping
 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router';
+import { useQuery } from '@apollo/client';
+import { GET_TRANSACTION } from '../Dashboards/queries/analytics';
+import useAuth from '../../../Hooks/Auths';
+import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/helpers';
 
 export default function TransactionDetails() {
   const [transaction] = useState({
@@ -40,24 +47,100 @@ export default function TransactionDetails() {
     city: "New York, NY 10001",
     notes: "Regular monthly payment - Invoice #INV-2024-001"
   });
+  const params = useParams()
+  const navigate = useNavigate()
+  const { userData: { userType } } = useAuth()
+
+  const transactionId = params?.id
+
+  const {
+    data: transactionData,
+    error: tranactionError,
+    loading: transactionLoading,
+    refetch: refetchTransaction
+  } = useQuery(
+    GET_TRANSACTION, {
+      variables: {
+        transactionId: transactionId
+      },
+      skip: !transactionId
+    }
+  )
+
+  const formatTrxnAmount = (amount) => {
+    switch(userType){
+      case "VENDOR":
+        if(amount.includes("+")) return amount?.replace("+", "-");
+        return `-${amount}`;
+      case "CLIENT":
+        if(!amount?.includes("+")) return `+${amount}`;
+        return amount
+      default:
+        return amount;
+    }
+  }
+  const formattedAmount = formatTrxnAmount(String(transactionData?.transaction?.amount))
+  const [localDate, localTime] = getDateAndTimeFromDateTimeStr(transactionData?.transaction?.dateCreated || Date.now())
+
+  const trxnClient = transactionData?.transaction?.client;
+  const trxnVendor = transactionData?.transaction?.vendor;
+  const trxnBusiness = transactionData?.transaction?.business
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Done': return 'bg-green-100 text-green-700 border-green-200';
-      case 'Pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'Failed': return 'bg-red-100 text-red-700 border-red-200';
+      case 'FULFILLED': return 'bg-green-100 text-green-700 border-green-200';
+      case 'INITIATED': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'DECLINED': return 'bg-red-100 text-red-700 border-red-200';
+      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'Done': return <Check className="w-5 h-5" />;
-      case 'Pending': return <Clock className="w-5 h-5" />;
-      case 'Failed': return <X className="w-5 h-5" />;
+      case 'FULFILLED': return <Check className="w-5 h-5" />;
+      case 'INITIATED': return <Clock className="w-5 h-5" />;
+      case 'CANCELLED': return <X className="w-5 h-5" />;
+      case 'DECLINED': return <X className="w-5 h-5" />;
       default: return <AlertCircle className="w-5 h-5" />;
     }
   };
+
+  const getSectionTitle = (userType) => {
+    switch (userType){
+      case "VENDOR":
+        return "Customer Information";
+      case "CLIENT":
+        return "Vendor Information";
+      default: return "Transaction Information";
+    }
+  }
+
+  const getTrxnUserInfo = (userType) => {
+    switch(userType){
+      case "VENDOR": return {
+        name: trxnClient?.fullName,
+        email: trxnClient?.email,
+        phoneNumber: trxnClient?.phoneNumber || "N/A",
+        location: trxnBusiness?.address || "N/A"
+      }
+      case "CLIENT": return {
+        name: trxnVendor?.fullName,
+        email: trxnVendor?.email,
+        phoneNumber: trxnVendor?.phoneNumber || "N/A",
+        location: trxnBusiness?.address || "N/A"
+      }
+      default: return {
+        name: trxnClient?.fullName,
+        email: trxnClient?.email,
+        phoneNumber: trxnClient?.phoneNumber || "N/A",
+        location: trxnClient?.transaction?.txnLocation
+      }
+    }
+  }
+
+  const trxnUserInfo = getTrxnUserInfo(userType)
+  console.log("trxn user info gotten::::::: ", trxnUserInfo);
 
   const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
     <div className="flex items-start space-x-3 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-4 -mx-4 rounded-lg transition-colors duration-200">
@@ -91,7 +174,7 @@ export default function TransactionDetails() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200">
+              <button className="p-2 hover:bg-gray-800 rounded-lg transition-colors duration-200" onClick={() => handleBackToggle(navigate)}>
                 <ArrowLeft className="w-6 h-6 text-white" />
               </button>
               <div>
@@ -122,15 +205,15 @@ export default function TransactionDetails() {
             <div className="text-center sm:text-left">
               <div className="text-gray-400 text-sm mb-2">Transaction Amount</div>
               <div className={`text-4xl sm:text-5xl font-bold ${
-                transaction.amount.startsWith('+') ? 'text-green-400' : 'text-red-400'
+                formattedAmount?.startsWith('+') ? 'text-green-400' : 'text-red-400'
               }`}>
-                {transaction.amount}
+                {formattedAmount}
               </div>
-              <div className="text-gray-500 text-sm mt-2">Net: {transaction.netAmount}</div>
+              <div className="text-gray-500 text-sm mt-2">charge: {transactionData?.transaction?.charge}</div>
             </div>
-            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction.status)} shadow-lg`}>
-              {getStatusIcon(transaction.status)}
-              <span className="text-lg">{transaction.status}</span>
+            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transactionData?.transaction?.status)} shadow-lg`}>
+              {getStatusIcon(transactionData?.transaction?.status)}
+              <span className="text-lg">{transactionData?.transaction?.status}</span>
             </div>
           </div>
         </div>
@@ -140,22 +223,23 @@ export default function TransactionDetails() {
           {/* Transaction Information */}
           <Section title="Transaction Information">
             <div className="space-y-2">
-              <InfoRow icon={Hash} label="Transaction ID" value={transaction.id} />
-              <InfoRow icon={FileText} label="Reference" value={transaction.reference} />
-              <InfoRow icon={Calendar} label="Date & Time" value={`${transaction.dateCreated} at ${transaction.time}`} />
-              <InfoRow icon={CreditCard} label="Gross Amount" value={transaction.amount} />
-              <InfoRow icon={Hash} label="Transaction Fee" value={transaction.transactionFee} />
+              <InfoRow icon={Hash} label="Transaction ID" value={transactionData?.transaction?.id} />
+              <InfoRow icon={FileText} label="Reference" value={transactionData?.transaction?.txnRef} />
+              <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
+              <InfoRow icon={CreditCard} label="Amount Demanded" value={transactionData?.transaction?.amount} />
+              <InfoRow icon={Hash} label="Transaction Fee" value={transactionData?.transaction?.charge} />
+              <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replace("_", " ")} />
               <InfoRow icon={FileText} label="Category" value={transaction.category} />
             </div>
           </Section>
 
           {/* Customer Information */}
-          <Section title="Customer Information">
+          <Section title={getSectionTitle(userType)}>
             <div className="space-y-2">
-              <InfoRow icon={User} label="Customer Name" value={transaction.name} highlight />
-              <InfoRow icon={Mail} label="Email Address" value={transaction.customerEmail} />
-              <InfoRow icon={Phone} label="Phone Number" value={transaction.customerPhone} />
-              <InfoRow icon={MapPin} label="Billing Address" value={transaction.billingAddress} />
+              <InfoRow icon={User} label={userType == "VENDOR"? "Customer Name": "Vendor Name"} value={trxnUserInfo?.name} highlight />
+              <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
+              <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
+              {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}
               <InfoRow icon={Building} label="City" value={transaction.city} />
             </div>
           </Section>
