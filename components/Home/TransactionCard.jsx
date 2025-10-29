@@ -3,8 +3,9 @@ import { MoreVertical } from "lucide-react";
 import { UPDATE_TRANSACTION_STATUS } from "../Auths/mutations/userMutations";
 import { useNavigate } from "react-router";
 import { useMutation } from "@apollo/client";
+import toast from "react-hot-toast";
 
-export default function TransactionCard({ transaction, index, onApprove, onReject, onViewDetails }) {
+export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor }) {
   const [open, setOpen] = useState(false);
    const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
     const navigate = useNavigate()
@@ -17,16 +18,18 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Done': return 'bg-green-100 text-green-600';
-      case 'Pending': return 'bg-yellow-100 text-yellow-600';
-      case 'Failed': return 'bg-red-100 text-red-600';
+      case 'FULFILLED': return 'bg-green-100 text-green-600';
+      case 'INITIATED': return 'bg-yellow-100 text-yellow-600';
+      case 'CANCELLED' || 'DECLINED': return 'bg-red-100 text-red-600';
+      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-600';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
   const handleUpdateStatus = async (id, status) => {
     try {
-      const { data } = await updateStatus({ variables: { transactionId: id } });
-      toast.success(`Transaction approved: ${data.approveTransaction.message}`);
+      const { data } = await updateStatus({ variables: { id, status } });
+      toast.success(`Transaction ${status}: ${data.updateTransactionStatus.message}`);
+      refetch();
     } catch (err) {
       toast.error(err.message || "Failed to approve transaction");
     }
@@ -92,30 +95,51 @@ export default function TransactionCard({ transaction, index, onApprove, onRejec
         {/* Dropdown Menu */}
         {open && (
           <div className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
-            <button
+            {isVendor && (
+              <>
+               <button
               onClick={() => {
-                handleUpdateStatus(transaction.id, 'approve');
+                handleUpdateStatus(transaction.id, 'IN_PROGRESS');
                 setOpen(false);
               }}
+               disabled={transaction.status !== 'INITIATED'}
               className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
             >
                Approve
             </button>
             <button
               onClick={() => {
-                onReject(transaction.id);
+                handleUpdateStatus(transaction.id, 'DECLINED');
                 setOpen(false);
+                
               }}
-              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+               disabled={transaction.status !== 'INITIATED' || transaction.status !== 'IN_PROGRESS'}
+              className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
             >
               Reject
             </button>
+              </>
+            )}
+             {!isVendor && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
+              <>
+            <button
+              onClick={() => {
+                handleUpdateStatus(transaction.id, 'CANCELLED');
+                setOpen(false);
+              }}
+              className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+              </>
+            )}
+           
             <button
               onClick={() => {
                 onViewDetails(transaction.id);
                 setOpen(false);
               }}
-              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+              className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
             >
               View Details
             </button>
