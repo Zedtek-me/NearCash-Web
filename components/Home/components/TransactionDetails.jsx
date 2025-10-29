@@ -41,7 +41,7 @@ export default function TransactionDetails() {
     data: transactionData,
     error: tranactionError,
     loading: transactionLoading,
-    refetch: refetchTransaction
+    refetch
   } = useQuery(
     GET_TRANSACTION, {
       variables: {
@@ -201,7 +201,7 @@ const handleUpdateStatus = async (id, status) => {
               }`}>
                 ₦ {formattedAmount}
               </div>
-              <div className="text-gray-500 text-sm mt-2">Net: {parseFloat(formattedAmount) + transaction?.charge}</div>
+              <div className="text-gray-500 text-sm mt-2">Net: {`${parseFloat(formattedAmount.replace("-", "")) - transaction?.charge}`}</div>
             </div>
             <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction?.status)} shadow-lg`}>
               {getStatusIcon(transaction?.status)}

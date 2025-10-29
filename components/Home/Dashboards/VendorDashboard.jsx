@@ -53,7 +53,8 @@ const {
   variables: {
     businessId: vendorBusinessId,
     userType: userType?.toLowerCase()
-  }
+  },
+  skip: !vendorBusinessId
 })
 
 const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
@@ -101,8 +102,6 @@ const handleSwitchBusiness = (id) =>{
   });
   toast.success('Business updated sucessfully')
 }
-
-
 
 
   // const transactionHistory = [
