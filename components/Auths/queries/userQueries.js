@@ -35,6 +35,7 @@ query VendorsNearMe(
         address
         location
         distance
+        nearest
     }
 }`;
 

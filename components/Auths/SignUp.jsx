@@ -42,7 +42,7 @@ export default function SignUp(){
 });
 
  const handleGoogleSignIn = async () => {
-     
+     localStorage.setItem("auth_type", "signup")
       localStorage.removeItem('nearcash_token');
      
 
@@ -52,7 +52,7 @@ export default function SignUp(){
       payload: 'signup'
     });
      Subscriber.report('auth', 'signup');
-     localStorage.setItem("auth_type", "signup");
+
   try {
     await getAuthUrl({
       variables: {

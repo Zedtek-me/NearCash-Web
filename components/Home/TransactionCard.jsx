@@ -113,7 +113,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
                 setOpen(false);
                 
               }}
-               disabled={transaction.status !== 'INITIATED' || transaction.status !== 'IN_PROGRESS'}
+               disabled={transaction.status !== 'INITIATED' && transaction.status !== 'IN_PROGRESS'}
               className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
             >
               Reject

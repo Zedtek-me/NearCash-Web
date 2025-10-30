@@ -27,7 +27,6 @@ export default function SocialAuth({ authType, socialType }){
     authTypeFromContext = data;
     });
     authTypeFromContext = localStorage.getItem("auth_type")
-    console.log("error recieved ", auth, authTypeFromContext)
 
     console.log('data', data);
     

@@ -85,11 +85,7 @@ const handleAddressSelect = (suggestion) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK) {
         setFormData((prev) => ({
           ...prev,
-          address: place.formatted_address,
-          location: {
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng(),
-          },
+          address: place.formatted_address
         }));
       }
     }
@@ -103,7 +99,7 @@ const handleAddressSelect = (suggestion) => {
   const isFormValid = formData.businessName && formData.description && formData.address && formData.country;
 
 
-  console.log(userData);
+  console.log("form data before submission::::::: ", formData);
   
 
   const handleSubmit = async () => {

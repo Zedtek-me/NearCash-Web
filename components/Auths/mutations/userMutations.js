@@ -13,6 +13,7 @@ export const AUTHORIZE_WITH_SOCIAL_CODE = gql`
                         firstName
                         lastName
                         username
+                        fullName
                         meta
                         userType
                     }
@@ -41,6 +42,7 @@ export const SIGNUP = gql`
                         firstName
                         lastName
                         username
+                        fullName
                         password
                         userType
                     }

@@ -10,6 +10,7 @@ import { GET_ANALYTICS } from "./queries/analytics";
 import useAuth from '../../../Hooks/Auths';
 import TransactionCard from '../TransactionCard';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 import EmptyTableState from '../components/EmptyTable';
 
 export default function ClientDashboard() {
@@ -129,43 +130,6 @@ const handlePrevious = () => {
         const socialTypeFromContext = localStorage.getItem("auth_type")
         console.log("error recieved ", auth, authTypeFromContext, socialTypeFromContext)
 
- const stores = [
-    {
-      id: 1,
-      name: "Fresh Market",
-      location: "Downtown",
-      distance: "0.5km",
-      coordinates: { lat: 6.618034, lng: 3.31658 },
-      priceRanges: [
-        { price: 200, range: "3000-5000" },
-        { price: 150, range: "2000-3000" },
-        { price: 300, range: "5000-7000" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Super Store",
-      location: "Mall Road",
-      distance: "1.2km",
-      coordinates: { lat: 6.620034, lng: 3.32658 },
-      priceRanges: [
-        { price: 180, range: "2500-4000" },
-        { price: 220, range: "4000-6000" },
-        { price: 120, range: "1500-2500" }
-      ]
-    },
-    {
-      id: 3,
-      name: "Quick Shop",
-      location: "City Center",
-      distance: "0.8km",
-      coordinates: { lat: 6.619034, lng: 3.31958 },
-      priceRanges: [
-        { price: 160, range: "2000-3500" },
-        { price: 250, range: "3500-5500" }
-      ]
-    }
-  ];
 // Sample route data (your BE response format)
   const sampleRouteData = {
     routes: "{\"features\": [{\"type\": \"Feature\", \"properties\": {\"mode\": \"walk\", \"waypoints\": [{\"location\": [3.31658, 6.618034], \"original_index\": 0}, {\"location\": [3.31658, 6.618034], \"original_index\": 1}], \"units\": \"metric\", \"distance\": 0, \"distance_units\": \"meters\", \"time\": 0, \"legs\": [{\"distance\": 0, \"time\": 0, \"steps\": [{\"from_index\": 0, \"to_index\": 1, \"distance\": 0, \"time\": 0, \"instruction\": {\"text\": \"Walk north on Tijani Street.\"}}, {\"from_index\": 1, \"to_index\": 1, \"distance\": 0, \"time\": 0, \"instruction\": {\"text\": \"You have arrived at your destination.\"}}]}]}, \"geometry\": {\"type\": \"MultiLineString\", \"coordinates\": [[[3.31658, 6.618034], [3.31658, 6.618034]]]}}], \"properties\": {\"mode\": \"walk\", \"waypoints\": [{\"lat\": 6.618034317294, \"lon\": 3.316580112845776}, {\"lat\": 6.618034317294, \"lon\": 3.316580112845776}], \"units\": \"metric\"}, \"type\": \"FeatureCollection\"}"
@@ -510,7 +474,7 @@ const handlePrevious = () => {
 
   const handleSubmitTransaction = async () => {
     if (!amount || !selectedPolicy) {
-      alert("Please enter an amount and select a policy");
+      toast.error("Please enter an amount and select a policy");
       return;
     }
 
@@ -533,10 +497,11 @@ const handlePrevious = () => {
       };
 
       await createTransaction({ variables });
-      alert("Transaction Created Successfully");
       setShowTransactionModal(false);
       setAmount("");
       setSelectedPolicy(null);
+      refetch()
+      toast.success("Transaction Created Successfully");
     } catch (err) {
       console.error(err);
       alert("Failed to create transaction");
@@ -672,7 +637,7 @@ const handlePrevious = () => {
               </div>
             <div className="space-y-4">
               {!data?.businessesAroundMe?.length && (
-                <EmptyTableState title="No nearby vendor within your current location." description="Vendors within 200miles from you will show up here."/>
+                <EmptyTableState title="No nearby vendor within your current location." description="Vendors within 15 Kilometers from you will appear here."/>
               )}
         {data?.businessesAroundMe?.map((store, index) => (
           <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
@@ -685,7 +650,7 @@ const handlePrevious = () => {
                 </div>
                 <div>
                   <div className="font-medium text-gray-800">{store?.name}</div>
-                  <div className="text-sm text-gray-500"> {store?.distance} km away</div>
+                  <div className="text-sm text-gray-500"> {store?.distance} km away {Object.is(store?.nearest, true) && "(Nearest)"}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
