@@ -74,6 +74,7 @@ const Navbar = ({
   const handleNavigation = (href) => {
     if (href === 'logout') {
       localStorage.removeItem('nearcash_token');
+      localStorage.removeItem("userLocation");
       return  navigate('/auth/login');
     }
     navigate(href);
