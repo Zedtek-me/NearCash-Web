@@ -5,15 +5,22 @@ import { ADD_CLIENTS_TO_CATEGORY, CREATE_CLIENT_CATEGORY } from '../../Auths/mut
 import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
 import { useMutation, useQuery } from '@apollo/client';
 import useAuth from '../../../Hooks/Auths';
+import { useStateValue } from '../../../providers/stateProvider';
 
 const CategoryManagementPage = () => {
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-   const { userData } = useAuth();
-  
-  const vendorBusinessId = userData?.businesses?.[0]?.id;
+  const { userData } = useAuth();
+  const [
+    {
+      businessStates: { selectedBusiness }
+    },
+    dispatch
+  ] = Object.values(useStateValue())
+
+  const vendorBusinessId = selectedBusiness;
   
 
   const { data: policiesData } = useQuery(FETCH_TRANSACTION_POLICIES, {
@@ -63,7 +70,7 @@ const CategoryManagementPage = () => {
           },
         },
       });
-
+      console.log("category created::::: ", data?.createCategory?.category)
       if (data?.createClientCategory?.category) {
         setCategories(prev => [data.createClientCategory.category, ...prev]);
         setCategoryFormData({ name: "", description: "", transactionPolicyId: "" });
@@ -124,7 +131,7 @@ const CategoryManagementPage = () => {
       if (category.id === categoryId) {
         return {
           ...category,
-          clients: category.clients.filter(c => c.id !== clientId)
+          busineessclientSet: category?.businessclientSet?.filter(c => c.id !== clientId)
         };
       }
       return category;
@@ -391,8 +398,8 @@ const CategoryManagementPage = () => {
                           <Tag className="w-5 h-5 text-black" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-white text-lg">{category.categoryInfo.name}</h3>
-                          <p className="text-sm text-gray-400">Category #{category.id}</p>
+                          <h3 className="font-semibold text-white text-lg">{category?.name}</h3>
+                          <p className="text-sm text-gray-400">Category #{category?.id}</p>
                         </div>
                       </div>
                       <button
@@ -403,13 +410,13 @@ const CategoryManagementPage = () => {
                       </button>
                     </div>
 
-                    <p className="text-gray-300 mb-4">{category.categoryInfo.description}</p>
+                    <p className="text-gray-300 mb-4">{category?.description}</p>
 
                     <div className="space-y-3 mb-4">
                       <div className="flex items-center gap-2 p-3 bg-gray-800 rounded-lg">
                         <Users className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-300">
-                          Policy: {getPolicyName(category.categoryInfo.transactionPolicyId)}
+                          Policy: {getPolicyName(category?.txnPolicy?.id)}
                         </span>
                       </div>
 
@@ -417,7 +424,7 @@ const CategoryManagementPage = () => {
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4 text-gray-400" />
                           <span className="text-sm text-gray-300">
-                            {category.clients.length} client{category.clients.length !== 1 ? 's' : ''}
+                            {category?.businessclientSet?.length} client{category?.businessclientSet?.length !== 1 ? 's' : ''}
                           </span>
                         </div>
                         <button
@@ -429,11 +436,11 @@ const CategoryManagementPage = () => {
                       </div>
                     </div>
 
-                    {category.clients.length > 0 && (
+                    {category?.businessclientSet.length > 0 && (
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-gray-400 mb-2">Clients:</h4>
                         <div className="max-h-32 overflow-y-auto space-y-1">
-                          {category.clients.map(client => (
+                          {category.businessclientSet.map(client => (
                             <div key={client.id} className="flex items-center justify-between p-2 bg-black rounded-lg">
                               <div>
                                 <div className="text-sm font-medium text-white">{client.name}</div>

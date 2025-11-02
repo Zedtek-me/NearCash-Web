@@ -222,6 +222,17 @@ export const CREATE_CLIENT_CATEGORY = gql`
           meetUpCharge
           meta
         }
+        businessclientSet {
+          id
+          client {
+            id
+            fullName
+            email
+          }
+          business {
+            id
+          }
+        }
       }
     }
   }
