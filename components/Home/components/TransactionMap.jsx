@@ -23,6 +23,8 @@ const clientIcon = L.icon({
   iconAnchor: [16, 32],
 });
 
+
+
 export default function TransactionMap({
   txnId,
   status,
@@ -30,11 +32,13 @@ export default function TransactionMap({
   userType,
   clientLocation: initialClient,
   vendorLocation: initialVendor,
-  userData
+  userData,
+  transaction
 }) {
+
   const [isOpen, setIsOpen] = useState(true);
-  const [vendorLoc, setVendorLoc] = useState(initialVendor);
-  const [clientLoc, setClientLoc] = useState(initialClient);
+  const [vendorLoc, setVendorLoc] = useState();
+  const [clientLoc, setClientLoc] = useState();
   const [isSocketReady, setIsSocketReady] = useState(false);
 
   const isPending = ['INITIATED', 'IN_PROGRESS'].includes(status);
@@ -51,8 +55,23 @@ export default function TransactionMap({
       websocketURL
     );
 
+const location = localStorage.getItem("userLocation");
+
+
+    useEffect(() => {
+       if(location) 
+    console.log('locationeeeeeeeeee', location);
+
+        setClientLoc({latitude: location?.lat, longitude: location?.lng});
+        setVendorLoc({latitude: location?.lat, longitude: location?.lng});
+    }, [location])
+
+    
+
+
 
   useEffect(() => {
+   
 
   if (socket && socket.readyState === WebSocket.OPEN) {
     setIsSocketReady(true);
@@ -73,29 +92,34 @@ export default function TransactionMap({
   console.log('errrrrryyyyyyyyyyy');
   
 
-  fetchAndUpdateUserCurrentLocation(
-    updateUserPosition,
-    (err) => console.log("Location error:", err),
-    userData,
-    socket
-  );
+  // fetchAndUpdateUserCurrentLocation(
+  //   updateUserPosition,
+  //   (err) => console.log("Location error:", err),
+  //   userData,
+  //   socket
+  // );
 
-  fetchUserLatestLocation(userData, socket, txnId);
+  updateUserPosition(userData.location, userData, socket);
+
 
   const handleMessage = (e) => {
     try {
       const data = JSON.parse(e.data);
-      console.log('evvvvvvvvvvvvvvv', e.location);
+      console.log('evvvvvvvvvvvvvvv', e);
       
-      if (data.message_type === 'vendor_location_update') {
-        setVendorLoc(data.location);
-      } else if (data.message_type === 'client_location_update') {
+      if (data.message_type === 'vendor_latest_location') {
+        setVendorLoc(data.location ?? {});
+      } else if (data.message_type === 'client_latest_location') {
         setClientLoc(data.location);
+      } else if (data.message_type === 'vendor_location_update_ack' || data.message_type === 'client_location_update_ack') {
+        fetchUserLatestLocation(userData, socket, txnId, transaction?.vendor?.id);
       }
     } catch (err) {
       console.log("Invalid WS message");
     }
   };
+
+   
 
   socket.addEventListener('message', handleMessage);
 
@@ -118,7 +142,10 @@ export default function TransactionMap({
     );
   }
 
-  const center = vendorLoc || clientLoc || { lat: 6.5244, lng: 3.3792 };
+  const center = userData?.userType === "VENDOR" ? vendorLoc : clientLoc;
+
+  console.log('vendorLoc:', center);
+  
 
   return (
     <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -146,7 +173,7 @@ export default function TransactionMap({
       {/* Map */}
       <div className="h-96 relative">
         <MapContainer
-          center={[center.lat, center.lng]}
+          center={[center?.lat, center?.lng]}
           zoom={15}
           style={{ height: '100%', width: '100%' }}
         >
@@ -155,8 +182,8 @@ export default function TransactionMap({
             attribution='&copy; OpenStreetMap'
           />
 
-          {vendorLoc && (
-            <Marker position={[vendorLoc.lat, vendorLoc.lng]} icon={icon}>
+          {vendorLoc?.latitude && (
+            <Marker position={[center?.lat, center?.lng]} icon={icon}>
               <Popup>
                 <b>Vendor</b>
                 {movingRole === 'VENDOR' && <span> (Moving)</span>}
@@ -164,8 +191,8 @@ export default function TransactionMap({
             </Marker>
           )}
 
-          {clientLoc && (
-            <Marker position={[clientLoc.lat, clientLoc.lng]} icon={clientIcon}>
+          {clientLoc?.latitude && (
+            <Marker position={[center.lat, center.lng]} icon={clientIcon}>
               <Popup>
                 <b>Customer</b>
                 {movingRole === 'CLIENT' && <span> (Walking)</span>}
@@ -173,11 +200,10 @@ export default function TransactionMap({
             </Marker>
           )}
 
-          {vendorLoc && clientLoc && (
+          {vendorLoc?.latitude && clientLoc?.latitude && (
             <Polyline
               positions={[
-                [vendorLoc.lat, vendorLoc.lng],
-                [clientLoc.lat, clientLoc.lng]
+                [center.lat, center.lng],
               ]}
               color="#3B82F6"
               weight={5}

@@ -79,6 +79,9 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
 
 
 export const updateUserPosition = (coordinates, userData, socket) => {
+  const location = {"lat":7.41,"lng":4.31};
+  console.log("Updating user position to:", location);
+  
   const payload = JSON.stringify({
     message_type: userData?.userType === "VENDOR" 
       ? "vendor_location_update" 
@@ -104,10 +107,10 @@ export const updateUserPosition = (coordinates, userData, socket) => {
 };
 
 
-export const fetchUserLatestLocation = (userData, socket, txnId) => {
+export const fetchUserLatestLocation = (userData, socket, txnId, vendorId) => {
   const payload = JSON.stringify({
     message_type: "retrieve_vendor_latest_location",
-    vendor_id: userData?.id,
+    vendor_id: vendorId,
     txn_id: txnId
   });
 

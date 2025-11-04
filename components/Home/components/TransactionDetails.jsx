@@ -233,6 +233,7 @@ const handleUpdateStatus = async (id, status) => {
             clientLocation={clientLocation}
             vendorLocation={vendorLocation}
             userData={userData}
+            transaction={transaction}
           />
         )}
         

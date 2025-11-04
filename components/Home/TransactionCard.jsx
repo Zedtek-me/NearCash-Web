@@ -55,6 +55,11 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           </span> */}
         </div>
         <div>
+           <span
+          className={`font-bold text-gray-800`}
+        >
+          ₦{transaction?.amount}
+        </span>
           <div className="font-medium text-gray-800">{transaction?.name}</div>
           <div className="text-sm text-gray-500"> {new Date(transaction.dateCreated).toLocaleString('en-GB', {
     day: '2-digit',
@@ -69,13 +74,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
       {/* Right side */}
       <div className="flex items-center space-x-2">
-        <span
-          className={`font-medium ${
-            transaction?.amount?.startsWith("+") ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {transaction?.amount}
-        </span>
+       
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
             transaction.status

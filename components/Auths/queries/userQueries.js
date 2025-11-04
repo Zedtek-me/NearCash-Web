@@ -100,6 +100,7 @@ export const GET_TRANSACTIONS = gql`
       description
       status
       dateCreated
+      amount
       vendor {
         firstName
         lastName
