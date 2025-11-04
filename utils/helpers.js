@@ -1,4 +1,4 @@
-
+let watchID = null;
 
 export function toTitleCase(str) {
     if (!str) {
@@ -31,44 +31,99 @@ export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, aut
 
 
 export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userData, socket) => {
-  let watchID = navigator.geolocation.watchPosition(
+ if (watchID !== null) {
+    navigator.geolocation.clearWatch(watchID);
+    watchID = null;
+  }
+
+  // First: Ask permission
+  navigator.geolocation.getCurrentPosition(
     (pos) => {
-        console.log("postion gotten with the 'watchPosition' method call::: ", pos)
-        let { coords: currentCoords } = pos
-        updateFunc(currentCoords, userData, socket)
+      console.log("GPS Permission GRANTED");
+      toast.success("GPS ON");
+
+      // Now start live tracking
+      watchID = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+          console.log("LIVE GPS:", latitude, longitude, "±", accuracy + "m");
+
+          updateFunc(pos.coords, userData, socket);
+        },
+        (err) => {
+          console.error("GPS Error:", err.code, err.message);
+          if (err.code === 2) {
+            toast.error("GPS signal lost. Move outside?");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 5000
+        }
+      );
     },
     (err) => {
-        console.log("error gotten with the 'watchPosition' method call::: ", err)
-        errorFunc(err)
+      console.error("GPS Permission DENIED:", err);
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+
+  return () => {
+    if (watchID !== null) {
+      navigator.geolocation.clearWatch(watchID);
+      watchID = null;
     }
-)
-  return navigator.geolocation.clearWatch(watchID)
-}
+  };
+};
 
 
 export const updateUserPosition = (coordinates, userData, socket) => {
-  let isVendorLocation = userData?.userType === "VENDOR";
-  let data = {
+  const payload = JSON.stringify({
+    message_type: userData?.userType === "VENDOR" 
+      ? "vendor_location_update" 
+      : "client_location_update",
     vendor_id: userData?.id,
-    message_type: isVendorLocation ? "vendor_location_update" : "client_location_update",
-    location: coordinates,
+    txn_id: userData?.txnId,
+    location: {
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude
+    },
     business_id: userData?.selectedBusiness
+  });
+
+  const send = () => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(payload);
+    } else if (socket.readyState === WebSocket.CONNECTING) {
+      socket.addEventListener('open', () => socket.send(payload), { once: true });
+    }
   };
-  console.log("payload to send to the backend for vendor current location::::: ", data)
-  data = JSON.stringify(data);
-  socket.send(data)
-}
+
+  send();
+};
 
 
 export const fetchUserLatestLocation = (userData, socket, txnId) => {
-  let data = JSON.stringify({
+  const payload = JSON.stringify({
     message_type: "retrieve_vendor_latest_location",
     vendor_id: userData?.id,
     txn_id: txnId
-  })
-  socket.send(data);
-  return data;
-}
+  });
+
+  const sendWhenReady = () => {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(payload);
+    } else if (socket.readyState === WebSocket.CONNECTING) {
+      socket.addEventListener('open', () => socket.send(payload), { once: true });
+    } else {
+      console.warn("WebSocket closed. Cannot fetch location.");
+    }
+  };
+
+  sendWhenReady();
+  return payload;
+};
 
 export const getDateAndTimeFromDateTimeStr = (dateTime) => {
   const dT = new Date(dateTime);

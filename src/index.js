@@ -8,6 +8,9 @@ import { ApolloProvider } from "@apollo/client";
 import getApolloClient from "../utils/graphQl.js";
 import CToaster from "../utils/components/CToaster/index.js";
 import NotificationSocket from "../components/Notification/web-socket.jsx";
+import 'leaflet/dist/leaflet.css';
+import { WebSocketProvider } from "../components/Notification/WebSocketProvider.jsx";
+
 
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -21,8 +24,10 @@ const renderApp = async () => {
     <ApolloProvider client={apolloClient}>
       <StateProvider>
         <AuthProvider>
+          <WebSocketProvider>
           <App />
           <NotificationSocket />
+          </WebSocketProvider>
         </AuthProvider>
       </StateProvider>
     </ApolloProvider> 

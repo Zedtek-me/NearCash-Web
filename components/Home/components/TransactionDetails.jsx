@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ArrowLeft, 
   Download, 
@@ -27,12 +27,15 @@ import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
+import TransactionMap from './TransactionMap';
 
 export default function TransactionDetails() {
   const { userData } = useAuth();
   const params = useParams()
   const navigate = useNavigate()
   const { userData: { userType } } = useAuth()
+  const [clientLocation, setClientLocation] = useState(null);
+const [vendorLocation, setVendorLocation] = useState(null);
 
   const transactionId = params?.id
   const id = transactionId
@@ -51,6 +54,36 @@ export default function TransactionDetails() {
     }
   )
 
+  const transaction = transactionData?.transaction || {}
+
+
+  useEffect(() => {
+  if (!transaction?.meta) return;
+
+  try {
+    const meta = JSON.parse(transaction.meta); // Parse the JSON string
+
+    // Client location (always sent)
+    if (meta.client_current_location) {
+      const loc = meta.client_current_location;
+      setClientLocation({
+        lat: loc.latitude,
+        lng: loc.longitude
+      });
+    }
+
+    // Vendor location (only sent when vendor moves)
+    if (meta.vendor_current_location) {
+      const loc = meta.vendor_current_location;
+      setVendorLocation({
+        lat: loc.latitude,
+        lng: loc.longitude
+      });
+    }
+  } catch (err) {
+    console.log("Failed to parse meta:", err);
+  }
+}, [transaction]);
   const formatTrxnAmount = (amount) => {
     switch(userType){
       case "VENDOR":
@@ -71,7 +104,6 @@ export default function TransactionDetails() {
   const trxnBusiness = transactionData?.transaction?.business
   const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
   
-  const transaction = transactionData?.transaction || {}
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -191,6 +223,18 @@ const handleUpdateStatus = async (id, status) => {
       <Navbar user={userData}/>
       <div className="max-w-7xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
+
+        {['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) && (
+          <TransactionMap
+            txnId={transaction.id}
+            status={transaction.status}
+            category={transaction.category}
+            userType={userType}
+            clientLocation={clientLocation}
+            vendorLocation={vendorLocation}
+            userData={userData}
+          />
+        )}
         
         <div className="bg-gradient-to-br from-black to-gray-900 rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-gray-800">
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">

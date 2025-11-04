@@ -45,6 +45,7 @@ export const GET_TRANSACTION = gql`
                 firstName
                 lastName
                 email
+                
             }
             client{
                 id
