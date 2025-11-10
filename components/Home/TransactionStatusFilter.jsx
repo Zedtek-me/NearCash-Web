@@ -17,16 +17,16 @@ const TransactionStatusFilter = ({ statusMap, refetch }) => {
     return (
         <div className="relative max-w-full text-black cursor-pointer bg-white" onClick={handleOpenStatusFilter}>
             <div className="filter-by flex justify-center items-center">
-                <p className="w-10">Filter by</p>
+                <p className="w-20 font-semibold">Filter by</p>
                 <ChevronDown size={16} className={`rounded-full transform transition-transform duration-300 ${openStatusFilter ? 'rotate-180' : ''}`}/>
             </div>
             {
                 openStatusFilter && (
-                    <div className="absolute flex flex-col justify-center items-center px-auto mx-auto tex-black z-10 bg-white">
+                    <div className="absolute left-6 flex flex-col justify-between items-center px-auto mx-auto tex-black z-10 bg-white w-44 h-44 p-5 text-left">
                     {
                         statusMap.map((statusData) => (
                         <div className={`text-${statusData?.color}`} onClick={() => handleSearch(statusData?.name)}>
-                            <p>{statusData?.name}</p>
+                            <p className={`text-left`}>{statusData?.name}</p>
                         </div>
                         ))
                     }
