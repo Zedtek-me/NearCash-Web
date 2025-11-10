@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera } from 'lucide-react';
+import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
 import { useMutation, useQuery } from '@apollo/client';
@@ -11,6 +11,7 @@ import TransactionCard from '../TransactionCard';
 import EmptyTableState from '../components/EmptyTable';
 import toast from 'react-hot-toast';
 import { useStateValue } from '../../../providers/stateProvider';
+import TransactionStatusFilter from '../TransactionStatusFilter';
 
 
 
@@ -115,24 +116,7 @@ const handleSwitchBusiness = (id) =>{
   toast.success('Business updated sucessfully')
 }
 
-
-  // const transactionHistory = [
-  //   { id: 1, name: "Darlene Robertson", date: "11/7/16", amount: "+$782.01", status: "Done" },
-  //   { id: 2, name: "Wade Warren", date: "11/6/16", amount: "-$456.32", status: "Pending" },
-  //   { id: 3, name: "Kristin Watson", date: "11/5/16", amount: "+$1,234.56", status: "Done" },
-  //   { id: 4, name: "Robert Fox", date: "11/4/16", amount: "-$89.99", status: "Failed" },
-  //   { id: 5, name: "Cody Fisher", date: "11/3/16", amount: "+$543.21", status: "Done" }
-  // ];
-
   const transactionHistory = data?.transactions || [];
-
-  const storeList = [
-    { id: 1, name: "Walmart Supercenter", location: "123 Main St, New York, NY", category: "Grocery" },
-    { id: 2, name: "Target Store", location: "456 Oak Ave, Los Angeles, CA", category: "Retail" },
-    { id: 3, name: "Best Buy Electronics", location: "789 Pine Rd, Chicago, IL", category: "Electronics" },
-    { id: 4, name: "Home Depot", location: "321 Elm St, Houston, TX", category: "Home Improvement" },
-    { id: 5, name: "Starbucks Coffee", location: "654 Maple Dr, Miami, FL", category: "Food & Beverage" }
-  ];
 
   const getAvatarColor = (index) => {
     const colors = ['bg-blue-400', 'bg-gray-400', 'bg-teal-400', 'bg-amber-400', 'bg-orange-400'];
@@ -158,6 +142,24 @@ const handleSwitchBusiness = (id) =>{
       default: return 'bg-gray-100 text-gray-600';
     }
   };
+
+  const statusMap = [
+    {
+      name: "Initiated", color: "black"
+    },
+    {
+      name: "Declined", color: "black"
+    },
+    {
+      name: "Cancelled", color: "black"
+    },
+    {
+      name: "In Progress", color: "black"
+    },
+    {
+      name: "Fulfilled", color: "black"
+    }
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -239,6 +241,7 @@ const handleSwitchBusiness = (id) =>{
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
+                <TransactionStatusFilter statusMap={statusMap} refetch={refetch}/>
                 <div className="flex justify-between items-center mt-4">
                   <button
                     onClick={handlePrevious}
