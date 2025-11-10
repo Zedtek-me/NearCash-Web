@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Plus, Users, Tag, UserPlus, X, ChevronDown, Search, Edit, Trash2, CheckCircle } from 'lucide-react';
 import Navbar from '../Navs/Headers';
 import { ADD_CLIENTS_TO_CATEGORY, CREATE_CLIENT_CATEGORY } from '../../Auths/mutations/userMutations';
-import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
+import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES, GET_CATEGORIES } from '../../Auths/queries/userQueries';
 import { useMutation, useQuery } from '@apollo/client';
 import useAuth from '../../../Hooks/Auths';
+import { getItemFromLocalStorage } from '../../../utils/helpers';
 import { useStateValue } from '../../../providers/stateProvider';
 
 const CategoryManagementPage = () => {
@@ -20,7 +21,7 @@ const CategoryManagementPage = () => {
     dispatch
   ] = Object.values(useStateValue())
 
-  const vendorBusinessId = selectedBusiness;
+  const vendorBusinessId = selectedBusiness ?? getItemFromLocalStorage('selected_business');
   
 
   const { data: policiesData } = useQuery(FETCH_TRANSACTION_POLICIES, {
@@ -30,6 +31,24 @@ const CategoryManagementPage = () => {
   const { data: clientsData } = useQuery(FETCH_BUSINESS_CLIENTS, {
     variables: { businessId: vendorBusinessId },
   });
+
+  const {
+    data: categoriesData,
+    refetch: refetchCategories
+  } = useQuery(GET_CATEGORIES, {
+    variables: {
+      businessId: vendorBusinessId
+    },
+    onCompleted: (data) => {
+      console.log("Fetched categories data: ", data);
+      setCategories(data?.categories || []);
+    },
+    onError: (err) => {
+      console.error("Error fetching categories:", err);
+    }
+  })
+
+  console.log("categoriesData:::: ", categoriesData)
 
   const [createCategory, { loading: creatingCategory }] = useMutation(CREATE_CLIENT_CATEGORY);
   const [addClients, { loading: addingClients }] = useMutation(ADD_CLIENTS_TO_CATEGORY);
@@ -88,28 +107,29 @@ const CategoryManagementPage = () => {
           data: {
             clientIds: clientFormData.clientIds,
             categoryId: clientFormData.categoryId,
-            businessId: userData?.id,
+            businessId: vendorBusinessId,
           },
         },
       });
 
-      if (data?.addClientsToACategory?.categoryClients) {
+      if (data?.addClientsToACategory?.categoryClients.length > 0) {
         const updatedClients = data.addClientsToACategory.categoryClients.map(c => ({
           id: c.client.id,
-          name: `${c.client.firstName} ${c.client.lastName}`,
+          fullName: `${c.client.firstName} ${c.client.lastName}`,
           email: c.client.email,
         }));
 
         setCategories(prev =>
           prev.map(cat =>
             cat.id === clientFormData.categoryId
-              ? { ...cat, clients: [...(cat.clients || []), ...updatedClients] }
+              ? { ...cat, businessclientSet: [...(cat.businessclientSet || []), ...updatedClients] }
               : cat
           )
         );
 
         setShowClientForm(false);
-        setClientFormData({ clientIds: [], categoryId: "" });
+        setClientFormData({ clientIds: [], categoryId: "" })
+        refetchCategories();
       }
     } catch (err) {
       console.error("Error adding clients:", err);
@@ -288,7 +308,7 @@ const CategoryManagementPage = () => {
           <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
             <div className="bg-white px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-black">
-                Add Clients to "{selectedCategory?.categoryInfo?.name}"
+                Add Clients to "{selectedCategory?.name}"
               </h2>
               <button
                 onClick={() => setShowClientForm(false)}
@@ -441,10 +461,10 @@ const CategoryManagementPage = () => {
                         <h4 className="text-sm font-medium text-gray-400 mb-2">Clients:</h4>
                         <div className="max-h-32 overflow-y-auto space-y-1">
                           {category.businessclientSet.map(client => (
-                            <div key={client.id} className="flex items-center justify-between p-2 bg-black rounded-lg">
+                             <div key={client.id} className="flex items-center justify-between p-2 bg-black rounded-lg">
                               <div>
-                                <div className="text-sm font-medium text-white">{client.name}</div>
-                                <div className="text-xs text-gray-400">{client.email}</div>
+                                <div className="text-sm font-medium text-white">{client?.client?.fullName}</div>
+                                <div className="text-xs text-gray-400">{client?.client?.email}</div>
                               </div>
                               <button
                                 onClick={() => removeClientFromCategory(category.id, client.id)}
@@ -460,7 +480,7 @@ const CategoryManagementPage = () => {
 
                     <div className="mt-4 pt-4 border-t border-gray-800">
                       <p className="text-xs text-gray-500">
-                        Created {new Date(category.createdAt).toLocaleDateString()}
+                        Created {new Date(category?.dateCreated).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

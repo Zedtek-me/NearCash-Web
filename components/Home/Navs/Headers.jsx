@@ -75,6 +75,8 @@ const Navbar = ({
     if (href === 'logout') {
       localStorage.removeItem('nearcash_token');
       localStorage.removeItem("userLocation");
+      localStorage.removeItem("selected_business");
+      localStorage.removeItem("auth_type");
       return  navigate('/auth/login');
     }
     navigate(href);
