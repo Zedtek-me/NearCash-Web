@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
@@ -22,13 +22,30 @@ const Dashboard = () => {
 
   const { userType } = userData;
 
-  const vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
+  let vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
   const [
     {
       businessStates: { selectedBusiness }
     },
     dispatch
   ] = Object.values(useStateValue())
+
+  useEffect(
+    () => {
+      if(vendorBusinessId && !selectedBusiness){
+        localStorage.setItem("selected_business", vendorBusinessId);
+        dispatch({
+          type: "UPDATE_SELECTED_BUSINESS",
+          value: vendorBusinessId
+        })
+      }
+      else if(selectedBusiness) {
+        localStorage.setItem("selected_business", selectedBusiness)
+        vendorBusinessId = selectedBusiness;
+      }
+    },
+    [vendorBusinessId, selectedBusiness]
+  )
   const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
   variables: { pageCount: 10, pageNumber, businessId: selectedBusiness ?? vendorBusinessId},
   fetchPolicy: "network-only",
@@ -54,19 +71,13 @@ const {
     businessId: vendorBusinessId,
     userType: userType?.toLowerCase()
   },
-  skip: !vendorBusinessId
+  skip: !(vendorBusinessId || selectedBusiness)
 })
 
 const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
 console.log(userData);
 
-if(vendorBusinessId && !selectedBusiness){
-  dispatch({
-    type: "UPDATE_SELECTED_BUSINESS",
-    value: vendorBusinessId
-  })
-}
 
 const handleNext = () => {
   setPageNumber((prev) => prev + 1);
@@ -96,6 +107,7 @@ const handleUpdateStatus = async (id, newStatus) => {
 };
 
 const handleSwitchBusiness = (id) =>{
+  localStorage.setItem("selected_business", id);
   dispatch({
     type: "UPDATE_SELECTED_BUSINESS",
     value: id
@@ -204,7 +216,7 @@ const handleSwitchBusiness = (id) =>{
                   </div>
                 </div>
                 <div className="text-xl font-bold text-gray-800">
-                  {`$${analyticsData?.analytics?.fulfilledTransactions || analyticsData?.analytics?.totalTransactions}`}
+                  {`$${analyticsData?.analytics?.fulfilledTransactions || analyticsData?.analytics?.totalTransactions || 0}`}
                 </div>
                 <div className="text-xs text-red-500 mt-1">
                   {`${analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% increase from last Month`}

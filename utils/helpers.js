@@ -76,3 +76,9 @@ export const getDateAndTimeFromDateTimeStr = (dateTime) => {
   let time = dT.toTimeString()
   return [date, time]
 }
+
+export const getItemFromLocalStorage = (keyName, defaultValue=null) => {
+  let item = localStorage.getItem(keyName);
+  if(!item) return defaultValue;
+  return item;
+}
