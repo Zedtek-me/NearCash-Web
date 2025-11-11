@@ -9,8 +9,12 @@ const TransactionStatusFilter = ({ statusMap, refetch }) => {
       );
 
     const handleSearch = (searchTxt) => {
+        let refinedSearch = searchTxt?.replace(" ", "_")?.toUpperCase()
+        if(searchTxt === "All"){
+            refinedSearch = ""
+        }
         refetch({
-            status: searchTxt?.replace(" ", "_")?.toUpperCase()
+            status: refinedSearch
         })
     }
 
