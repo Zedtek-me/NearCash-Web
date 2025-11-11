@@ -145,6 +145,9 @@ const handleSwitchBusiness = (id) =>{
 
   const statusMap = [
     {
+      name: "All", color: "black"
+    },
+    {
       name: "Initiated", color: "black"
     },
     {

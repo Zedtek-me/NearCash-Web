@@ -51,6 +51,9 @@ export default function ClientDashboard() {
 
   const statusMap = [
     {
+      name: "All", color: "black"
+    },
+    {
       name: "Initiated", color: "black"
     },
     {
