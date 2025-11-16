@@ -99,6 +99,7 @@ export const GET_TRANSACTIONS = gql`
       id
       description
       status
+      amount
       dateCreated
       amount
       vendor {
@@ -238,4 +239,67 @@ query Transactiion(
         }
     }
 }
+`
+
+export const GET_CATEGORIES = gql`
+  query ClientCategories(
+    $businessId: String!,
+    $id: String, $search: String,
+    $pageCount: Int, $pageNumber: Int
+){
+    categories(
+        businessId: $businessId, id: $id,
+        search: $search, pageCount: $pageCount,
+        pageNumber: $pageNumber
+    ){
+        id
+        name
+        description
+        business{
+            id
+            name
+        }
+        txnPolicy{
+            id
+            name
+        }
+        businessclientSet{
+            client{
+                id
+                fullName
+                email
+            }
+        }
+      dateCreated
+      lastUpdated
+    }
+    pagination
+}`
+
+
+export const GET_VENDORS = gql`
+ query Vendors(
+  $id: String, $search: String
+){
+  vendors(
+    id: $id, search: $search
+  ){
+    id
+    fullName
+    email
+    userType
+  }
+}
+`
+
+export const GET_CLIENTS = gql`
+  query Clients(
+    $id: String, $search: String
+){
+    clients(id: $id, search: $search){
+      id
+      fullName
+      email
+    }
+  }
 `

@@ -12,6 +12,7 @@ import TransactionCard from '../TransactionCard';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import EmptyTableState from '../components/EmptyTable';
+import TransactionFilter from '../TransactionFilter';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
@@ -47,6 +48,28 @@ export default function ClientDashboard() {
       default: return 'bg-gray-100 text-gray-600';
     }
   };
+
+  const statusMap = [
+    {
+      name: "All", color: "black"
+    },
+    {
+      name: "Initiated", color: "black"
+    },
+    {
+      name: "Declined", color: "black"
+    },
+    {
+      name: "Cancelled", color: "black"
+    },
+    {
+      name: "In Progress", color: "black"
+    },
+    {
+      name: "Fulfilled", color: "black"
+    }
+  ]
+
   const { data, loading, error } = useQuery(VENDOR_LIST, {
     variables: {
       currentLat: userLocation?.lat || 0,
@@ -775,6 +798,7 @@ const handlePrevious = () => {
              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
+                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
                 <div className="flex justify-between items-center mt-4">
                   <button
                     onClick={handlePrevious}

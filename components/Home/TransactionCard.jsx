@@ -74,7 +74,13 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
       {/* Right side */}
       <div className="flex items-center space-x-2">
-       
+        <span
+          className={`font-medium ${
+            transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          {transaction?.amount}
+        </span>
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
             transaction.status
