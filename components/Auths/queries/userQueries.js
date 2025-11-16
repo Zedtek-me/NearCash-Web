@@ -274,3 +274,31 @@ export const GET_CATEGORIES = gql`
     }
     pagination
 }`
+
+
+export const GET_VENDORS = gql`
+ query Vendors(
+  $id: String, $search: String
+){
+  vendors(
+    id: $id, search: $search
+  ){
+    id
+    fullName
+    email
+    userType
+  }
+}
+`
+
+export const GET_CLIENTS = gql`
+  query Clients(
+    $id: String, $search: String
+){
+    clients(id: $id, search: $search){
+      id
+      fullName
+      email
+    }
+  }
+`

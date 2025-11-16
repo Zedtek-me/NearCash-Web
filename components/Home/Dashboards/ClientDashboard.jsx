@@ -12,7 +12,7 @@ import TransactionCard from '../TransactionCard';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import EmptyTableState from '../components/EmptyTable';
-import TransactionStatusFilter from '../TransactionStatusFilter';
+import TransactionFilter from '../TransactionFilter';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
@@ -798,7 +798,7 @@ const handlePrevious = () => {
              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                <TransactionStatusFilter statusMap={statusMap} refetch={refetch}/>
+                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
                 <div className="flex justify-between items-center mt-4">
                   <button
                     onClick={handlePrevious}
