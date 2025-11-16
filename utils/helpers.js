@@ -109,7 +109,8 @@ export const updateUserPosition = (coordinates, userData, socket) => {
 
 export const fetchUserLatestLocation = (userData, socket, txnId, vendorId) => {
   const payload = JSON.stringify({
-    message_type: "retrieve_vendor_latest_location",
+    message_type: userData?.userType === "VENDOR" 
+      ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
     vendor_id: vendorId,
     txn_id: txnId
   });

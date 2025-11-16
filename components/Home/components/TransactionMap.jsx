@@ -1,29 +1,21 @@
-// src/components/TransactionMap.js
-import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
+import React, { useState, useEffect } from 'react';
+import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
 import { MapPin, X } from 'lucide-react';
-import 'leaflet/dist/leaflet.css';
 import { fetchAndUpdateUserCurrentLocation, fetchUserLatestLocation, updateUserPosition } from '../../../utils/helpers';
-import { useWebSocket } from '../../Notification/WebSocketProvider';
+import { google_key } from '../../../configs/environs';
 
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
+};
 
-const clientIcon = L.icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/32/25/25694.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-});
-
-
+const mapOptions = {
+  disableDefaultUI: false,
+  zoomControl: true,
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: false,
+};
 
 export default function TransactionMap({
   txnId,
@@ -35,98 +27,120 @@ export default function TransactionMap({
   userData,
   transaction
 }) {
-
   const [isOpen, setIsOpen] = useState(true);
-  const [vendorLoc, setVendorLoc] = useState();
-  const [clientLoc, setClientLoc] = useState();
+  const [vendorLoc, setVendorLoc] = useState(null);
+  const [clientLoc, setClientLoc] = useState(null);
   const [isSocketReady, setIsSocketReady] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [currentUserLoc, setCurrentUserLoc] = useState(null);
 
   const isPending = ['INITIATED', 'IN_PROGRESS'].includes(status);
   const isStoreWalking = category === 'STORE_WALKING';
   const movingRole = isStoreWalking ? 'CLIENT' : 'VENDOR';
+  const isVendor = userData?.userType === 'VENDOR';
 
-    const baseURL = process.env.SOCKET_URL;
+  const baseURL = process.env.SOCKET_URL;
   const token = localStorage.getItem("nearcash_token");
-
-
   const websocketURL = `${baseURL}/notification/${userData.id}/?token=${token}`;
 
-    const socket = new WebSocket(
-      websocketURL
+  useEffect(() => {
+    const locationStr = localStorage.getItem("userLocation");
+    if (locationStr) {
+      try {
+        const location = JSON.parse(locationStr);
+        const userLocation = {
+          latitude: location.lat,
+          longitude: location.lng
+        };
+        setCurrentUserLoc(userLocation);
+        
+        if (isVendor) {
+          setVendorLoc(userLocation);
+        } else {
+          setClientLoc(userLocation);
+        }
+      } catch (err) {
+        console.error('Error parsing location from localStorage:', err);
+      }
+    }
+  }, [isVendor]);
+
+  useEffect(() => {
+    if (!userData?.id || !token) return;
+
+    const ws = new WebSocket(websocketURL);
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      setIsSocketReady(true);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+      setIsSocketReady(false);
+    };
+
+    setSocket(ws);
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
+  }, [userData?.id, token, websocketURL]);
+
+  useEffect(() => {
+    if (!isPending || !txnId || !userData || !isSocketReady || !socket) return;
+
+    console.log('Setting up location tracking...');
+
+    fetchAndUpdateUserCurrentLocation(
+      updateUserPosition,
+      (err) => console.error("Location error:", err),
+      userData,
+      socket
     );
 
-const location = localStorage.getItem("userLocation");
+    const handleMessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        console.log('WebSocket message received:', data);
 
-
-    useEffect(() => {
-       if(location) 
-    console.log('locationeeeeeeeeee', location);
-
-        setClientLoc({latitude: location?.lat, longitude: location?.lng});
-        setVendorLoc({latitude: location?.lat, longitude: location?.lng});
-    }, [location])
-
-    
-
-
-
-  useEffect(() => {
-   
-
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    setIsSocketReady(true);
-    console.log('errrrrr');
-    
-  } else if (socket) {
-    const onOpen = () => setIsSocketReady(true);
-    console.log('xxxxxxxxxxx');
-
-    socket.addEventListener('open', onOpen);
-    return () => socket.removeEventListener('open', onOpen);
-  }
-}, [socket]);
-
-  useEffect(() => {
-  if (!isPending || !txnId || !userData || !isSocketReady) return;
-
-  console.log('errrrrryyyyyyyyyyy');
-  
-
-  // fetchAndUpdateUserCurrentLocation(
-  //   updateUserPosition,
-  //   (err) => console.log("Location error:", err),
-  //   userData,
-  //   socket
-  // );
-
-  updateUserPosition(userData.location, userData, socket);
-
-
-  const handleMessage = (e) => {
-    try {
-      const data = JSON.parse(e.data);
-      console.log('evvvvvvvvvvvvvvv', e);
-      
-      if (data.message_type === 'vendor_latest_location') {
-        setVendorLoc(data.location ?? {});
-      } else if (data.message_type === 'client_latest_location') {
-        setClientLoc(data.location);
-      } else if (data.message_type === 'vendor_location_update_ack' || data.message_type === 'client_location_update_ack') {
-        fetchUserLatestLocation(userData, socket, txnId, transaction?.vendor?.id);
+        if (data.message_type === 'vendor_latest_location') {
+          if (data.location) {
+            setVendorLoc({
+              latitude: data.location.latitude,
+              longitude: data.location.longitude
+            });
+          }
+        } else if (data.message_type === 'client_latest_location') {
+          if (data.location) {
+            setClientLoc({
+              latitude: data.location.latitude,
+              longitude: data.location.longitude
+            });
+          }
+        } else if (
+          data.message_type === 'vendor_location_update_ack' || 
+          data.message_type === 'client_location_update_ack'
+        ) {
+          fetchUserLatestLocation(userData, socket, txnId, transaction?.vendor?.id);
+        }
+      } catch (err) {
+        console.error("Invalid WebSocket message:", err);
       }
-    } catch (err) {
-      console.log("Invalid WS message");
-    }
-  };
+    };
 
-   
+    socket.addEventListener('message', handleMessage);
 
-  socket.addEventListener('message', handleMessage);
-
-  return () => {
-    socket.removeEventListener('message', handleMessage);
-  };
-}, [isPending, txnId, userData, isSocketReady]);
+    return () => {
+      socket.removeEventListener('message', handleMessage);
+    };
+  }, [isPending, txnId, userData, isSocketReady, socket, transaction?.vendor?.id]);
 
   if (!isOpen || !isPending) {
     return (
@@ -142,10 +156,27 @@ const location = localStorage.getItem("userLocation");
     );
   }
 
-  const center = userData?.userType === "VENDOR" ? vendorLoc : clientLoc;
+  // Determine which location to center the map on
+  // Vendor sees their own location (from localStorage), Client sees their own location
+  const centerLocation = isVendor 
+    ? (vendorLoc || currentUserLoc)
+    : (clientLoc || currentUserLoc);
 
-  console.log('vendorLoc:', center);
-  
+  // Get the other party's location for display
+  const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
+
+  if (!centerLocation) {
+    return (
+      <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <p className="text-yellow-800">Loading location data...</p>
+      </div>
+    );
+  }
+
+  const center = {
+    lat: centerLocation.latitude,
+    lng: centerLocation.longitude
+  };
 
   return (
     <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -154,7 +185,7 @@ const location = localStorage.getItem("userLocation");
         <div className="flex items-center gap-3">
           <MapPin className="w-6 h-6 text-white" />
           <div>
-            <h3 className="text-white font-bold text-lg">Live Tracking</h3>
+            <h3 className="text-white font-bold text-lg">Live map</h3>
             <p className="text-blue-100 text-sm">
               {movingRole === 'VENDOR'
                 ? 'Vendor is on the way'
@@ -172,55 +203,95 @@ const location = localStorage.getItem("userLocation");
 
       {/* Map */}
       <div className="h-96 relative">
-        <MapContainer
-          center={[center?.lat, center?.lng]}
-          zoom={15}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; OpenStreetMap'
-          />
+        <LoadScript googleMapsApiKey={google_key}>
+          <GoogleMap
+            mapContainerStyle={mapContainerStyle}
+            center={center}
+            zoom={15}
+            options={mapOptions}
+          >
+            {/* Current User Marker (Vendor or Client based on userType) */}
+            {centerLocation && (
+              <Marker
+                position={{
+                  lat: centerLocation.latitude,
+                  lng: centerLocation.longitude
+                }}
+                label={{
+                  text: isVendor ? 'V' : 'C',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+                icon={{
+                  url: isVendor 
+                    ? 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png'
+                    : 'https://cdn-icons-png.flaticon.com/32/25/25694.png',
+                  scaledSize: new window.google.maps.Size(32, 41)
+                }}
+                title={isVendor ? 'Your Location (Vendor)' : 'Your Location (Client)'}
+              />
+            )}
 
-          {vendorLoc?.latitude && (
-            <Marker position={[center?.lat, center?.lng]} icon={icon}>
-              <Popup>
-                <b>Vendor</b>
-                {movingRole === 'VENDOR' && <span> (Moving)</span>}
-              </Popup>
-            </Marker>
-          )}
+            {/* Other Party Marker */}
+            {otherPartyLocation && (
+              <Marker
+                position={{
+                  lat: otherPartyLocation.latitude,
+                  lng: otherPartyLocation.longitude
+                }}
+                label={{
+                  text: isVendor ? 'C' : 'V',
+                  color: 'white',
+                  fontWeight: 'bold'
+                }}
+                icon={{
+                  url: isVendor
+                    ? 'https://cdn-icons-png.flaticon.com/32/25/25694.png'
+                    : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                  scaledSize: new window.google.maps.Size(32, 41)
+                }}
+                title={isVendor ? 'Client Location' : 'Vendor Location'}
+              />
+            )}
 
-          {clientLoc?.latitude && (
-            <Marker position={[center.lat, center.lng]} icon={clientIcon}>
-              <Popup>
-                <b>Customer</b>
-                {movingRole === 'CLIENT' && <span> (Walking)</span>}
-              </Popup>
-            </Marker>
-          )}
-
-          {vendorLoc?.latitude && clientLoc?.latitude && (
-            <Polyline
-              positions={[
-                [center.lat, center.lng],
-              ]}
-              color="#3B82F6"
-              weight={5}
-              opacity={0.8}
-            />
-          )}
-        </MapContainer>
+            {/* Polyline connecting both locations */}
+            {centerLocation && otherPartyLocation && (
+              <Polyline
+                path={[
+                  {
+                    lat: centerLocation.latitude,
+                    lng: centerLocation.longitude
+                  },
+                  {
+                    lat: otherPartyLocation.latitude,
+                    lng: otherPartyLocation.longitude
+                  }
+                ]}
+                options={{
+                  strokeColor: '#3B82F6',
+                  strokeOpacity: 0.8,
+                  strokeWeight: 5,
+                }}
+              />
+            )}
+          </GoogleMap>
+        </LoadScript>
 
         {/* Floating Info */}
         <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur rounded-xl shadow-lg p-4 z-10">
           <div className="text-sm font-medium text-gray-800">
             {movingRole === 'VENDOR'
-              ? 'Vendor is approaching...'
-              : 'You are nearing the store'}
+              ? isVendor 
+                ? 'You are approaching the client...'
+                : 'Vendor is approaching...'
+              : isVendor
+                ? 'Client is nearing your store'
+                : 'You are nearing the store'}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Tap markers for details
+            {otherPartyLocation 
+              ? 'Tap markers for details' 
+              : 'Waiting for other party location...'}
           </div>
         </div>
       </div>
