@@ -31,7 +31,7 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
                 setVendors(vendorsData)
             }
         }
-    });
+    }, []);
 
     const handleOpenFilter = () => {
         setOpenFilter((prev) => !prev)

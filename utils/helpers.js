@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 let watchID = null;
 
 export function toTitleCase(str) {
