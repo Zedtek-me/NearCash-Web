@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, useLoadScript, Marker, Polyline } from '@react-google-maps/api';
-import { MapPin, X } from 'lucide-react';
+import { MapPin, User, X } from 'lucide-react';
 import { fetchAndUpdateUserCurrentLocation, fetchUserLatestLocation, updateUserPosition } from '../../../utils/helpers';
 import { google_key } from '../../../configs/environs';
 import { useWebSocket } from '../../Notification/WebSocketProvider';
@@ -18,6 +18,20 @@ const mapOptions = {
   fullscreenControl: false,
 };
 
+function svgToDataUrl(svgComponent) {
+  // Render the SVG to a string with desired size + fill color
+  const svgString = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round">
+      ${svgComponent}
+    </svg>
+  `.trim();
+
+  // Encode as base64 data URL
+  return `data:image/svg+xml;base64,${btoa(svgString)}`;
+}
+
 export default function TransactionMap({
   txnId,
   status,
@@ -29,8 +43,8 @@ export default function TransactionMap({
 }) {
   const socket = useWebSocket();               
   const [isOpen, setIsOpen] = useState(true);
-  const [vendorLoc, setVendorLoc] = useState(initialVendor);
-  const [clientLoc, setClientLoc] = useState(initialClient);
+  const [vendorLoc, setVendorLoc] = useState(null);
+  const [clientLoc, setClientLoc] = useState(null);
 
   const isPending = ['INITIATED', 'IN_PROGRESS'].includes(status);
   const isVendor = userData?.userType === 'VENDOR';
@@ -77,6 +91,12 @@ export default function TransactionMap({
       userData,
       socket
     );
+     fetchUserLatestLocation(
+              userData,
+              socket,
+              txnId,
+              transaction?.vendor?.id
+            );
 
     // Handle incoming messages
     const handleMessage = (event) => {
@@ -85,7 +105,10 @@ export default function TransactionMap({
 
         switch (data.message_type) {
           case "vendor_latest_location":
-            if (!isVendor && data.location) {
+            
+            if (data.location?.latitude && data.location?.longitude) {
+            console.log('got vendor location', data);
+
               setVendorLoc({
                 latitude: Number(data.location.latitude),
                 longitude: Number(data.location.longitude)
@@ -94,7 +117,10 @@ export default function TransactionMap({
             break;
 
           case "client_latest_location":
-            if (isVendor && data.location) {
+
+            if (data.location?.latitude && data.location?.longitude) {
+            console.log('got client location', data);
+
               setClientLoc({
                 latitude: Number(data.location.latitude),
                 longitude: Number(data.location.longitude)
@@ -123,6 +149,7 @@ export default function TransactionMap({
 
   }, [socket, isPending, txnId, userData, isVendor, transaction?.vendor?.id]);
 
+
   /** UI Conditions */
   if (!isOpen || !isPending) {
     return (
@@ -142,6 +169,9 @@ export default function TransactionMap({
   const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
   //const otherPartyLocation = {latitude: '7.40', longitude: '4.30'}
 
+  console.log('vendorLoc', vendorLoc, clientLoc);
+  
+
   if (!centerLocation) {
     return (
       <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
@@ -159,6 +189,14 @@ export default function TransactionMap({
   if (loadError) return <div>Error loading map</div>;
   if (!isLoaded) return <div>Loading Google Maps...</div>;
 
+ const customerIcon = {
+  url: svgToDataUrl(
+    <User className="w-full h-full" color="#000" strokeWidth={3} />
+  ),
+  scaledSize: new google.maps.Size(48, 48),
+  anchor: new google.maps.Point(24, 48),      // bottom center of the pin
+  labelOrigin: new google.maps.Point(24, 18), // where the "C"/"V" sits
+};
   return (
     <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
       <div className="h-96 relative">
@@ -185,10 +223,12 @@ export default function TransactionMap({
                 lat: Number(otherPartyLocation.latitude),
                 lng: Number(otherPartyLocation.longitude)
               }}
+             // icon={customerIcon}
+
               label={{
                 text: isVendor ? "C" : "V",
                 color: "white",
-                fontWeight: "bold"
+                fontWeight: "bold",
               }}
             />
           )}
