@@ -79,6 +79,29 @@ const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
 console.log(userData);
 
+ useEffect(() => {
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        localStorage.setItem("userLocation", JSON.stringify(location));
+      },
+      (err) => {
+        console.error("Location error:", err);
+        if (err.code === 2) { // LOCATION_UNKNOWN
+          setTimeout(getLocation, 2000); // retry after 2s
+        } else {
+          alert("Could not get location. Using default coordinates.");
+          //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
+        }
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  };
+  
+  getLocation();
+}, []);
+
 
 const handleNext = () => {
   setPageNumber((prev) => prev + 1);
