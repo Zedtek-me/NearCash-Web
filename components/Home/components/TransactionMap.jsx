@@ -139,8 +139,8 @@ export default function TransactionMap({
 
   /** Determine Map Centers */
   const centerLocation = isVendor ? vendorLoc : clientLoc;
-  //const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
-  const otherPartyLocation = {latitude: '7.40', longitude: '4.30'}
+  const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
+  //const otherPartyLocation = {latitude: '7.40', longitude: '4.30'}
 
   if (!centerLocation) {
     return (
