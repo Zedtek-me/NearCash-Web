@@ -2,87 +2,77 @@ import React, { useEffect, useState } from "react";
 import useAuth from "../../Hooks/Auths";
 import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
-import { fetchAndUpdateUserCurrentLocation, updateUserPosition } from "../../utils/helpers";
+import {
+  fetchAndUpdateUserCurrentLocation,
+  updateUserPosition
+} from "../../utils/helpers";
 import { useStateValue } from "../../providers/stateProvider";
+import { useWebSocket } from "./WebSocketProvider";
 
 const NotificationSocket = () => {
-  const [messages, setMessages] = useState('');
+  const socket = useWebSocket();  
+  const [messages, setMessages] = useState("");
   const { userData } = useAuth();
+
   const [
     {
-      businessStates: {
-        selectedBusiness
-      }
-    },
-    dispatch
-  ] = Object.values(useStateValue())
-  const baseURL = process.env.SOCKET_URL;
-  const token = localStorage.getItem("nearcash_token");
+      businessStates: { selectedBusiness }
+    }
+  ] = Object.values(useStateValue());
 
   useEffect(() => {
-    // define a function to constantly fetch the location of the vendor
-    // and send it to the backend for storing every 2 seconds
-    if (!userData?.id || !token) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
-    const websocketURL = `${baseURL}/notification/${userData.id}/?token=${token}`;
+    console.log("🔔 NotificationSocket listening for messages...");
 
-    const socket = new WebSocket(
-      websocketURL
-    );
+    const onMessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("🔔 New WS message:", data);
 
-    socket.onopen = () => {
-      console.log("Connected to WebSocket ✅");
-    };
-
-    socket.onmessage = (event) => {
-      let data = JSON.parse(event.data)
-      console.log("New message:", data);
-
-      let { message_type } = data;
-  
-      //Only show relevant messages to users.
-      if(message_type !== "vendor_location_update_ack"){
-        // store locally
+      const { message_type } = data;
+      if (data?.includes('welcome')) {
         setMessages(event.data);
-        // show toast
+      }
+
+
+      if (message_type !== "vendor_location_update_ack") {
+        setMessages(event.data);
+
         toast.info(event.data, {
           position: "top-right",
           autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
         });
       }
     };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket Error:", error);
-    };
+    const onError = (e) => console.log("WS error in Notification module:", e);
+    const onClose = () => console.log("WS closed in Notification module");
 
-    socket.onclose = () => {
-      console.log("WebSocket closed ❌");
-    };
+    socket.addEventListener("message", onMessage);
+    socket.addEventListener("error", onError);
+    socket.addEventListener("close", onClose);
 
-    const { userType } = userData;
-    const updatedUserData = {
-      ...userData,
-      selectedBusiness: selectedBusiness
+    if (userData) {
+      fetchAndUpdateUserCurrentLocation(
+        updateUserPosition,
+        (err) => console.log("error fetching coordinates:", err),
+        { ...userData, selectedBusiness },
+        socket
+      );
     }
 
-    fetchAndUpdateUserCurrentLocation(
-      updateUserPosition,
-      (err) => console.log("error fetching user latest coordinates:::: ", err),
-      updatedUserData, socket
-    )
     return () => {
-      socket.close();
+      socket.removeEventListener("message", onMessage);
+      socket.removeEventListener("error", onError);
+      socket.removeEventListener("close", onClose);
     };
-  }, [userData, token, baseURL]);
+  }, [socket, userData, selectedBusiness]);
 
   return (
     <div>
-         {!messages ? '' : <NotificationDialog message={messages} setMessage={setMessages} />}
+      {messages && (
+        <NotificationDialog message={messages} setMessage={setMessages} />
+      )}
     </div>
   );
 };

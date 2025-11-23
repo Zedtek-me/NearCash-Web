@@ -130,7 +130,7 @@ const handlePrevious = () => {
           setTimeout(getLocation, 2000); // retry after 2s
         } else {
           alert("Could not get location. Using default coordinates.");
-          //setUserLocation({ lat: 6.5244, lng: 3.3792 }); // Lagos fallback
+          //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
         }
       },
       { enableHighAccuracy: true, timeout: 5000 }
