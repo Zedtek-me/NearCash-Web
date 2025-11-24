@@ -83,13 +83,15 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
 export const updateUserPosition = (coordinates, userData, socket) => {
   const location = {"lat":7.41,"lng":4.31};
   console.log("Updating user position to:", location);
-  
+  const userType = userData?.userType;
+  const isVendor = userType === "VENDOR";
   const payload = JSON.stringify({
-    message_type: userData?.userType === "VENDOR" 
+    message_type: isVendor
       ? "vendor_location_update" 
       : "client_location_update",
-    vendor_id: userData?.id,
-    txn_id: userData?.txnId,
+    vendor_id: userData?.transaction?.vendor?.id,
+    txn_id: userData?.transaction?.id,
+    client_id: userData?.transaction?.client?.id,
     location: {
       latitude: coordinates.latitude,
       longitude: coordinates.longitude
@@ -109,18 +111,21 @@ export const updateUserPosition = (coordinates, userData, socket) => {
 };
 
 
-export const fetchUserLatestLocation = (userData, socket, txnId, vendorId) => {
+export const fetchUserLatestLocation = (userData, socket, txnId, vendorId, clientId = null) => {
+  const isVendor = userData?.userType === "VENDOR"
   const payload = JSON.stringify({
-    message_type: userData?.userType === "VENDOR" 
+    message_type: isVendor
       ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
     vendor_id: vendorId,
+    client_id: clientId,
     txn_id: txnId
   });
 
   const otherUserpayload = JSON.stringify({
-    message_type: userData?.userType !== "VENDOR" 
+    message_type: !isVendor
       ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
     vendor_id: vendorId,
+    client_id: clientId,
     txn_id: txnId
   });
 
