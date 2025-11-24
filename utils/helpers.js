@@ -117,11 +117,21 @@ export const fetchUserLatestLocation = (userData, socket, txnId, vendorId) => {
     txn_id: txnId
   });
 
+  const otherUserpayload = JSON.stringify({
+    message_type: userData?.userType !== "VENDOR" 
+      ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
+    vendor_id: vendorId,
+    txn_id: txnId
+  });
+
+
   const sendWhenReady = () => {
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(payload);
+      socket.send(otherUserpayload);
+
     } else if (socket.readyState === WebSocket.CONNECTING) {
-      socket.addEventListener('open', () => socket.send(payload), { once: true });
+      socket.addEventListener('open', () => { socket.send(payload),  socket.send(otherUserpayload)}, { once: true });
     } else {
       console.warn("WebSocket closed. Cannot fetch location.");
     }
