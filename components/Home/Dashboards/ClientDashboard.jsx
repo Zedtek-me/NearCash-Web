@@ -606,8 +606,8 @@ const handlePrevious = () => {
         </div>
 
         <div className="mb-8">
-            <div className="flex gap-4">
-              <div className="bg-white rounded-2xl p-6 shadow-sm w-[300px]">
+            <div className="lg:flex gap-4">
+              <div className="bg-white rounded-2xl p-6 shadow-sm md:w-[300px]">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">Total Transactions Count</h2>
                   <ArrowUpRight className="w-5 h-5 text-gray-400" />
@@ -620,8 +620,7 @@ const handlePrevious = () => {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="bg-white rounded-2xl p-6 shadow-sm w-[300px]">
+              <div className="mt-5 lg:mt-0 bg-white rounded-2xl p-6 shadow-sm md:w-[300px]">
                 <div className="flex itesm-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">Fulfilled Transactions Value</h2>
                   <ArrowUpRight className="w-5 h-5 text-gray-400" />
@@ -632,9 +631,8 @@ const handlePrevious = () => {
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm w-[300px]">
+            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold">Current Month Transactions Value</h2>
                   <ArrowUpRight className="w-5 h-5 text-white/80" />

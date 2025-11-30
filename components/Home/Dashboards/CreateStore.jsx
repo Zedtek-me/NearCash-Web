@@ -7,9 +7,11 @@ import { useMutation } from '@apollo/client';
 import useAuth from '../../../Hooks/Auths';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
-import { geoapify_key } from '../../../configs/environs';
+import { geoapify_key, google_key } from '../../../configs/environs';
 import { backArrowReturnFunc } from '../../../utils/auths';
+import { useLoadScript } from '@react-google-maps/api';
 
+const libraries = ['places'];
 
 const CreateStorePage = () => {
   const [formData, setFormData] = useState({
@@ -44,6 +46,11 @@ const CreateStorePage = () => {
   const [customRange, setCustomRange] = useState({ min: '', max: '', charge: '' });
   const [errors, setErrors] = useState({});
   const [createStore, { loadingStore }] = useMutation(CREATE_STORE);
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: google_key,
+     libraries: libraries, 
+  });
   
   
   const addressInputRef = useRef(null);
@@ -61,10 +68,11 @@ const CreateStorePage = () => {
 
  const fetchAddressSuggestions = (input) => {
   return new Promise((resolve, reject) => {
-    if (!input) {
-      resolve([]);
-      return;
-    }
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+        console.error('Google Maps API not loaded yet');
+        resolve([]);
+        return;
+      }
     setIsLoadingAddress(true)
     const service = new window.google.maps.places.AutocompleteService();
 

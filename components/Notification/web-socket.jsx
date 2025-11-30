@@ -30,6 +30,9 @@ const NotificationSocket = () => {
       console.log("🔔 New WS message:", data);
 
       const { message_type } = data;
+      // if (data?.includes('welcome')) {
+      //   setMessages(event.data);
+      // }
       if (typeof data === "string") {
         setMessages(event.data);
       }

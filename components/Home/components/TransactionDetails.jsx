@@ -272,7 +272,7 @@ const handleUpdateStatus = async (id, status) => {
           {/* Customer Information */}
           <Section title={getSectionTitle(userType)}>
             <div className="space-y-2">
-              <InfoRow icon={User} label={userType == "VENDOR"? "Customer Name": "Vendor Name"} value={trxnUserInfo?.name} highlight />
+              <InfoRow icon={User} label={userType == "VENDOR"? "Customer Name": "Vendor Name"} value={trxnUserInfo?.fullName} highlight />
               <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
               <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
               {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}

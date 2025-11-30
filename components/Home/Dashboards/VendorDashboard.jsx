@@ -337,7 +337,7 @@ const handleSwitchBusiness = (id) =>{
     subBusinessList.map((store, index) => (
       <div
         key={store.id}
-        className="bg-white hover:scale-105 flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group"
+        className="bg-white hover:scale-105 lg:flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group"
       >
         <div className="flex items-center flex-1">
           <div
@@ -349,19 +349,19 @@ const handleSwitchBusiness = (id) =>{
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-medium text-gray-800 truncate">{store.name}</div>
-            <div className="flex items-center text-sm text-gray-500 mt-1">
+            <div className="flex flex-wrap items-center text-sm text-gray-500 mt-1">
               <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
               <span className="truncate">{store.address}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center ml-2">
+        <div className="mt-4 lg:mt-0 flex items-center ml-2">
           <button
-            className=" flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
+            className=" border px-4 py-2 lg:p-0 lg:border-none flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
             onClick={() => handleSwitchBusiness(store?.id)}
           >
             Switch Business
-            <SwitchCamera className="w-4 h-4" />
+            <SwitchCamera className="w-4 h-4 my-1" />
           </button>
         </div>
       </div>

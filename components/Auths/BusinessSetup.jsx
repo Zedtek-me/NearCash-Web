@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check } from 'lucide-react';
+import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check, Contact } from 'lucide-react';
 import AnimatedLoader from '../../utils/components/spinner';
 import { UpdateUserMutation } from './mutations/userMutations';
 import { toast } from 'react-toastify';
 import { useMutation } from '@apollo/client';
 import useAuth from '../../Hooks/Auths';
 import { useNavigate } from 'react-router';
-import { geoapify_key } from  '../../configs/environs';
+import { geoapify_key, google_key } from  '../../configs/environs';
+import { useLoadScript } from '@react-google-maps/api';
+
+const libraries = ['places'];
 
 export default function AccountTypePage() {
   const [selectedType, setSelectedType] = useState(null);
@@ -14,6 +17,10 @@ export default function AccountTypePage() {
     const [addressSuggestions, setAddressSuggestions] = useState([]);
       const [showSuggestions, setShowSuggestions] = useState(false);
     const navigate = useNavigate()
+    const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: google_key,
+    libraries: libraries, 
+  });
 
   const [formData, setFormData] = useState({
     businessName: '',
@@ -31,10 +38,11 @@ export default function AccountTypePage() {
 
   const fetchAddressSuggestions = (input) => {
   return new Promise((resolve, reject) => {
-    if (!input) {
-      resolve([]);
-      return;
-    }
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+        console.error('Google Maps API not loaded yet');
+        resolve([]);
+        return;
+      }
 
     const service = new window.google.maps.places.AutocompleteService();
 
@@ -129,8 +137,15 @@ const handleAddressSelect = (suggestion) => {
     updateUserInfo({
         variables: {
         data: {
-            businessData: formData,
+            businessData: {
+              businessName: formData.businessName,
+              description: formData.description,
+              address: formData.address,
+              country: formData.country,
+
+            },
             userType: selectedType.toUpperCase(),
+            phoneNumber: formData.phoneNumber,
         }
         }
         })
@@ -277,6 +292,25 @@ const handleAddressSelect = (suggestion) => {
                         onChange={(e) => handleInputChange('country', e.target.value)}
                         className="w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:bg-black transition-all duration-300"
                         placeholder="Enter your country name"
+                        required
+                      />
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/5 to-white/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
+
+                   <div className="group">
+                    <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                      <Contact className="w-4 h-4" />
+                      Phone Number
+                    </label>
+                    
+                     <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.phoneNumber}
+                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        className="w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:bg-black transition-all duration-300"
+                        placeholder="Enter your phone number"
                         required
                       />
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/5 to-white/5 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>

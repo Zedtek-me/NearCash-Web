@@ -59,7 +59,7 @@ const Navbar = ({
 
   const userMenuItems = [
     { name: 'Category', href: '/category', icon: Heart },
-    { name: 'Profile', href: 'profile', icon: User },
+    { name: 'Profile', href: '/profile', icon: User },
     { name: 'Transaction Policy', href: '/policy', icon: User },
     { name: 'Settings', href: 'settings', icon: Settings },
     { name: 'Logout', href: 'logout', icon: LogOut },
@@ -222,14 +222,14 @@ const Navbar = ({
               onClick={() => setIsOpen(!isOpen)}
               className="menu-button p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
       </div>
 
       <div className={`
-        md:hidden mobile-menu transition-all duration-300 ease-in-out
+        md:hidden mobile-menu z-50 transition-all duration-300 ease-in-out overflow-visible
         ${isOpen 
           ? 'max-h-screen opacity-100 visible' 
           : 'max-h-0 opacity-0 invisible'
