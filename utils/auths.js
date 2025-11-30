@@ -73,26 +73,48 @@ export async function requestHandler(endpoint, method="get", data={}, headers={}
     }
 }
 
-export async function handleSocialAuth(authCode, gqlFunc, authType, socialType, navigate){
-    await gqlFunc(
-        {
-            variables: {
-                code: authCode,
-                authType: authType,
-                socialType: socialType
-            },
-            onError: (error) =>{
-                console.log(`this is the error message returned: ${error.message}`)
-                toast.error(`Invalid User!`);
-                navigate("/auth/login");
-            },
-            onCompleted: (data) => {
-                console.log("mutation completed! Data here::: ", data);
-            }
-        }
-    )
+// export async function handleSocialAuth(authCode, gqlFunc, authType, socialType, navigate){
+//     await gqlFunc(
+//         {
+//             variables: {
+//                 code: authCode,
+//                 authType: authType,
+//                 socialType: socialType
+//             },
+//             onError: (error) =>{
+//                 console.log(`this is the error message returned: ${error.message}`)
+//                 toast.error(`Invalid User!`);
+//                 navigate("/auth/login");
+//             },
+//             onCompleted: (data) => {
+//                 console.log("mutation completed! Data here::: ", data);
+//             }
+//         }
+//     )
 
+// }
+
+export async function handleSocialAuth(authCode, gqlFunc, authType, socialType, navigate) {
+  try {
+    const result = await gqlFunc({
+      variables: {
+        code: authCode,
+        authType,
+        socialType,
+      }
+    });
+
+    console.log("mutation completed! Data here::: ", result.data);
+
+    return result.data;
+  } catch (error) {
+    console.log(`this is the error message returned: ${error.message}`);
+    toast.error(`Invalid User!`);
+    //navigate("/auth/login");
+    return null;
+  }
 }
+
 
 export function checkCurrentSession(){
     let authToken = localStorage.getItem("nearcash_token")

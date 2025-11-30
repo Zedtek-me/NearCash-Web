@@ -17,6 +17,7 @@ export const CURRENT_USER = gql`
             name
             isPrimary
             }
+            phoneNumber
             
         }    
     }

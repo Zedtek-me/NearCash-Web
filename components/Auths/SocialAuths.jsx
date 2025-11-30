@@ -19,8 +19,10 @@ export default function SocialAuth({ authType, socialType }){
         },
         dispatch
       ] = Object.values(useStateValue());
-    const [ mutationFunc, { loading, error, data } ] = useMutation(AUTHORIZE_WITH_SOCIAL_CODE)
+    const [ mutationFunc, { loading, error, data: resData } ] = useMutation(AUTHORIZE_WITH_SOCIAL_CODE)
     const authCode = queryParams.get("code")
+    const [data, setData] = useState(null)
+    
     const authenticated = (Object.entries(userData).length > 0)
     let authTypeFromContext;
         Subscriber.subscribe('auth', (data) => {
@@ -28,10 +30,10 @@ export default function SocialAuth({ authType, socialType }){
     });
     authTypeFromContext = localStorage.getItem("auth_type")
 
-    console.log('data', data);
+    console.log('data', data, authTypeFromContext, userData);
     
 
-    useEffect(()=>{
+    useEffect( ()=>{
         if (authenticated) {
                 if (authTypeFromContext == "signup") {
                 navigate('/business-setup');
@@ -39,9 +41,17 @@ export default function SocialAuth({ authType, socialType }){
                 navigate(`/dashboard/${userData?.user_type || 'client'}`);
                 }
             } else {
-                handleSocialAuth(authCode, mutationFunc, authTypeFromContext, socialType, navigate);
+                if(!data?.authorizeWithCode?.data){
+                    handleSocialAuth(authCode, mutationFunc, authTypeFromContext, socialType, navigate).then((res) => {
+                    console.log("handled social auth response:::: ", res);
+                    setData(res);
+                })
+                }
+                
+
             }
 
+        
     }, [authCode])
 
     useEffect(
