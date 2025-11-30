@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "webpack serve --progress --config webpack.config.js --mode development",
-    "build": "node server.js"
+    "build": "node server.js",
+    "prod-build": "webpack build --config=webpack.config.js"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
