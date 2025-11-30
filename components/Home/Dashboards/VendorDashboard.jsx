@@ -244,7 +244,7 @@ const handleSwitchBusiness = (id) =>{
                   </div>
                 </div>
                 <div className="text-xl font-bold text-gray-800">
-                  {`$${analyticsData?.analytics?.fulfilledTransactions || analyticsData?.analytics?.totalTransactions || 0}`}
+                  {`$${analyticsData?.analytics?.fulfilledTransactions || 0}`}
                 </div>
                 <div className="text-xs text-red-500 mt-1">
                   {`${analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% increase from last Month`}

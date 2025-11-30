@@ -33,6 +33,9 @@ const NotificationSocket = () => {
       // if (data?.includes('welcome')) {
       //   setMessages(event.data);
       // }
+      if (typeof data === "string") {
+        setMessages(event.data);
+      }
 
 
       if (message_type !== "vendor_location_update_ack") {

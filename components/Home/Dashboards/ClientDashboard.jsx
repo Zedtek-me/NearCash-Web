@@ -151,7 +151,7 @@ const handlePrevious = () => {
         authTypeFromContext = data;
         });
         const socialTypeFromContext = localStorage.getItem("auth_type")
-        console.log("error recieved ", auth, authTypeFromContext, socialTypeFromContext)
+        console.log("context values in client dashboard ", auth, authTypeFromContext, socialTypeFromContext)
 
 // Sample route data (your BE response format)
   const sampleRouteData = {

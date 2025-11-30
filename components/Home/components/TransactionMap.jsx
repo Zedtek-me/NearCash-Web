@@ -87,15 +87,16 @@ export default function TransactionMap({
     // Start sending current user location every X seconds
     fetchAndUpdateUserCurrentLocation(
       updateUserPosition,
-      (err) => console.error("Location error:", err),
-      userData,
+      (err) => console.error("Location error::", err),
+      {...userData, transaction},
       socket
     );
      fetchUserLatestLocation(
               userData,
               socket,
               txnId,
-              transaction?.vendor?.id
+              transaction?.vendor?.id,
+              transaction?.client?.id
             );
 
     // Handle incoming messages
@@ -134,7 +135,8 @@ export default function TransactionMap({
               userData,
               socket,
               txnId,
-              transaction?.vendor?.id
+              transaction?.vendor?.id,
+              transaction?.client?.id
             );
             break;
         }
@@ -169,7 +171,7 @@ export default function TransactionMap({
   const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
   //const otherPartyLocation = {latitude: '7.40', longitude: '4.30'}
 
-  console.log('vendorLoc', vendorLoc, clientLoc);
+  console.log('vendorLoc::: ', vendorLoc, "client loc::: ", clientLoc);
   
 
   if (!centerLocation) {
