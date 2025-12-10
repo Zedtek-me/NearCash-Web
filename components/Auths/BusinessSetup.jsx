@@ -49,7 +49,7 @@ export default function AccountTypePage() {
     service.getPlacePredictions(
       { input, types: ["geocode"] }, // "geocode" = only addresses
       (predictions, status) => {
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions?.length) {
           resolve([]);
           return;
         }
