@@ -106,10 +106,6 @@ const handleAddressSelect = (suggestion) => {
 
   const isFormValid = formData.businessName && formData.description && formData.address && formData.country;
 
-
-  console.log("form data before submission::::::: ", formData);
-  
-
   const handleSubmit = async () => {
     console.log('ooooo', selectedType);
     
