@@ -31,7 +31,7 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
                 setVendors(vendorsData)
             }
         }
-    }, []);
+    }, [userType]);
 
     const handleOpenFilter = () => {
         setOpenFilter((prev) => !prev)
@@ -91,7 +91,7 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
             </div>
             {
                 openFilter && (
-                    <div className="absolute left-6 flex flex-col justify-between items-center px-auto mx-auto tex-black z-10 bg-white w-44 h-44 p-5 text-left rounded-xl">
+                    <div className="absolute left-6 flex flex-col justify-between items-center px-auto mx-auto text-black z-10 bg-white w-44 h-44 p-5 text-left rounded-xl">
                         <h3 className="status" onClick={(e)=> handleFilterBy(e.target.textContent)}>
                             Status
                         </h3>
