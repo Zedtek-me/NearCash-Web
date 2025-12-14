@@ -35,7 +35,7 @@ export default function Login(){
     }
   },
   onError: (err) => {
-    console.error("Failed to get Google Auth URL", err);
+    toast.error(err?.message || "Sign-in failed!");
   }
 });
 
@@ -71,15 +71,16 @@ const handleLoginWithEmail =  () => {
           email: data.email,
           password: data.password,
       }
-    }).then(({ data }) => {
-          const {user, token} = data?.login?.data;
+    }).then(({ data, error: err }) => {
+          const {user, token} = data?.login?.data || {};
+          if(!(token && user))return;
           localStorage.setItem("nearcash_token", token)
           updateUser(user)
           navigate(`/dashboard/${user?.userType?.toLowerCase() || 'client'}`);
           toast.success(data?.login?.message);
         })
         .catch((err) => {
-          toast.error(err?.message);
+          toast.error((err?.[0]?.message || "Login failed!"));
         })
     };
 

@@ -264,7 +264,7 @@ const handleSwitchBusiness = (id) =>{
               </div>
             </div>
 
-            <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-20'>
+            <div className='w-full grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2  gap-6 mt-20'>
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
@@ -333,14 +333,14 @@ const handleSwitchBusiness = (id) =>{
                 <EmptyTableState />
               )}
   {subBizLoading ? (
-    <p className="text-gray-500 text-sm">Loading...</p>
+    <p className="text-gray-500 text-sm animate-spin">Loading...</p>
   ) : subBusinessList.length > 0 ? (
     subBusinessList.map((store, index) => (
       <div
         key={store.id}
         className="bg-white hover:scale-105 lg:flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group"
       >
-        <div className="flex items-center flex-1">
+        <div className="flex items-center flex-1 max-w-[50%]">
           <div
             className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}
           >
@@ -356,7 +356,7 @@ const handleSwitchBusiness = (id) =>{
             </div>
           </div>
         </div>
-        <div className="mt-4 lg:mt-0 flex items-center ml-2">
+        <div className="mt-4 lg:mt-0 flex items-center ml-2 max-w-[50%]">
           <button
             className=" border px-4 py-2 lg:p-0 lg:border-none flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
             onClick={() => handleSwitchBusiness(store?.id)}

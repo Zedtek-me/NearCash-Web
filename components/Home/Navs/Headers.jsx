@@ -79,8 +79,8 @@ const Navbar = ({
       localStorage.removeItem("auth_type");
       return  navigate('/auth/login');
     }
-    navigate(href);
     setIsOpen(false);
+    navigate(href);
   };
 
   const NavItem = ({ item, isMobile = false }) => {
@@ -235,11 +235,7 @@ const Navbar = ({
           : 'max-h-0 opacity-0 invisible'
         }
       `}>
-        <div className="px-4 pt-2 pb-6 space-y-1 bg-white border-t border-gray-200">
-          {navigation.map((item) => (
-            <NavItem key={item.name} item={item} isMobile />
-          ))}
-          
+        <div className="px-4 pt-2 pb-6 space-y-1 bg-white">          
           <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="flex items-center space-x-3 px-3 py-2 mb-3">
               <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
