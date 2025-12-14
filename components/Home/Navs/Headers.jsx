@@ -242,7 +242,7 @@ const Navbar = ({
                 <User size={20} className="text-white" />
               </div>
               <div>
-                <p className="font-medium text-gray-900">{user?.name || 'John Doe'}</p>
+                <p className="font-medium text-gray-900">{user?.fullName || 'John Doe'}</p>
                 <p className="text-sm text-gray-500">{user?.email || 'john@example.com'}</p>
               </div>
             </div>
@@ -262,7 +262,7 @@ const Navbar = ({
             })}
           </div>
 
-          <div className="pt-4 mt-4 border-t border-gray-200">
+          {/* <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="flex items-center justify-between px-3 py-2 mb-2">
               <h3 className="font-medium text-gray-900">Notifications</h3>
               {notifications > 0 && (
@@ -277,7 +277,7 @@ const Navbar = ({
                 <p className="text-xs text-gray-500">{notification.time}</p>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
 
