@@ -89,7 +89,6 @@ const CategoryManagementPage = () => {
           },
         },
       });
-      console.log("category created::::: ", data?.createCategory?.category)
       if (data?.createClientCategory?.category) {
         setCategories(prev => [data.createClientCategory.category, ...prev]);
         setCategoryFormData({ name: "", description: "", transactionPolicyId: "" });
