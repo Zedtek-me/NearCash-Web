@@ -72,7 +72,8 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
     const handleUserFilter = (userId, userType) => {
         setFilterBy("");
         refetch({
-            user_type: txt?.toUpperCase()
+            userId: userId,
+            user_type: userType?.toUpperCase()
         })
     }
 
@@ -84,11 +85,15 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
     }
 
     const StatusFilterComponent = () => (
-        <div className="statuses absolute left-6 flex flex-col justify-between items-center px-auto mx-auto text-black z-10 bg-white w-44 h-44 p-5 text-left rounded-xl">
+        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
             {
                 statusMap.map((statusData, idx) => (
-                    <div className={`text-${statusData?.color}`} onClick={() => handleSearch(statusData?.name)} key={idx}>
-                        <p className={`text-left`}>{statusData?.name}</p>
+                    <div 
+                        className={`text-${statusData?.color} w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors`} 
+                        onClick={() => handleSearch(statusData?.name)} 
+                        key={idx}
+                    >
+                        <p className="text-left">{statusData?.name}</p>
                     </div>
                 ))
             }
@@ -96,61 +101,132 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
     )
 
     const DateFilterComponent = () => (
-        <div className="date_cont flex flex-col justify-center items-center w-full h-44 absolute z-10 py-auto m-auto">
-            <div className="from_to_cont flex justify-between items-center text-left max-w-md">
-                <div className="from flex justify-between items-center">
-                    <h2 className="mr-5">From:</h2>
-                    <input type="date" name="date_from" id="date_from" value={dateFilter.dateFrom} onChange={(e)=>handleDateStateChange(e.target.value, "dateFrom")} className="rounded-xl w-32 h-8 border border-black"/>
+        <div className="absolute md:left-[-50%] mt-2 bg-white flex flex-col justify-center items-center sm:w-[30rem] md:w-[26rem] z-10 py-4 px-4 rounded-xl shadow-lg border border-gray-200">
+            <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-2">
+                <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center w-full sm:w-auto gap-2">
+                    <h2 className="font-medium whitespace-nowrap">From:</h2>
+                    <input 
+                        type="date" 
+                        name="date_from" 
+                        id="date_from" 
+                        value={dateFilter.dateFrom} 
+                        onChange={(e)=>handleDateStateChange(e.target.value, "dateFrom")} 
+                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
                 </div>
-                <div className="to flex justify-between items-center">
-                    <h2 className="mx-5">To:</h2>
-                    <input type="date" name="date_from_from" id="date_from" value={dateFilter.dateTo} onChange={(e)=>handleDateStateChange(e.target.value, "dateTo")} className="rounded-xl w-32 h-8 border border-black"/>
+                <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center w-full sm:w-auto gap-2">
+                    <h2 className="font-medium whitespace-nowrap">To:</h2>
+                    <input 
+                        type="date" 
+                        name="date_to" 
+                        id="date_to" 
+                        value={dateFilter.dateTo} 
+                        onChange={(e)=>handleDateStateChange(e.target.value, "dateTo")} 
+                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
                 </div>
             </div>
-            <div className="btn_cont flex justify-between items-center w-44 my-5">
-                <button type="button" onClick={handleDateFilter} className="bg-green-300 transition-all duration-300 ease-in-out hover:bg-green-400 py-2 px-5 rounded-lg">search</button>
-                <button type="button" onClick={handleClearFilter} className="bg-gray-300 transition-all duration-300 ease-in-out hover:bg-gray-400 py-2 px-5 rounded-lg">clear</button>
+            <div className="flex justify-center items-center gap-3 mt-4 w-full">
+                <button 
+                    type="button" 
+                    onClick={handleDateFilter} 
+                    className="bg-black text-white font-medium transition-all duration-300 ease-in-out hover:bg-gray-500 py-2 px-6 rounded-lg shadow-sm"
+                >
+                    Search
+                </button>
+                <button 
+                    type="button" 
+                    onClick={handleClearFilter} 
+                    className="bg-gray-300 text-gray-700 font-medium transition-all duration-300 ease-in-out hover:bg-gray-400 py-2 px-6 rounded-lg shadow-sm"
+                >
+                    Clear
+                </button>
             </div>
         </div>
     )
 
     const UserFilterComponent = () => (
-        <div className="list_users absolute z-10">
+        <div className="absolute left-0 mt-2 z-10 bg-white rounded-xl shadow-lg border border-gray-200 max-h-96 overflow-y-auto w-56">
             {
-                (!clients?.length && !vendors?.length) ? <EmptyTableState title={`${userType == 'VENDOR'? 'No Clients Yet' : 'No Vendor Yet'}`} description={`${userType == 'VENDOR' ? 'clients that have patronized you will be listed here.': 'vendors you\'ve contacted will appear here.'}`}/> : (
+                (!clients?.length && !vendors?.length) ? (
+                    <div className="p-4">
+                        <EmptyTableState 
+                            title={`${userType == 'VENDOR'? 'No Clients Yet' : 'No Vendor Yet'}`} 
+                            description={`${userType == 'VENDOR' ? 'Clients that have patronized you will be listed here.': 'Vendors you\'ve contacted will appear here.'}`}
+                        />
+                    </div>
+                ) : (
                     (userType == "VENDOR" && clients?.length) ? clients.map((clientUser) => (
-                        <div className="users" onClick={(e) => handleUserFilter(clientUser?.id, clientUser?.userType)} key={clientUser?.id}>
-
+                        <div 
+                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                            onClick={(e) => handleUserFilter(clientUser?.id, clientUser?.userType)} 
+                            key={clientUser?.id}
+                        >
+                            <p className="font-medium">{clientUser?.name || clientUser?.email}</p>
                         </div>
                     )) : (userType == "CLIENT" && vendors?.length) ? vendors?.map((vendorUser) => (
-                        <div className="users" onClick={(e) => handleUserFilter(vendorUser?.id, vendorUser?.userType)} key={vendorUser?.id}>
-
+                        <div 
+                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                            onClick={(e) => handleUserFilter(vendorUser?.id, vendorUser?.userType)} 
+                            key={vendorUser?.id}
+                        >
+                            <p className="font-medium">{vendorUser?.name || vendorUser?.email}</p>
                         </div>
-                    )) : <EmptyTableState title={`${userType == 'VENDOR'? 'No Clients Yet' : 'No Vendor Yet'}`} description={`${userType == 'VENDOR' ? 'clients that have patronized you will be listed here.': 'vendors you\'ve contacted will appear here.'}`}/>
+                    )) : (
+                        <div className="p-4">
+                            <EmptyTableState 
+                                title={`${userType == 'VENDOR'? 'No Clients Yet' : 'No Vendor Yet'}`} 
+                                description={`${userType == 'VENDOR' ? 'Clients that have patronized you will be listed here.': 'Vendors you\'ve contacted will appear here.'}`}
+                            />
+                        </div>
+                    )
                 )
             }
         </div>
     )
+    
     return (
-        <div className="relative max-w-full text-black cursor-pointer bg-white rounded-xl">
-            <div className="filter-by flex justify-center items-center" onClick={handleOpenFilter}>
-                <p className="w-20 font-semibold">Filter by</p>
-                <ChevronDown size={16} className={`rounded-full transform transition-transform duration-300 ${openFilter ? 'rotate-180' : ''}`}/>
+        <div className="relative inline-block text-black">
+            <div 
+                className="filter-by flex justify-center items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm" 
+                onClick={handleOpenFilter}
+            >
+                <p className="font-semibold text-sm whitespace-nowrap">Filter by</p>
+                <ChevronDown 
+                    size={16} 
+                    className={`transform transition-transform duration-300 ${openFilter ? 'rotate-180' : ''}`}
+                />
             </div>
             {
                 openFilter && (
-                    <div className="absolute left-6 flex flex-col justify-between items-center px-auto mx-auto text-black z-10 bg-white w-44 h-44 p-5 text-left rounded-xl">
-                        <h3 className="status" onClick={(e)=> handleFilterBy(e.target.textContent)}>
+                    <div className="absolute left-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                        <h3 
+                            className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium" 
+                            onClick={(e)=> handleFilterBy(e.target.textContent)}
+                        >
                             Status
                         </h3>
-                        <h3 className="status" onClick={(e)=> handleFilterBy(e.target.textContent)}>
+                        <h3 
+                            className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium" 
+                            onClick={(e)=> handleFilterBy(e.target.textContent)}
+                        >
                             Date
                         </h3>
                         {
                             userType == "VENDOR" ? (
-                                <h3 className="by_clients" onClick={(e)=> handleFilterBy(e.target.textContent)}>Client</h3>
+                                <h3 
+                                    className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium" 
+                                    onClick={(e)=> handleFilterBy(e.target.textContent)}
+                                >
+                                    Client
+                                </h3>
                             ) : (
-                                <h3 className="by_vendor" onClick={(e)=> handleFilterBy(e.target.textContent)}>Vendor</h3>
+                                <h3 
+                                    className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium" 
+                                    onClick={(e)=> handleFilterBy(e.target.textContent)}
+                                >
+                                    Vendor
+                                </h3>
                             )
                         }
                     </div>
@@ -159,9 +235,9 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
             {
                 (filterBy == "status" && <StatusFilterComponent/>) || 
                 (filterBy == "date" && <DateFilterComponent/>) ||
-                (filterBy?.includes("client") || filterBy.includes("vendor")) && (
+                ((filterBy?.includes("client") || filterBy?.includes("vendor")) && (
                     <UserFilterComponent/>
-                )
+                ))
             }
         </div>
     )
