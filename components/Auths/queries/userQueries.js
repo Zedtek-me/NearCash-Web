@@ -143,7 +143,8 @@ export const GET_SUB_BUSINESSES = gql`
       id
       name
       address
-      location 
+      location
+      isPrimary
     }
   }
 `;
