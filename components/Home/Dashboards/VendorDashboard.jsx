@@ -50,57 +50,57 @@ const Dashboard = () => {
   const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
   variables: { pageCount: 10, pageNumber, businessId: selectedBusiness ?? vendorBusinessId},
   fetchPolicy: "network-only",
-});
+  });
 
-const {
-  data: subBizData,
-  loading: subBizLoading,
-  error: subBizError,
-  refetch: refetchSubBiz,
-} = useQuery(GET_SUB_BUSINESSES, {
-  variables: { pageCount: 10, pageNumber: subBizPage, ownerId: userData?.id || "" },
-  fetchPolicy: "network-only",
-});
+  const {
+    data: subBizData,
+    loading: subBizLoading,
+    error: subBizError,
+    refetch: refetchSubBiz,
+  } = useQuery(GET_SUB_BUSINESSES, {
+    variables: { pageCount: 10, pageNumber: subBizPage, ownerId: userData?.id || "" },
+    fetchPolicy: "network-only",
+  });
 
-const {
-  data: analyticsData,
-  error: analyticsError,
-  loading: analyticsLoading,
-  refetch: refectAnalytics
-} = useQuery(GET_ANALYTICS, {
-  variables: {
-    businessId: vendorBusinessId,
-    userType: userType?.toLowerCase()
-  },
-  skip: !(vendorBusinessId || selectedBusiness)
-})
+  const {
+    data: analyticsData,
+    error: analyticsError,
+    loading: analyticsLoading,
+    refetch: refectAnalytics
+  } = useQuery(GET_ANALYTICS, {
+    variables: {
+      businessId: vendorBusinessId,
+      userType: userType?.toLowerCase()
+    },
+    skip: !(vendorBusinessId || selectedBusiness)
+  })
 
-const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
+  const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
-console.log(userData);
+  console.log(userData);
 
- useEffect(() => {
-  const getLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        localStorage.setItem("userLocation", JSON.stringify(location));
-      },
-      (err) => {
-        console.error("Location error:", err);
-        if (err.code === 2) { // LOCATION_UNKNOWN
-          setTimeout(getLocation, 2000); // retry after 2s
-        } else {
-          alert("Could not get location. Using default coordinates.");
-          //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
-        }
-      },
-      { enableHighAccuracy: true, timeout: 5000 }
-    );
-  };
-  
-  getLocation();
-}, []);
+  useEffect(() => {
+    const getLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          localStorage.setItem("userLocation", JSON.stringify(location));
+        },
+        (err) => {
+          console.error("Location error:", err);
+          if (err.code === 2) { // LOCATION_UNKNOWN
+            setTimeout(getLocation, 2000); // retry after 2s
+          } else {
+            alert("Could not get location. Using default coordinates.");
+            //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
+          }
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    };
+
+    getLocation();
+  }, []);
 
 
 const handleNext = () => {
