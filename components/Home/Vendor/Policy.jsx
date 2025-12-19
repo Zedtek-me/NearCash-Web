@@ -6,6 +6,7 @@ import useAuth from '../../../Hooks/Auths';
 import { useMutation, useQuery } from '@apollo/client';
 import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
 import toast from 'react-hot-toast';
+import { useStateValue } from '../../../providers/stateProvider';
 
 const TransactionPolicyPage = () => {
   const [showForm, setShowForm] = useState(false);
