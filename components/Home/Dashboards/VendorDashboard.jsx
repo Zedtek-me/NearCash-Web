@@ -33,7 +33,6 @@ const Dashboard = () => {
 
   useEffect(
     () => {
-      console.log("the first effect keeps running...........")
       if(vendorBusinessId && !selectedBusiness){
         localStorage.setItem("selected_business", vendorBusinessId);
         dispatch({

@@ -19,7 +19,15 @@ const TransactionPolicyPage = () => {
     const { userData } = useAuth();
 
   
-  const vendorBusinessId = userData?.businesses?.[0]?.id;
+  let vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
+  const [
+    {
+      businessStates: { selectedBusiness }
+    },
+    dispatch
+  ] = Object.values(useStateValue())
+
+  vendorBusinessId = (selectedBusiness || vendorBusinessId)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
