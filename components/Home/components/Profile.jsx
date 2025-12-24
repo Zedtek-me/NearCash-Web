@@ -22,26 +22,43 @@ export default function ProfilePage() {
     lastName: '',
     username: '',
     phoneNumber: '',
-    profilePicture: ''
+    picture: ''
   });
 
   const CLOUDINARY_UPLOAD_PRESET = cloudinaryPreset;
   const CLOUDINARY_CLOUD_NAME = cloudinaryName;
 
   useEffect(() => {
-    if (userData) {
-      setFormData({
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        username: userData.username || '',
-        phoneNumber: userData.phoneNumber || '',
-        profilePicture: userData.profilePicture || ''
-      });
-      if (userData.profilePicture) {
-        setProfileImage(userData.profilePicture);
-      }
+  if (!userData) return;
+
+  let parsedMeta = {};
+
+  if (typeof userData.meta === 'string') {
+    try {
+      parsedMeta = JSON.parse(userData.meta);
+      console.log('Parsed meta:', parsedMeta);
+      
+    } catch (e) {
+      parsedMeta = {};
     }
-  }, [userData]);
+  } else if (typeof userData.meta === 'object' && userData.meta !== null) {
+    parsedMeta = userData.meta;
+      console.log('Parsed metattttt:', parsedMeta);
+
+  }
+
+  setFormData({
+    firstName: userData.firstName || '',
+    lastName: userData.lastName || '',
+    username: userData.username || '',
+    phoneNumber: userData.phoneNumber || '',
+    picture: parsedMeta.picture || '',
+  });
+
+  if (parsedMeta.picture) {
+    setProfileImage(parsedMeta.picture);
+  }
+}, [userData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -104,7 +121,7 @@ export default function ProfilePage() {
   const handleSubmit = async () => {
     try {
       setIsUploading(true);
-      let imageUrl = formData.profilePicture;
+      let imageUrl = formData.picture;
 
       if (selectedFile) {
         toast.loading('Uploading image...', { id: 'upload' });
@@ -119,7 +136,7 @@ export default function ProfilePage() {
             lastName: formData.lastName,
             username: formData.username,
             phoneNumber: formData.phoneNumber,
-            profilePicture: imageUrl
+            picture: imageUrl
           }
         }
       }).then(({ data }) => {
@@ -128,7 +145,7 @@ export default function ProfilePage() {
         
         setFormData(prev => ({
           ...prev,
-          profilePicture: imageUrl
+          picture: imageUrl
         }));
         
         setSelectedFile(null);
@@ -152,9 +169,9 @@ export default function ProfilePage() {
       lastName: userData.lastName || '',
       username: userData.username || '',
       phoneNumber: userData.phoneNumber || '',
-      profilePicture: userData.profilePicture || ''
+      picture: userData.picture || ''
     });
-    setProfileImage(userData.profilePicture || null);
+    setProfileImage(userData.picture || null);
     setSelectedFile(null);
     setIsEditing(false);
   };
