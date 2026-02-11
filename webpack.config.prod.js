@@ -1,5 +1,6 @@
-const path = require("path")
+const path = require("path");
 const Dotenv = require("dotenv-webpack");
+const webpack = require("webpack");
 
 
 module.exports = {
@@ -53,9 +54,15 @@ module.exports = {
           hot:true,
           port: 8015,
     },
-    // plugins: [
-    //     new Dotenv()
-    // ],
+    plugins: [
+        new webpack.DefinePlugin({
+            "process.env.NEARCASH_GRAPHQL_API_URL": JSON.stringify(process.env.NEARCASH_GRAPHQL_API_URL),
+            "process.env.GOOGLE_API_KEY": JSON.stringify(process.env.GOOGLE_API_KEY),
+            "process.env.SOCKET_URL": JSON.stringify(process.env.SOCKET_URL),
+            "process.env.GEOAPIFY_KEY": JSON.stringify(process.env.GEOAPIFY_KEY),
+            "process.env.NEARCASH_REST_API_URL": JSON.stringify(process.env.NEARCASH_REST_API_URL),
+          }),
+    ],
     resolve: {
         extensions: [".js", ".jsx", ".ts", ".tsx"],
     }
