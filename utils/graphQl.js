@@ -3,7 +3,7 @@ import { ApolloLink, HttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from 'apollo-link-context';
 
 
-const API_HOST = "https://nearcash.api.cadencepay.us/api/v1/gaph/" || process.env.NEARCASH_API_URL;
+const API_HOST = "https://nearcash.api.cadencepay.us/api/v1/graph/" || process.env.NEARCASH_API_URL;
 
 const getApolloClient = async () => {
   const authLink = setContext((_, { headers }) => {
