@@ -61,6 +61,7 @@ module.exports = {
             "process.env.SOCKET_URL": JSON.stringify(process.env.SOCKET_URL),
             "process.env.GEOAPIFY_KEY": JSON.stringify(process.env.GEOAPIFY_KEY),
             "process.env.NEARCASH_REST_API_URL": JSON.stringify(process.env.NEARCASH_REST_API_URL),
+            "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
           }),
     ],
     resolve: {
