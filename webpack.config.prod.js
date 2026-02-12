@@ -61,7 +61,6 @@ module.exports = {
             "process.env.SOCKET_URL": JSON.stringify(process.env.SOCKET_URL),
             "process.env.GEOAPIFY_API_KEY": JSON.stringify(process.env.GEOAPIFY_KEY),
             "process.env.NEARCASH_REST_API_URL": JSON.stringify(process.env.NEARCASH_REST_API_URL),
-            "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "production"),
             "process.env.CLOUDINARY_CLOUD_NAME": JSON.stringify(process.env.CLOUDINARY_CLOUD_NAME),
             "process.env.CLOUDINARY_UPLOAD_PRESET": JSON.stringify(process.env.CLOUDINARY_UPLOAD_PRESET),
           }),
