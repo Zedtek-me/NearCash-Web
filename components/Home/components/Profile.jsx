@@ -119,7 +119,7 @@ export default function ProfilePage() {
             lastName: formData.lastName,
             username: formData.username,
             phoneNumber: formData.phoneNumber,
-            profilePicture: imageUrl
+            picture: imageUrl
           }
         }
       }).then(({ data }) => {
