@@ -23,7 +23,16 @@ const Dashboard = () => {
 
   const { userType } = userData;
 
-  let vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
+
+  const getVendorBusinessId = () => {
+    let primaryBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
+    if(localStorage.getItem("selected_business")){
+      return JSON.parse(localStorage.getItem("selected_business"));
+    }
+    return primaryBusinessId;
+  }
+
+  let vendorBusinessId = getVendorBusinessId();
   const [
     {
       businessStates: { selectedBusiness }
@@ -93,6 +102,12 @@ const Dashboard = () => {
           } else {
             alert("Could not get location. Using default coordinates.");
             //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
+            // try 3 more times
+            const count = 1;
+            while (count <= 3){
+              setTimeout(getLocation, 2000);
+              count++;
+            }
           }
         },
         { enableHighAccuracy: true, timeout: 5000 }
