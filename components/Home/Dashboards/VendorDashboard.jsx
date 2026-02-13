@@ -57,7 +57,7 @@ const Dashboard = () => {
     [vendorBusinessId, selectedBusiness]
   )
   const { data, loading, error, refetch } = useQuery(GET_TRANSACTIONS, {
-  variables: { pageCount: 10, pageNumber, businessId: selectedBusiness ?? vendorBusinessId},
+  variables: { pageCount: 10, pageNumber, businessId: vendorBusinessId ?? selectedBusiness},
   fetchPolicy: "network-only",
   });
 
