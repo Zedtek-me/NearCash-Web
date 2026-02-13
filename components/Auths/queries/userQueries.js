@@ -281,10 +281,10 @@ export const GET_CATEGORIES = gql`
 
 export const GET_VENDORS = gql`
  query Vendors(
-  $vendor_id: String, $search: String
+  $vendorId: String, $search: String
 ){
   vendors(
-    vendor_id: $vendor_id, search: $search
+    vendorId: $vendorId, search: $search
   ){
     id
     fullName
@@ -296,9 +296,13 @@ export const GET_VENDORS = gql`
 
 export const GET_CLIENTS = gql`
   query Clients(
-    $vendor_id: String, $search: String, $client_id: String
+    $vendorId: String!, $search: String, $clientId: String,
+    $businessId: String!
 ){
-    clients(vendor_id: $id, search: $search, client_id: $client_id){
+    clients(
+      vendorId: $vendorId, search: $search, clientId: $clientId,
+      businessId: $businessId
+    ){
       id
       fullName
       email
