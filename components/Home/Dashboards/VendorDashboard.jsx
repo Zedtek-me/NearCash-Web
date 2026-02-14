@@ -27,9 +27,9 @@ const Dashboard = () => {
   const getVendorBusinessId = () => {
     let primaryBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
     if(localStorage.getItem("selected_business")){
-      return JSON.parse(localStorage.getItem("selected_business"));
+      return localStorage.getItem("selected_business");
     }
-    return primaryBusinessId;
+    return String(primaryBusinessId);
   }
 
   let vendorBusinessId = getVendorBusinessId();
