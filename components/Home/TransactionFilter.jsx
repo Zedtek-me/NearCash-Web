@@ -84,10 +84,14 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
 
     const handleUserFilter = (userId, userType) => {
         setFilterBy("");
-        refetch({
-            userId: userId,
-            user_type: userType?.toUpperCase()
-        })
+        let variables = {};
+        if (userType == "VENDOR") {
+            variables.vendorId = userId;
+        }
+        else {
+            variables.clientId = userId;
+        }
+        refetch(variables)
     }
 
     const handleFilterBy = (txt) => {
@@ -175,7 +179,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                             onClick={(e) => handleUserFilter(clientUser?.id, clientUser?.userType)} 
                             key={clientUser?.id}
                         >
-                            <p className="font-medium">{clientUser?.name || clientUser?.email}</p>
+                            <p className="font-medium">{clientUser?.fullName || clientUser?.email}</p>
                         </div>
                     )) : (userType == "CLIENT" && vendors?.length) ? vendors?.map((vendorUser) => (
                         <div 
@@ -183,7 +187,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                             onClick={(e) => handleUserFilter(vendorUser?.id, vendorUser?.userType)} 
                             key={vendorUser?.id}
                         >
-                            <p className="font-medium">{vendorUser?.name || vendorUser?.email}</p>
+                            <p className="font-medium">{vendorUser?.fullName || vendorUser?.email}</p>
                         </div>
                     )) : (
                         <div className="p-4">

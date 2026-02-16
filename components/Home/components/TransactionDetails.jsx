@@ -55,7 +55,6 @@ const [vendorLocation, setVendorLocation] = useState(null);
   )
 
   const transaction = transactionData?.transaction || {}
-  console.log(`Transaction Data for id ${transactionId}::::::`, transactionData);
 
   useEffect(() => {
   if (!transaction?.meta) return;
