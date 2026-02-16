@@ -86,32 +86,37 @@ const Dashboard = () => {
 
   const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
 
-  console.log(userData);
 
   useEffect(() => {
     const getLocation = () => {
+      let errorFound = false;
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           localStorage.setItem("userLocation", JSON.stringify(location));
+          errorFound = false;
         },
+
         (err) => {
           console.error("Location error:", err);
+          const count = 1;
+          errorFound = true;
           if (err.code === 2) { // LOCATION_UNKNOWN
             setTimeout(getLocation, 2000); // retry after 2s
           } else {
             alert("Could not get location. Using default coordinates.");
             //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
-            // try 3 more times
-            const count = 1;
             while (count <= 3){
-              setTimeout(getLocation, 2000);
+              const foundError = getLocation();
+              if (!foundError) break;
               count++;
             }
           }
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 50000, maximumAge: 60000 }
       );
+      return errorFound;
     };
 
     getLocation();
