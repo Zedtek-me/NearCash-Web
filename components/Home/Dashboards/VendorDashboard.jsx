@@ -105,8 +105,7 @@ const Dashboard = () => {
           if (err.code === 2) { // LOCATION_UNKNOWN
             setTimeout(getLocation, 2000); // retry after 2s
           } else {
-            alert("Could not get location. Using default coordinates.");
-            //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
+            alert("Could not get user current location.");
             while (count <= 3){
               const foundError = getLocation(false);
               if (!foundError) break;
@@ -287,7 +286,7 @@ const handleSwitchBusiness = (id) =>{
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
+                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData} businessId={vendorBusinessId}/>
                 <div className="flex justify-between items-center mt-4">
                   <button
                     onClick={handlePrevious}

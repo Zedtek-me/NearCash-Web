@@ -4,7 +4,7 @@ import { useLazyQuery } from "@apollo/client";
 import EmptyTableState from "./components/EmptyTable";
 import { GET_VENDORS, GET_CLIENTS } from "../Auths/queries/userQueries";
 
-const TransactionFilter = ({ statusMap, refetch, user }) => {
+const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     const [openFilter, setOpenFilter] = useState(false);
     const [filterBy, setFilterBy] = useState("")
     const [dateFilter, setDateFilter] = useState({
@@ -20,10 +20,20 @@ const TransactionFilter = ({ statusMap, refetch, user }) => {
 
     useEffect(()=>{
         if(userType == "VENDOR"){
-            fetchClients();
-            if (clientsData){
-                setClients(clientsData)
-            };
+            if (!businessId) toast.error("Business ID is required to fetch clients.");
+            fetchClients({
+                variables: {
+                    "vendorId": user?.id,
+                    "clientId": "",
+                    "businessId": businessId
+                }
+            }).then((result) => {
+                console.log("Clients data:", result);
+                let clients = result?.data?.clients || [];
+                setClients(clients);
+            }).catch((err) => {
+                console.error("Error fetching clients:", err)
+            });
         }
         else{
             fetchVendors();
