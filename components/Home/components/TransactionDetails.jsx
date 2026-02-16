@@ -225,8 +225,8 @@ const handleUpdateStatus = async (id, status) => {
         <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
 
         {(
-          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) &&
-          transaction?.collectionMode === "MEET_UP"
+          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) //&&
+          //transaction?.collectionMode === "MEET_UP"
         )
           && (
           <TransactionMap
