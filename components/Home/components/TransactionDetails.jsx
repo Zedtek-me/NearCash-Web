@@ -55,7 +55,7 @@ const [vendorLocation, setVendorLocation] = useState(null);
   )
 
   const transaction = transactionData?.transaction || {}
-
+  console.log(`Transaction Data for id ${transactionId}::::::`, transactionData);
 
   useEffect(() => {
   if (!transaction?.meta) return;
@@ -224,7 +224,11 @@ const handleUpdateStatus = async (id, status) => {
       <div className="max-w-7xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
 
-        {['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) && (
+        {(
+          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) &&
+          transaction?.collectionMode === "MEET_UP"
+        )
+          && (
           <TransactionMap
             txnId={transaction.id}
             status={transaction.status}

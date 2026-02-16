@@ -51,9 +51,9 @@ export default function TransactionMap({
   const movingRole = category === 'STORE_WALKING' ? 'CLIENT' : 'VENDOR';
 
   /** Google Maps Loader */
-  // const { isLoaded, loadError } = useLoadScript({
-  //   googleMapsApiKey: google_key,
-  // });
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: google_key,
+  });
 
   /** Initialize user’s own location from localStorage */
   useEffect(() => {
@@ -188,8 +188,8 @@ export default function TransactionMap({
   };
 
   /** Google Maps Loading UI */
-  // if (loadError) return <div>Error loading map</div>;
-  // if (!isLoaded) return <div>Loading Google Maps...</div>;
+  if (loadError) return <div>Error loading map</div>;
+  if (!isLoaded) return <div>Loading Google Maps...</div>;
 
  const customerIcon = {
   url: svgToDataUrl(

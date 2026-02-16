@@ -88,7 +88,7 @@ const Dashboard = () => {
 
 
   useEffect(() => {
-    const getLocation = () => {
+    const getLocation = (highAccuracy = true) => {
       let errorFound = false;
 
       navigator.geolocation.getCurrentPosition(
@@ -108,13 +108,13 @@ const Dashboard = () => {
             alert("Could not get location. Using default coordinates.");
             //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
             while (count <= 3){
-              const foundError = getLocation();
+              const foundError = getLocation(false);
               if (!foundError) break;
               count++;
             }
           }
         },
-        { enableHighAccuracy: true, timeout: 50000, maximumAge: 60000 }
+        { enableHighAccuracy: highAccuracy, timeout: 50000, maximumAge: 60000 }
       );
       return errorFound;
     };
