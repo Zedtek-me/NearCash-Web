@@ -20,7 +20,10 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
 
     useEffect(()=>{
         if(userType == "VENDOR"){
-            if (!businessId) toast.error("Business ID is required to fetch clients.");
+            if (!businessId) {
+                toast.error("Business ID is required to fetch clients.")
+                return
+            };
             fetchClients({
                 variables: {
                     "vendorId": user?.id,
