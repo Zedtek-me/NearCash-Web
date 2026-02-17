@@ -127,7 +127,7 @@ const handlePrevious = () => {
       (err) => {
         console.error("Location error:", err);
         if (err.code === 2) { // LOCATION_UNKNOWN
-          setTimeout(()=> getLocation(false), 2000); // retry after 2s
+          setTimeout(()=> getLocation(true), 2000); // retry after 2s with accuracy
         } else {
           alert("Could not get location. Using default coordinates.");
           getLocation(false)
@@ -137,7 +137,7 @@ const handlePrevious = () => {
     );
   };
   
-  getLocation();
+  getLocation(false);
 }, []);
 
     const [
