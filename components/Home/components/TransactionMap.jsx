@@ -221,7 +221,7 @@ export default function TransactionMap({
             position={center}
             label={{
               text: "You",
-              color: "white",
+              color: "black",
               fontWeight: "bold"
             }}
           />
@@ -237,7 +237,7 @@ export default function TransactionMap({
 
               label={{
                 text: isVendor ? "Client" : "Vendor",
-                color: "white",
+                color: "black",
                 fontWeight: "bold",
               }}
             />
