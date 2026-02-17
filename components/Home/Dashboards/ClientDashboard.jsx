@@ -146,7 +146,7 @@ const handlePrevious = () => {
     return errorFound;
   };
   
-  getLocation();
+  getLocation(false);
 }, []);
 
     const [
@@ -160,7 +160,6 @@ const handlePrevious = () => {
         authTypeFromContext = data;
         });
         const socialTypeFromContext = localStorage.getItem("auth_type")
-        console.log("context values in client dashboard ", auth, authTypeFromContext, socialTypeFromContext)
 
 // Sample route data (your BE response format)
   const sampleRouteData = {
@@ -171,8 +170,6 @@ const handlePrevious = () => {
   useEffect(() => {
     const storedLocation = JSON.parse(localStorage.getItem('userLocation') || 'null');
     if (storedLocation) {
-      console.log('storedLocation', storedLocation);
-      
       setUserLocation(storedLocation);
     }
   }, []);
