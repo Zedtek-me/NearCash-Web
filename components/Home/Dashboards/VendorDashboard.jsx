@@ -105,12 +105,12 @@ const Dashboard = () => {
           if (err.code === 2) { // LOCATION_UNKNOWN
             setTimeout(getLocation, 2000); // retry after 2s
           } else {
-            alert("Could not get user current location.");
             while (count <= 3){
               const foundError = getLocation(false);
               if (!foundError) break;
               count++;
             }
+            if (errorFound) alert("Could not get user current location.");
           }
         },
         { enableHighAccuracy: highAccuracy, timeout: 50000, maximumAge: 60000 }

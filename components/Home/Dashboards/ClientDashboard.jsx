@@ -118,6 +118,8 @@ const handlePrevious = () => {
 
   useEffect(() => {
   const getLocation = (highAccuracy = true) => {
+    let errorFound = false;
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -125,19 +127,26 @@ const handlePrevious = () => {
         localStorage.setItem("userLocation", JSON.stringify(location));
       },
       (err) => {
+        const count = 1;
+        errorFound = true;
         console.error("Location error:", err);
         if (err.code === 2) { // LOCATION_UNKNOWN
-          setTimeout(()=> getLocation(true), 2000); // retry after 2s with accuracy
+          setTimeout(getLocation, 2000); // retry after 2s with accuracy
         } else {
-          alert("Could not get location. Using default coordinates.");
-          getLocation(false)
+          while (count <= 3){
+            const foundError = getLocation(false);
+            if (!foundError) break;
+            count++;
+          }
+          if (errorFound) alert("Could not get user current location.")
         }
       },
       { enableHighAccuracy: highAccuracy, timeout: 5000 }
     );
+    return errorFound;
   };
   
-  getLocation(false);
+  getLocation();
 }, []);
 
     const [
