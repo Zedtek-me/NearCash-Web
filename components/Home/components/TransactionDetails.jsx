@@ -231,7 +231,7 @@ const handleUpdateStatus = async (id, status) => {
           <TransactionMap
             txnId={transaction.id}
             status={transaction.status}
-            category={transaction.category}
+            collectionMode={transaction.collectionMode}
             userType={userType}
             clientLocation={clientLocation}
             vendorLocation={vendorLocation}

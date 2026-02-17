@@ -38,6 +38,7 @@ export const GET_TRANSACTION = gql`
                 id
                 name
                 address
+                location
             }
             vendor{
                 id
