@@ -50,8 +50,7 @@ export default function TransactionMap({
   const isVendor = userData?.userType === 'VENDOR';
   const movingRole = collectionMode === 'STORE_WALK_IN' ? 'CLIENT' : 'VENDOR';
   const transactionBusiness = transaction?.business;
-  const vendorUsername = isVendor ? userData?.username : transaction?.vendor?.username;
-  const clientUsername = !isVendor ? userData?.username : transaction?.client?.username;
+
 
 
   /** Google Maps Loader */
@@ -221,7 +220,7 @@ export default function TransactionMap({
           <Marker
             position={center}
             label={{
-              text: isVendor ? vendorUsername : clientUsername,
+              text: "You",
               color: "white",
               fontWeight: "bold"
             }}
@@ -237,7 +236,7 @@ export default function TransactionMap({
              // icon={customerIcon}
 
               label={{
-                text: isVendor ? clientUsername : vendorUsername,
+                text: isVendor ? "Client" : "Vendor",
                 color: "white",
                 fontWeight: "bold",
               }}

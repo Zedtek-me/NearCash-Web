@@ -39,10 +39,15 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
             });
         }
         else{
-            fetchVendors();
-            if(vendorsData){
-                setVendors(vendorsData)
-            }
+            fetchVendors()
+            .then((result) => {
+                console.log("Vendors data:", result);
+                let vendors = result?.data?.vendors || [];
+                setVendors(vendors);
+            })
+            .catch((err) => {
+                console.error("Error fetching vendors:", err)
+            })
         }
     }, [userType]);
 
