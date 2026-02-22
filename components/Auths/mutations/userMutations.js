@@ -261,3 +261,38 @@ export const ADD_CLIENTS_TO_CATEGORY = gql`
     }
   }
 `;
+
+export const UPDATE_STORE = gql`
+
+mutation updateBusiness(
+    $updateData: UpdateBusinessInputType!, $businessId: String!
+){
+    updateBusiness(updateData: $updateData, businessId: $businessId){
+       message
+       business{
+        id
+        name
+        address
+        owner{
+            email
+        }
+        location
+       }
+    }
+}
+`
+
+export const UPDATE_ASSET = gql`
+mutation updateFinancialAsset(
+    $id: String!, $data: [AssetInputType]!
+){
+    updateFinancialAsset(assetId: $id, data: $data){
+       message
+       asset{
+        id
+        range
+        chargeRate
+       }
+    }
+}
+`

@@ -149,6 +149,7 @@ export const GET_SUB_BUSINESSES = gql`
       assets {
       range
       chargeRate
+      id
       }
       description
       country

@@ -6,7 +6,7 @@ import { useLoadScript } from '@react-google-maps/api';
 import { toast } from 'react-toastify';
 
 import { GET_SUB_BUSINESSES } from '../../Auths/queries/userQueries';
-import { UPDATE_STORE } from '../../Auths/mutations/userMutations'; 
+import { UPDATE_STORE, UPDATE_ASSET } from '../../Auths/mutations/userMutations'; 
 import { google_key } from '../../../configs/environs';
 import { backArrowReturnFunc } from '../../../utils/auths';
 import useAuth from '../../../Hooks/Auths';
@@ -57,7 +57,7 @@ const EditStorePage = () => {
     if (!subBizData || initialized) return;
 
     // Adjust the path below to match your actual GQL response shape
-    const biz = subBizData?.getSubBusinesses?.data?.[0];
+    const biz = subBizData?.businesses[0];
 
     if (!biz) return;
 
@@ -87,10 +87,9 @@ const EditStorePage = () => {
     setInitialized(true);
   }, [subBizData, id, initialized]);
 
-  // ─── Mutation ────────────────────────────────────────────────────────────────
   const [updateStore, { loading: updating }] = useMutation(UPDATE_STORE);
+  const [updateAsset] = useMutation(UPDATE_ASSET);
 
-  // ─── Address helpers ─────────────────────────────────────────────────────────
   const fetchAddressSuggestions = (input) =>
     new Promise((resolve) => {
       if (!window.google?.maps?.places) { resolve([]); return; }
@@ -131,7 +130,6 @@ const EditStorePage = () => {
     setAddressSuggestions([]);
   };
 
-  // ─── Range helpers ────────────────────────────────────────────────────────────
   const handleRangeSelect = (option) => {
     const isSelected = formData.range.some(r => r.value === option.value);
     setFormData(prev => ({
@@ -157,7 +155,6 @@ const EditStorePage = () => {
     }
   };
 
-  // ─── Validation ───────────────────────────────────────────────────────────────
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim())    newErrors.name    = 'Business name is required';
@@ -168,12 +165,10 @@ const EditStorePage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ─── Submit ───────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     const data = {
-      id,
       businessName: formData.name,
       address:      formData.address,
       description:  formData.description,
@@ -185,7 +180,13 @@ const EditStorePage = () => {
       chargeRate: Number(item.charge),
     }));
 
-    updateStore({ variables: { data, financialAssets } })
+    updateAsset({ variables: { id, data: financialAssets } })
+      .then(() => {
+        toast.success('Financial assets updated successfully!');
+      })
+      .catch(err => toast.error(err?.message || 'Failed to update financial assets'));
+
+    updateStore({ variables: { updateData: data, financialAssets, businessId: id } })
       .then(() => {
         toast.success('Business updated successfully!');
         navigate('/dashboard/VENDOR');

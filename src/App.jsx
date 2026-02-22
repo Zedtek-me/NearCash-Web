@@ -20,6 +20,7 @@ import TransactionPolicyPage from "../components/Home/Vendor/Policy.jsx";
 import CategoryManagementPage from "../components/Home/Vendor/Category.jsx";
 import TransactionDetails from "../components/Home/components/TransactionDetails.jsx";
 import ProfilePage from "../components/Home/components/Profile.jsx";
+import EditStorePage from "../components/Home/Dashboards/EditStorePage.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -58,7 +59,7 @@ const App = () => {
                 <Route path="/category" element={<CategoryManagementPage />}/>
                 <Route path="/transaction-details/:id" element={<TransactionDetails />} />
                 <Route path="/profile" element={<ProfilePage />}/>
-                {/* <Route path="/edit-business/:id" element={<EditStorePage />}/> */}
+                <Route path="/edit-business/:id" element={<EditStorePage />}/>
 
 
             </Routes>
