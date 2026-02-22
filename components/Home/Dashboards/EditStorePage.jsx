@@ -26,8 +26,6 @@ const EditStorePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userData } = useAuth();
-  const { userType } = userData;
-
 
 
   const [formData, setFormData] = useState({
