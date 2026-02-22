@@ -57,14 +57,6 @@ const [vendorLocation, setVendorLocation] = useState(null);
   const transaction = transactionData?.transaction || {}
 
   useEffect(() => {
-    if(transaction.collectionMode == "STORE_WALK_IN") {
-      setVendorLocation({
-        lat: transaction?.business.location?.latitude,
-        lng: transaction?.business.location?.longitude
-      });
-
-      
-    }
   if (!transaction?.meta) return;
 
   try {
@@ -80,7 +72,7 @@ const [vendorLocation, setVendorLocation] = useState(null);
     }
 
     // Vendor location (only sent when vendor moves)
-    if (meta.vendor_current_location && transaction.collectionMode !== "STORE_WALK_IN") {
+    if (meta.vendor_current_location) {
       const loc = meta.vendor_current_location;
       setVendorLocation({
         lat: loc.latitude,

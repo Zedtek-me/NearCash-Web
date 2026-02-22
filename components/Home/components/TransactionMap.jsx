@@ -71,11 +71,7 @@ export default function TransactionMap({
       };
 
       if (isVendor) setVendorLoc(loc);
-      else {
-        setClientLoc(loc);
-        //setVendorLoc(initialVendor);
-        log("initial vendor loc:: ", initialVendor);
-      };
+      else setClientLoc(loc);
 
     } catch (e) {
       console.error("Invalid stored location:", e);

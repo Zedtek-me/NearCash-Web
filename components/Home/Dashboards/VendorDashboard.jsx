@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera, ChevronDown } from 'lucide-react';
+import { ArrowRight, Send, FileText, Plus, MoreHorizontal, Eye, MapPin, ArrowLeft, SwitchCamera, ChevronDown, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Navbar from '../Navs/Headers';
 import { useMutation, useQuery } from '@apollo/client';
@@ -283,7 +283,7 @@ const handleSwitchBusiness = (id) =>{
             </div>
 
             <div className='w-full grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2  gap-6 mt-20'>
-              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="bg-grey-50 rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="md:flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
                <div className="flex items-center gap-10 pt-5 md:pt-0">
@@ -328,7 +328,7 @@ const handleSwitchBusiness = (id) =>{
               </div>
             </div>
 
-            <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border  border-gray-100">
+            <div className="bg-grey-50 rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border  border-gray-100">
              <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-800">Sub Business List</h2>
         <div className="flex justify-between items-center">
@@ -360,7 +360,7 @@ const handleSwitchBusiness = (id) =>{
         key={store.id}
         className="bg-white hover:scale-105 lg:flex items-center justify-between px-3 py-5 hover:bg-gray-50 shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl group"
       >
-        <div className="flex items-center flex-1 max-w-[50%]">
+        <div className="flex items-center flex-1 max-w-full md:max-w-[65%]">
           <div
             className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}
           >
@@ -370,21 +370,34 @@ const handleSwitchBusiness = (id) =>{
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-medium text-gray-800 truncate">{store.name}</div>
-            <div className="flex flex-wrap items-center text-sm text-gray-500 mt-1">
+            <div className="flex items-center text-sm text-gray-500 mt-1">
               <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
               <span className="truncate">{store.address}</span>
             </div>
           </div>
         </div>
-        <div className="mt-4 lg:mt-0 flex items-center ml-2 max-w-[50%]">
-          <button
-            className=" border px-4 py-2 lg:p-0 lg:border-none flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
-            onClick={() => handleSwitchBusiness(store?.id)}
-          >
-            Switch Business
-            <SwitchCamera className="w-4 h-4 my-1" />
-          </button>
-        </div>
+        <div className="mt-4 lg:mt-0 grid items-center gap-2 ml-2 max-w-full md:max-w-[35%]">
+  {/* Edit Button */}
+  <button
+    className="relative border px-4 py-2 lg:px-3 lg:py-2 justify-center flex gap-2 items-center text-black border-black hover:bg-black hover:text-white rounded-full transition-all duration-300 group-hover:scale-110 overflow-hidden font-medium text-sm"
+    onClick={() => navigate(`/edit-business/${store?.id}`)}
+  >
+    <span className="relative z-10 flex items-center gap-1.5">
+      <Pencil className="w-3.5 h-3.5" />
+      <span className="">Edit</span>
+    </span>
+    {/* <span className="absolute inset-0 bg-black scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" /> */}
+  </button>
+
+  {/* Existing Switch Button */}
+  <button
+    className="border mt-2 px-4 py-2 flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
+    onClick={() => handleSwitchBusiness(store?.id)}
+  >
+    Switch Business
+    <SwitchCamera className="w-4 h-4 my-1" />
+  </button>
+</div>
       </div>
     ))
   ) : (

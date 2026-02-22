@@ -146,6 +146,12 @@ export const GET_SUB_BUSINESSES = gql`
       address
       location
       isPrimary
+      assets {
+      range
+      chargeRate
+      }
+      description
+      country
     }
   }
 `;
