@@ -38,6 +38,8 @@ export const GET_TRANSACTION = gql`
                 id
                 name
                 address
+                meta
+                location
             }
             vendor{
                 id
@@ -45,7 +47,7 @@ export const GET_TRANSACTION = gql`
                 firstName
                 lastName
                 email
-                
+                meta
             }
             client{
                 id
@@ -53,6 +55,7 @@ export const GET_TRANSACTION = gql`
                 firstName
                 lastName
                 email
+                meta
             }
         }
     }

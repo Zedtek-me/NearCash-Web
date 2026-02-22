@@ -189,7 +189,7 @@ const handleSwitchBusiness = (id) =>{
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-3">
       <Navbar user={userData}/>
 
       <div className="max-w-7xl mx-auto">
@@ -266,10 +266,11 @@ const handleSwitchBusiness = (id) =>{
 
             <div className='w-full grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2  gap-6 mt-20'>
               <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+              <div className="md:flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
-                <div className="flex justify-between items-center mt-4">
+               <div className="flex items-center gap-10 pt-5 md:pt-0">
+                 <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
+                <div className="flex justify-between items-center">
                   <button
                     onClick={handlePrevious}
                     disabled={pageNumber === 1}
@@ -287,6 +288,7 @@ const handleSwitchBusiness = (id) =>{
                   </button>
                 </div>
 
+               </div>
               </div>
               
               <div className="space-y-4">

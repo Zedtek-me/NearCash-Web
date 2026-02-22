@@ -597,11 +597,11 @@ const handlePrevious = () => {
   );
 
     return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
       <Navbar user={ userData } />
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.fullName ?? userData?.email} 👋</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1">Welcome, {userData?.fullName ?? userData?.email} 👋</h1>
           {/* <p className="text-sm text-gray-500">Member Since April 30, 2025</p> */}
         </div>
 
@@ -649,7 +649,7 @@ const handlePrevious = () => {
 
 
         <div className='w-full grid sm:grid-cols-1 md:grid-cols-2  gap-6 mt-10'>
-              <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="bg-grey-50 rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
                 {/* <button className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200">
@@ -793,11 +793,12 @@ const handlePrevious = () => {
       {showMap && <MapModal />}
             </div>
 
-             <div className="bg-grey-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+             <div className="bg-grey-50 rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+              <div className="md:flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
-                <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
-                <div className="flex justify-between items-center mt-4">
+               <div className="flex items-center gap-10 pt-5 md:pt-0">
+                 <TransactionFilter statusMap={statusMap} refetch={refetch} user={userData}/>
+                <div className="flex justify-between items-center">
                   <button
                     onClick={handlePrevious}
                     disabled={pageNumber === 1}
@@ -815,6 +816,7 @@ const handlePrevious = () => {
                   </button>
                 </div>
 
+               </div>
               </div>
               
               <div className="space-y-4">

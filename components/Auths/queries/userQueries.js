@@ -103,6 +103,7 @@ export const GET_TRANSACTIONS = gql`
       amount
       dateCreated
       amount
+      charge
       vendor {
         firstName
         lastName

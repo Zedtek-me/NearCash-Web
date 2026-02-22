@@ -43,7 +43,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
   return (
     <div
       key={transaction.id}
-      className="bg-white flex items-center justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl relative"
+      className="bg-white md:flex items-center justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl relative"
     >
       {/* Left side */}
       <div className="flex items-center">
@@ -73,13 +73,13 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
       </div>
 
       {/* Right side */}
-      <div className="flex items-center space-x-2">
+      <div className="flex pt-5 md:pt-0 justify-between items-center space-x-2">
         <span
           className={`font-medium ${
             transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"
           }`}
         >
-          {transaction?.amount}
+          {transaction?.charge}
         </span>
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
