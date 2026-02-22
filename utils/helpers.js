@@ -96,7 +96,7 @@ export const updateUserPosition = (coordinates, userData, socket) => {
       latitude: coordinates.latitude,
       longitude: coordinates.longitude
     },
-    business_id: userData?.selectedBusiness
+    business_id: userData?.selectedBusiness || userData?.transaction?.business_id
   });
 
   const send = () => {

@@ -107,7 +107,6 @@ const CreateStorePage = () => {
   setAddressSuggestions(results);
 };
 
-console.log(userData);
 
 
 

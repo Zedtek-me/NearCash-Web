@@ -14,6 +14,13 @@ const NotificationSocket = () => {
   const [messages, setMessages] = useState("");
   const { userData } = useAuth();
 
+  const exclusiveMsgs = [
+    "vendor_location_update_ack",
+    "client_location_update_ack",
+    "vendor_latest_location",
+    "client_latest_location"
+  ]
+
   const [
     {
       businessStates: { selectedBusiness }
@@ -38,7 +45,7 @@ const NotificationSocket = () => {
       }
 
 
-      if (message_type !== "vendor_location_update_ack") {
+      if (!exclusiveMsgs.includes(message_type)) {
         setMessages(event.data);
 
         toast.info(event.data, {

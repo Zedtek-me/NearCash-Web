@@ -117,7 +117,9 @@ const handlePrevious = () => {
   
 
   useEffect(() => {
-  const getLocation = () => {
+  const getLocation = (highAccuracy = true) => {
+    let errorFound = false;
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const location = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -125,19 +127,26 @@ const handlePrevious = () => {
         localStorage.setItem("userLocation", JSON.stringify(location));
       },
       (err) => {
+        const count = 1;
+        errorFound = true;
         console.error("Location error:", err);
         if (err.code === 2) { // LOCATION_UNKNOWN
-          setTimeout(getLocation, 2000); // retry after 2s
+          setTimeout(getLocation, 2000); // retry after 2s with accuracy
         } else {
-          alert("Could not get location. Using default coordinates.");
-          //setUserLocation({ lat: 7.41, lng: 4.31 }); // Lagos fallback
+          while (count <= 3){
+            const foundError = getLocation(false);
+            if (!foundError) break;
+            count++;
+          }
+          if (errorFound) alert("Could not get user current location.")
         }
       },
-      { enableHighAccuracy: true, timeout: 5000 }
+      { enableHighAccuracy: highAccuracy, timeout: 5000 }
     );
+    return errorFound;
   };
   
-  getLocation();
+  getLocation(false);
 }, []);
 
     const [
@@ -151,7 +160,6 @@ const handlePrevious = () => {
         authTypeFromContext = data;
         });
         const socialTypeFromContext = localStorage.getItem("auth_type")
-        console.log("context values in client dashboard ", auth, authTypeFromContext, socialTypeFromContext)
 
 // Sample route data (your BE response format)
   const sampleRouteData = {
@@ -162,8 +170,6 @@ const handlePrevious = () => {
   useEffect(() => {
     const storedLocation = JSON.parse(localStorage.getItem('userLocation') || 'null');
     if (storedLocation) {
-      console.log('storedLocation', storedLocation);
-      
       setUserLocation(storedLocation);
     }
   }, []);

@@ -6,6 +6,7 @@ import useAuth from '../../../Hooks/Auths';
 import { useMutation, useQuery } from '@apollo/client';
 import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
 import toast from 'react-hot-toast';
+import { useStateValue } from '../../../providers/stateProvider';
 
 const TransactionPolicyPage = () => {
   const [showForm, setShowForm] = useState(false);
@@ -19,7 +20,15 @@ const TransactionPolicyPage = () => {
     const { userData } = useAuth();
 
   
-  const vendorBusinessId = userData?.businesses?.[0]?.id;
+  let vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
+  const [
+    {
+      businessStates: { selectedBusiness }
+    },
+    dispatch
+  ] = Object.values(useStateValue())
+
+  vendorBusinessId = (selectedBusiness || vendorBusinessId)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

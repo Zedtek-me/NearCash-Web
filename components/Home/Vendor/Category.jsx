@@ -48,7 +48,6 @@ const CategoryManagementPage = () => {
     }
   })
 
-  console.log("categoriesData:::: ", categoriesData)
 
   const [createCategory, { loading: creatingCategory }] = useMutation(CREATE_CLIENT_CATEGORY);
   const [addClients, { loading: addingClients }] = useMutation(ADD_CLIENTS_TO_CATEGORY);

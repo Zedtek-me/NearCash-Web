@@ -144,7 +144,8 @@ export const GET_SUB_BUSINESSES = gql`
       id
       name
       address
-      location 
+      location
+      isPrimary
     }
   }
 `;
@@ -281,10 +282,10 @@ export const GET_CATEGORIES = gql`
 
 export const GET_VENDORS = gql`
  query Vendors(
-  $id: String, $search: String
+  $vendorId: String, $search: String
 ){
   vendors(
-    id: $id, search: $search
+    vendorId: $vendorId, search: $search
   ){
     id
     fullName
@@ -296,9 +297,13 @@ export const GET_VENDORS = gql`
 
 export const GET_CLIENTS = gql`
   query Clients(
-    $id: String, $search: String
+    $vendorId: String!, $search: String, $clientId: String,
+    $businessId: String!
 ){
-    clients(id: $id, search: $search){
+    clients(
+      vendorId: $vendorId, search: $search, clientId: $clientId,
+      businessId: $businessId
+    ){
       id
       fullName
       email

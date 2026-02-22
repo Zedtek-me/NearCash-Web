@@ -13,7 +13,7 @@ const mapContainerStyle = {
 const mapOptions = {
   disableDefaultUI: false,
   zoomControl: true,
-  streetViewControl: false,
+  streetViewControl: true,
   mapTypeControl: false,
   fullscreenControl: false,
 };
@@ -35,7 +35,7 @@ function svgToDataUrl(svgComponent) {
 export default function TransactionMap({
   txnId,
   status,
-  category,
+  collectionMode,
   clientLocation: initialClient,
   vendorLocation: initialVendor,
   userData,
@@ -48,7 +48,10 @@ export default function TransactionMap({
 
   const isPending = ['INITIATED', 'IN_PROGRESS'].includes(status);
   const isVendor = userData?.userType === 'VENDOR';
-  const movingRole = category === 'STORE_WALKING' ? 'CLIENT' : 'VENDOR';
+  const movingRole = collectionMode === 'STORE_WALK_IN' ? 'CLIENT' : 'VENDOR';
+  const transactionBusiness = transaction?.business;
+
+
 
   /** Google Maps Loader */
   const { isLoaded, loadError } = useLoadScript({
@@ -172,11 +175,16 @@ export default function TransactionMap({
 
   /** Determine Map Centers */
   const centerLocation = isVendor ? vendorLoc : clientLoc;
-  const otherPartyLocation = isVendor ? clientLoc : vendorLoc;
-  //const otherPartyLocation = {latitude: '7.40', longitude: '4.30'}
+  let otherPartyLocation = isVendor ? clientLoc : vendorLoc;
 
-  console.log('vendorLoc::: ', vendorLoc, "client loc::: ", clientLoc);
-  
+  // In STORE_WALK_IN mode, the other party's location is fixed at the business location
+  if(!isVendor && collectionMode === 'STORE_WALK_IN') {
+    otherPartyLocation = (
+      transactionBusiness?.location || vendorLoc
+    );
+  }
+  console.log('vendorLoc::: ', vendorLoc, "client loc::: ", clientLoc, "other party location:::: ", otherPartyLocation);
+  console.log("transaction business ", transactionBusiness);
 
   if (!centerLocation) {
     return (
@@ -216,8 +224,8 @@ export default function TransactionMap({
           <Marker
             position={center}
             label={{
-              text: isVendor ? "V" : "C",
-              color: "white",
+              text: "You",
+              color: "black",
               fontWeight: "bold"
             }}
           />
@@ -232,8 +240,8 @@ export default function TransactionMap({
              // icon={customerIcon}
 
               label={{
-                text: isVendor ? "C" : "V",
-                color: "white",
+                text: isVendor ? "Client" : "Vendor",
+                color: "black",
                 fontWeight: "bold",
               }}
             />
