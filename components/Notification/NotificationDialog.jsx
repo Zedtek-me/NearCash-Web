@@ -8,8 +8,20 @@ const NotificationDialog = ({
 
   useEffect(() => {
     setMessage(null);
-  }, [message, setMessage]);
+  }, [setMessage]);
 
+
+  useEffect(
+    () => {
+      const newTrxnMsg = (
+        typeof message !== "string" && !Array.isArray(message) && "title" in message
+      )
+      if(newTrxnMsg){
+        message = message.title
+      }
+    },
+    [message]
+  )
  
   return toast(
     (t) => (
