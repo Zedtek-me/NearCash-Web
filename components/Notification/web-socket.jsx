@@ -118,7 +118,6 @@ const NotificationSocket = () => {
         sendPushNotification(data);
         triggerVibration();
         playAlertTone();
-        return;
       }
 
       if (!EXCLUSIVE_MSGS.includes(message_type)) {
