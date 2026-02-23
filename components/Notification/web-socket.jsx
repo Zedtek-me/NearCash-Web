@@ -69,7 +69,7 @@ const sendPushNotification = async (data) => {
   setTimeout(() => notification.close(), 6000);
 };
 
-const LOCATION_MSG_TYPES = ["New Transaction"];
+const LOCATION_MSG_TYPES = ["New Transaction Interest"];
 
 const EXCLUSIVE_MSGS = [
   "vendor_location_update_ack",
