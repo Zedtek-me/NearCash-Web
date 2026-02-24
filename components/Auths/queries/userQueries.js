@@ -37,6 +37,7 @@ query VendorsNearMe(
         location
         distance
         nearest
+        isOnline
     }
 }`;
 

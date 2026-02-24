@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, ChevronDown, ChevronUp, X, Navigation, Loader2, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  ArrowUpRight, ArrowUp, ArrowDown, Clock, MoreHorizontal, Eye, MapPin, ChevronDown,
+  ChevronUp, X, Navigation, Loader2, ArrowLeft, ArrowRight, CircleSmall
+ } from 'lucide-react';
 import { Subscriber } from "../../../utils/subscriber";
 import { useStateValue } from "../../../providers/stateProvider";
 import Navbar from '../Navs/Headers';
@@ -674,6 +677,13 @@ const handlePrevious = () => {
                   <div className="font-medium text-gray-800">{store?.name}</div>
                   <div className="text-sm text-gray-500"> {store?.distance} km away {Object.is(store?.nearest, true) && "(Nearest)"}</div>
                 </div>
+              </div>
+              <div
+                className={
+                  `online-status w-3 h-3 rounded-[50%] ${store?.isOnline ? 'bg-green-500' : 'bg-slate-300'}`
+                }
+                title={store?.isOnline ? 'Online' : 'Offline'}
+              >
               </div>
               <div className="flex items-center space-x-2">
                 {/* <button
