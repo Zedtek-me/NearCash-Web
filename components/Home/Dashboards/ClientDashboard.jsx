@@ -117,7 +117,7 @@ const handlePrevious = () => {
   
 
   useEffect(() => {
-  const getLocation = (highAccuracy = true) => {
+  const getLocation = (highAccuracy = false) => {
     let errorFound = false;
 
     navigator.geolocation.getCurrentPosition(
@@ -133,12 +133,7 @@ const handlePrevious = () => {
         if (err.code === 2) { // LOCATION_UNKNOWN
           setTimeout(getLocation, 2000); // retry after 2s with accuracy
         } else {
-          while (count <= 3){
-            const foundError = getLocation(false);
-            if (!foundError) break;
-            count++;
-          }
-          if (errorFound) alert("Could not get user current location.")
+          alert("Could not get user current location.")
         }
       },
       { enableHighAccuracy: highAccuracy, timeout: 5000 }
