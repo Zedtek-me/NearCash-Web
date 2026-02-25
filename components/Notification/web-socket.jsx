@@ -155,8 +155,8 @@ const NotificationSocket = () => {
       socket.removeEventListener("error", onError);
       socket.removeEventListener("close", onClose);
     };
-  }, [socket, userData, selectedBusiness]);
-
+  }, []);
+  // [socket, userData, selectedBusiness]
   return (
     <div>
       {messages && (

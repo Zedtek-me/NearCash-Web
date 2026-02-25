@@ -22,7 +22,9 @@ export const WebSocketProvider = ({ children }) => {
     setSocket(ws);
 
     return () => ws.close();
-  }, [userData]);
+  }, []);
+
+  // userData
 
   return (
     <WebSocketContext.Provider value={socket}>
