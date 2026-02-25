@@ -69,7 +69,12 @@ const sendPushNotification = async (data) => {
   setTimeout(() => notification.close(), 6000);
 };
 
-const LOCATION_MSG_TYPES = ["New Transaction Interest"];
+const PUSH_NOTIF_MSG_TYPES = [
+  "New Transaction Interest",
+  "Transaction Approved!",
+  "Transaction Declined!",
+  "Transaction Cancelled!"
+];
 
 const EXCLUSIVE_MSGS = [
   "vendor_location_update_ack",
@@ -114,7 +119,7 @@ const NotificationSocket = () => {
         setMessages(event.data);
       }
 
-      if (LOCATION_MSG_TYPES.includes(message_type)) {
+      if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         sendPushNotification(data);
         triggerVibration();
         playAlertTone();

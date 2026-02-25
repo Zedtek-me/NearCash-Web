@@ -139,7 +139,7 @@ const handlePrevious = () => {
           alert("Could not get user current location.")
         }
       },
-      { enableHighAccuracy: highAccuracy, timeout: 5000 }
+      { enableHighAccuracy: highAccuracy, timeout: 200000, maximumAge: 5000 }
     );
     return errorFound;
   };
@@ -166,7 +166,7 @@ const handlePrevious = () => {
 
   // Check for stored location on component mount
   useEffect(() => {
-    const storedLocation = JSON.parse(localStorage.getItem('userLocation') || 'null');
+    const storedLocation = JSON.parse(localStorage.getItem('userLocation') || null);
     if (storedLocation) {
       setUserLocation(storedLocation);
     }

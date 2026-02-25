@@ -60,7 +60,7 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 200000,
           maximumAge: 5000
         }
       );
@@ -68,7 +68,7 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
     (err) => {
       console.error("GPS Permission DENIED:", err);
     },
-    { enableHighAccuracy: true, timeout: 10000 }
+    { enableHighAccuracy: false, timeout: 200000 }
   );
 
   return () => {
