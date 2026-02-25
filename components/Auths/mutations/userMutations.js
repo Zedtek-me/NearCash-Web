@@ -265,9 +265,9 @@ export const ADD_CLIENTS_TO_CATEGORY = gql`
 export const UPDATE_STORE = gql`
 
 mutation updateBusiness(
-    $updateData: UpdateBusinessInputType!, $businessId: String!
+    $updateData: UpdateBusinessInputType!, $businessId: String!, $financialAssets: [AssetInputType]
 ){
-    updateBusiness(updateData: $updateData, businessId: $businessId){
+    updateBusiness(updateData: $updateData, businessId: $businessId, financialAssets: $financialAssets){
        message
        business{
         id

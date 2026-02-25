@@ -178,12 +178,6 @@ const EditStorePage = () => {
       chargeRate: Number(item.charge),
     }));
 
-    updateAsset({ variables: { id, data: financialAssets } })
-      .then(() => {
-        toast.success('Financial assets updated successfully!');
-      })
-      .catch(err => toast.error(err?.message || 'Failed to update financial assets'));
-
     updateStore({ variables: { updateData: data, financialAssets, businessId: id } })
       .then(() => {
         toast.success('Business updated successfully!');
