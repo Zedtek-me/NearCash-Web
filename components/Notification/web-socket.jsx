@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import NotificationDialog from "./NotificationDialog";
 import {
   fetchAndUpdateUserCurrentLocation,
-  updateUserPosition
+  updateUserPosition,
 } from "../../utils/helpers";
 import { useStateValue } from "../../providers/stateProvider";
 import { useWebSocket } from "./WebSocketProvider";
@@ -31,8 +31,8 @@ const playAlertTone = () => {
       oscillator.stop(startTime + duration);
     };
 
-    playBeep(ctx.currentTime,        880, 0.15);
-    playBeep(ctx.currentTime + 0.2,  1100, 0.15);
+    playBeep(ctx.currentTime, 880, 0.15);
+    playBeep(ctx.currentTime + 0.2, 1100, 0.15);
   } catch (err) {
     console.warn("Audio playback failed:", err);
   }
@@ -56,11 +56,11 @@ const sendPushNotification = async (data) => {
   const isVendor = data.message_type === "vendor_latest_location";
 
   const title = data.message_type || "New Transaction";
-  const body  = data?.message || "You have a new notification";
+  const body = data?.message || "You have a new notification";
 
   const notification = new Notification(title, {
     body,
-    //icon: "/favicon.ico", 
+    //icon: "/favicon.ico",
     //badge: "/favicon.ico",
     tag: data.message_type,
     renotify: true,
@@ -71,9 +71,10 @@ const sendPushNotification = async (data) => {
 
 const PUSH_NOTIF_MSG_TYPES = [
   "New Transaction Interest",
+  "Transaction Initiated!",
   "Transaction Approved!",
   "Transaction Declined!",
-  "Transaction Cancelled!"
+  "Transaction Cancelled!",
 ];
 
 const EXCLUSIVE_MSGS = [
@@ -81,9 +82,8 @@ const EXCLUSIVE_MSGS = [
   "client_location_update_ack",
   "vendor_latest_location",
   "client_latest_location",
-  "error"
+  "error",
 ];
-
 
 const NotificationSocket = () => {
   const socket = useWebSocket();
@@ -93,19 +93,23 @@ const NotificationSocket = () => {
 
   const [
     {
-      businessStates: { selectedBusiness }
-    }
+      businessStates: { selectedBusiness },
+    },
   ] = Object.values(useStateValue());
 
   useEffect(() => {
-    if (!permissionRequested.current && "Notification" in window && Notification.permission === "default") {
+    if (
+      !permissionRequested.current &&
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
       Notification.requestPermission();
       permissionRequested.current = true;
     }
   }, []);
 
   useEffect(() => {
-    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    if (!socket) return;
 
     console.log("🔔 NotificationSocket listening for messages...");
 
@@ -113,12 +117,8 @@ const NotificationSocket = () => {
       const data = JSON.parse(event.data);
       console.log("🔔 New WS message:", data);
 
-      const { message_type } = data;
-
-      if (typeof data === "string") {
-        setMessages(event.data);
-      }
-
+      const { message_type } = ( data instanceof Object && !Array.isArray(data) ? data : { message_type: data } );
+      console.log(`message type gotten:::::::::: ${message_type}`)
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         sendPushNotification(data);
         triggerVibration();
@@ -141,22 +141,24 @@ const NotificationSocket = () => {
     socket.addEventListener("error", onError);
     socket.addEventListener("close", onClose);
 
-    if (userData) {
-      fetchAndUpdateUserCurrentLocation(
-        updateUserPosition,
-        (err) => console.log("error fetching coordinates:", err),
-        { ...userData, selectedBusiness },
-        socket
-      );
-    }
-
     return () => {
       socket.removeEventListener("message", onMessage);
       socket.removeEventListener("error", onError);
       socket.removeEventListener("close", onClose);
     };
-  }, []);
-  // [socket, userData, selectedBusiness]
+  }, [socket]);
+
+  useEffect(() => {
+    if (userData?.id) {
+      fetchAndUpdateUserCurrentLocation(
+        updateUserPosition,
+        (err) => console.log("error fetching coordinates:", err),
+        { ...userData, selectedBusiness },
+        socket,
+      );
+    }
+  }, [socket, userData?.id, selectedBusiness]);
+
   return (
     <div>
       {messages && (

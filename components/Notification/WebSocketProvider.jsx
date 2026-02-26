@@ -13,7 +13,9 @@ export const WebSocketProvider = ({ children }) => {
     const token = localStorage.getItem("nearcash_token");
     const baseURL = process.env.SOCKET_URL;
 
-    const ws = new WebSocket(`${baseURL}/notification/${userData.id}/?token=${token}`);
+    const ws = new WebSocket(
+      `${baseURL}/notification/${userData.id}/?token=${token}`,
+    );
 
     ws.onopen = () => console.log("🔗 WebSocket connected");
     ws.onclose = () => console.log("🔌 WebSocket closed");
@@ -22,7 +24,7 @@ export const WebSocketProvider = ({ children }) => {
     setSocket(ws);
 
     return () => ws.close();
-  }, []);
+  }, [userData?.id]);
 
   // userData
 
