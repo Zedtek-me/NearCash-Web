@@ -117,9 +117,8 @@ const NotificationSocket = () => {
       const data = JSON.parse(event.data);
       console.log("🔔 New WS message:", data);
 
-      const { message_type } =
-        data instanceof Object ? data : { message_type: data };
-
+      const { message_type } = ( data instanceof Object && !Array.isArray(data) ? data : { message_type: data } );
+      console.log(`message type gotten:::::::::: ${message_type}`)
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         sendPushNotification(data);
         triggerVibration();
