@@ -318,3 +318,18 @@ export const GET_CLIENTS = gql`
     }
   }
 `
+
+export const GET_ALL_NOTIFICATION = gql`
+query Notifications(
+    $userId: String, $businessId: String, $id: String
+){
+    notifications(
+        userId: $userId, businessId: $businessId, id: $id
+    ){
+        id
+        title
+        message
+        meta
+        dateCreated
+    }
+}`

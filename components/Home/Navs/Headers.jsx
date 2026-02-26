@@ -14,6 +14,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useQuery } from '@apollo/client';
+import { GET_ALL_NOTIFICATION } from '../../Auths/queries/userQueries';
 
 const Navbar = ({ 
   onNavigate = () => {}, 
@@ -26,8 +28,14 @@ const Navbar = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
-  const { userType } = (user || {});
-
+  const { userType, id } = (user || {});
+  const buzId = localStorage.getItem("selected_business");
+  
+  const { data, loading, error, refetch } = useQuery(GET_ALL_NOTIFICATION, {
+  variables: {  businessId: buzId, userId: id },
+  fetchPolicy: "network-only",
+  skip: !id,
+  });
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -73,6 +81,10 @@ const Navbar = ({
     { id: 2, message: 'New store opened near you', time: '1 hour ago' },
     { id: 3, message: 'Price drop on your favorite items', time: '3 hours ago' },
   ];
+  const notificationCount = data?.notifications?.length || 0;
+  const notificationData = data?.notifications || [];
+
+  console.log('notificationData', data);
 
   const handleNavigation = (href) => {
     if (href === 'logout') {
@@ -119,15 +131,15 @@ const Navbar = ({
   };
 
   const NotificationDropdown = () => (
-    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+    <div className="absolute right-[-55px] md:right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-semibold text-gray-800">Notifications</h3>
       </div>
       <div className="max-h-64 overflow-y-auto">
-        {sampleNotifications.map((notification) => (
+        {notificationData.map((notification) => (
           <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
             <p className="text-sm text-gray-800 mb-1">{notification.message}</p>
-            <p className="text-xs text-gray-500">{notification.time}</p>
+            <p className="text-xs text-gray-500">{notification.dateCreated}</p>
           </div>
         ))}
       </div>
@@ -210,9 +222,9 @@ const Navbar = ({
                   className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
                   <Bell size={20} />
-                  {notifications > 0 && (
+                  {notificationCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                      {notifications}
+                      {notificationCount}
                     </span>
                   )}
                 </button>
@@ -237,7 +249,24 @@ const Navbar = ({
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            <div className="flex md:hidden">
+              <div className="relative notification-container">
+                <button
+                  onClick={() => {
+                    setShowNotifications(!showNotifications);
+                    setShowUserMenu(false);
+                  }}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <Bell size={20} />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+                {showNotifications && <NotificationDropdown />}
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
