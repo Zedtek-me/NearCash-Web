@@ -71,6 +71,7 @@ const sendPushNotification = async (data) => {
 
 const PUSH_NOTIF_MSG_TYPES = [
   "New Transaction Interest",
+  "Transaction Initiated!",
   "Transaction Approved!",
   "Transaction Declined!",
   "Transaction Cancelled!",
@@ -116,9 +117,8 @@ const NotificationSocket = () => {
       const data = JSON.parse(event.data);
       console.log("🔔 New WS message:", data);
 
-      const { message_type } = (
-        data instanceof Object ? data : { message_type: data }
-      );
+      const { message_type } =
+        data instanceof Object ? data : { message_type: data };
 
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         sendPushNotification(data);
