@@ -100,9 +100,9 @@ export const updateUserPosition = (coordinates, userData, socket) => {
   });
 
   const send = () => {
-    if (socket.readyState === WebSocket.OPEN) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(payload);
-    } else if (socket.readyState === WebSocket.CONNECTING) {
+    } else if (socket && socket.readyState === WebSocket.CONNECTING) {
       socket.addEventListener('open', () => socket.send(payload), { once: true });
     }
   };
