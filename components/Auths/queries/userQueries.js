@@ -332,4 +332,5 @@ query Notifications(
         meta
         dateCreated
     }
+    pagination
 }`

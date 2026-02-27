@@ -81,8 +81,10 @@ const Navbar = ({
     { id: 2, message: 'New store opened near you', time: '1 hour ago' },
     { id: 3, message: 'Price drop on your favorite items', time: '3 hours ago' },
   ];
-  const notificationCount = data?.notifications?.length || 0;
+  const notificationCount =  data?.notifications?.length || 0;
   const notificationData = data?.notifications || [];
+  const notifPagination = data?.pagination
+  // console.log("notification pagination data here:::::: ", JSON.parse(JSON.stringify(notifPagination)))
 
   console.log('notificationData', data);
 
@@ -137,9 +139,10 @@ const Navbar = ({
       </div>
       <div className="max-h-64 overflow-y-auto">
         {notificationData.map((notification) => (
-          <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-            <p className="text-sm text-gray-800 mb-1">{notification.message}</p>
-            <p className="text-xs text-gray-500">{notification.dateCreated}</p>
+          <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex-col item-center justify-center">
+            <p className="text-sm text-gray-950 mb-1 font-bold">{notification?.title}</p>
+            <p className="text-xs text-gray-500">{notification?.message}</p>
+            <p className="text-xs text-gray-500 self-end text-end font-bold">{new Date(notification.dateCreated).toLocaleString()}</p>
           </div>
         ))}
       </div>
