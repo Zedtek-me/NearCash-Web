@@ -186,13 +186,13 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                         >
                             <p className="font-medium">{clientUser?.fullName || clientUser?.email}</p>
                         </div>
-                    )) : (userType == "CLIENT" && vendors?.length) ? vendors?.map((vendorUser) => (
+                    )) : (userType == "CLIENT" && vendors?.length) ? vendors?.map((vendorBusiness) => (
                         <div 
                             className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
-                            onClick={(e) => handleUserFilter(vendorUser?.id, vendorUser?.userType)} 
-                            key={vendorUser?.id}
+                            onClick={(e) => handleUserFilter(vendorBusiness?.owner?.id, vendorBusiness?.owner?.userType)} 
+                            key={vendorBusiness?.id}
                         >
-                            <p className="font-medium">{vendorUser?.fullName || vendorUser?.email}</p>
+                            <p className="font-medium">{vendorBusiness?.name || vendorBusiness?.owner?.email}</p>
                         </div>
                     )) : (
                         <div className="p-4">
