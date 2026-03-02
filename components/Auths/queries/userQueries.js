@@ -120,7 +120,13 @@ export const GET_TRANSACTIONS = gql`
         id
         }
     }
-    pagination
+    pagination {
+        totalItems
+        totalUnreadItems
+        totalReadItems
+        totalPages
+        currentPage
+    }
   }
 `;
 
@@ -284,7 +290,13 @@ export const GET_CATEGORIES = gql`
       dateCreated
       lastUpdated
     }
-    pagination
+    pagination {
+        totalItems
+        totalUnreadItems
+        totalReadItems
+        totalPages
+        currentPage
+    }
 }`
 
 
@@ -296,9 +308,14 @@ export const GET_VENDORS = gql`
     vendorId: $vendorId, search: $search
   ){
     id
-    fullName
-    email
-    userType
+    name
+    meta
+    owner {
+      id
+      fullName
+      email
+      userType
+    }
   }
 }
 `
@@ -321,16 +338,25 @@ export const GET_CLIENTS = gql`
 
 export const GET_ALL_NOTIFICATION = gql`
 query Notifications(
-    $userId: String, $businessId: String, $id: String
+    $userId: String, $businessId: String, $id: String,
+    $search: String, $status: String, $pageCount: Int, $pageNumber: Int
 ){
     notifications(
-        userId: $userId, businessId: $businessId, id: $id
+        userId: $userId, businessId: $businessId, id: $id,
+        search: $search, status: $status, pageCount: $pageCount, pageNumber: $pageNumber
     ){
         id
         title
         message
+        status
         meta
         dateCreated
     }
-    pagination
+    pagination {
+        totalItems
+        totalUnreadItems
+        totalReadItems
+        totalPages
+        currentPage
+    }
 }`

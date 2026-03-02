@@ -31,11 +31,22 @@ const Navbar = ({
   const { userType, id } = (user || {});
   const buzId = localStorage.getItem("selected_business");
   
+  const notificationVariables = {
+    businessId: buzId,
+    userId: id,
+  }
+
+  if (userType === "VENDOR") delete notificationVariables.userId;
+  else delete notificationVariables.businessId;
+
   const { data, loading, error, refetch } = useQuery(GET_ALL_NOTIFICATION, {
-  variables: {  businessId: buzId, userId: id },
+  variables: notificationVariables,
   fetchPolicy: "network-only",
-  skip: !id,
+  skip: !(id || buzId),
   });
+
+
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -61,13 +72,6 @@ const Navbar = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showUserMenu, showNotifications]);
 
-  const navigation = [
-    { name: 'Home', href: 'home', icon: Home },
-    { name: 'Stores', href: 'stores', icon: MapPin },
-    { name: 'Search', href: 'search', icon: Search },
-    { name: 'Orders', href: 'orders', icon: ShoppingBag },
-  ];
-
   const userMenuItems = [
     { name: 'Category', href: '/category', icon: Heart },
     { name: 'Profile', href: '/profile', icon: User },
@@ -76,17 +80,15 @@ const Navbar = ({
     { name: 'Logout', href: 'logout', icon: LogOut },
   ];
 
-  const sampleNotifications = [
-    { id: 1, message: 'Your order from Fresh Market is ready!', time: '2 min ago' },
-    { id: 2, message: 'New store opened near you', time: '1 hour ago' },
-    { id: 3, message: 'Price drop on your favorite items', time: '3 hours ago' },
-  ];
-  const notificationCount =  data?.notifications?.length || 0;
-  const notificationData = data?.notifications || [];
   const notifPagination = data?.pagination
-  // console.log("notification pagination data here:::::: ", JSON.parse(JSON.stringify(notifPagination)))
+  const notificationCount =  (
+    notifPagination?.totalUnreadItems ||
+    notifPagination?.totalItems ||
+    data?.notifications?.length || 0
+  );
+  const notificationData = data?.notifications || [];
 
-  console.log('notificationData', data);
+  console.log('all notificationData', data);
 
   const handleNavigation = (href) => {
     if (href === 'logout') {

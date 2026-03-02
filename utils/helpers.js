@@ -41,14 +41,13 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
   // First: Ask permission
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      console.log("GPS Permission GRANTED");
       toast.success("GPS ON");
 
       // Now start live tracking
       watchID = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude, accuracy } = pos.coords;
-          console.log("LIVE GPS:", latitude, longitude, "±", accuracy + "m");
+          // console.log("LIVE GPS:", latitude, longitude, "±", accuracy + "m");
 
           updateFunc(pos.coords, userData, socket);
         },
