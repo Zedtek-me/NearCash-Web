@@ -97,6 +97,8 @@ export const GET_TRANSACTIONS = gql`
       businessId: $businessId
       walletId: $walletId
       search: $search
+      clientId: $clientId
+      vendorId: $vendorId
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {
