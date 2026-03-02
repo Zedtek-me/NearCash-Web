@@ -87,6 +87,8 @@ export const GET_TRANSACTIONS = gql`
     $businessId: String
     $walletId: String
     $search: String
+    $clientId: String
+    $vendorId: String
     $pageCount: Int
     $pageNumber: Int
   ) {
