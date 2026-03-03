@@ -127,7 +127,7 @@ const NotificationSocket = () => {
 
       if (!EXCLUSIVE_MSGS.includes(message_type)) {
         setMessages(event.data);
-        toast.info(event.data, {
+        toast.info(message_type, {
           position: "top-right",
           autoClose: 4000,
         });

@@ -14,10 +14,10 @@ const NotificationDialog = ({
   useEffect(
     () => {
       const newTrxnMsg = (
-        typeof message !== "string" && !Array.isArray(message) && "title" in message
+        typeof message !== "string" && !Array.isArray(message) && "message_type" in message
       )
       if(newTrxnMsg){
-        setMessage(message.title)
+        setMessage(message.message_type)
       }
     },
     [message]
