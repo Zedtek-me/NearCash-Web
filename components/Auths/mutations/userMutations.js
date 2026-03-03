@@ -296,3 +296,25 @@ mutation updateFinancialAsset(
     }
 }
 `
+export const UPDATE_NOTIFICATION = gql`
+mutation UpdateNotification(
+    $notificationId: String!,
+    $status: NotificationEnum!
+){
+    updateNotification(
+        notificationId: $notificationId,
+        status: $status
+    ){
+        message
+        notification{
+            id
+            title
+            status
+            message
+            dateCreated
+            lastUpdated
+        }
+    }
+}
+
+`

@@ -16,6 +16,9 @@ import {
 import { useNavigate } from 'react-router';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_NOTIFICATION } from '../../Auths/queries/userQueries';
+import { UPDATE_NOTIFICATION } from '../../Auths/mutations/userMutations';
+import { useMutation } from '@apollo/client';
+import toast from 'react-hot-toast';
 
 const Navbar = ({ 
   onNavigate = () => {}, 
@@ -32,7 +35,7 @@ const Navbar = ({
   const buzId = localStorage.getItem("selected_business");
   
   const notificationVariables = {
-    businessId: buzId,
+   businessId: buzId,
     userId: id,
   }
 
@@ -45,6 +48,7 @@ const Navbar = ({
   skip: !(id || buzId),
   });
 
+  const [updateNotificationStatus] = useMutation(UPDATE_NOTIFICATION);
 
 
   // Handle scroll effect
@@ -134,6 +138,23 @@ const Navbar = ({
     );
   };
 
+   const handleViewNotification = async (item) => {
+
+      try {
+      const { data } = await updateNotificationStatus({ variables: { notificationId: item.id, status: "READ" } });
+      toast.success(` ${data.updateNotification.message}`);
+      refetch();
+    } catch (err) {
+      toast.error(err.message || "Failed to update notification status");
+    }
+
+    const parsedMeta = JSON.parse(item?.meta);
+    const txnId = parsedMeta.txn_info.txn_id;
+    setShowNotifications(!showNotifications);
+    navigate(`/transaction-details/${txnId}`)
+  }
+
+
   const NotificationDropdown = () => (
     <div className="absolute right-[-55px] md:right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
       <div className="p-4 border-b border-gray-100">
@@ -141,7 +162,7 @@ const Navbar = ({
       </div>
       <div className="max-h-64 overflow-y-auto">
         {notificationData.map((notification) => (
-          <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex-col item-center justify-center">
+          <div onClick={() => handleViewNotification(notification)} key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex-col item-center justify-center cursor-pointer">
             <p className="text-sm text-gray-950 mb-1 font-bold">{notification?.title}</p>
             <p className="text-xs text-gray-500">{notification?.message}</p>
             <p className="text-xs text-gray-500 self-end text-end font-bold">{new Date(notification.dateCreated).toLocaleString()}</p>
