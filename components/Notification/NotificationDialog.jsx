@@ -17,7 +17,7 @@ const NotificationDialog = ({
         typeof message !== "string" && !Array.isArray(message) && "title" in message
       )
       if(newTrxnMsg){
-        message = message.title
+        setMessage(message.title)
       }
     },
     [message]
