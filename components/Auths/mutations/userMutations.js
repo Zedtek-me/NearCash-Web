@@ -318,3 +318,33 @@ mutation UpdateNotification(
 }
 
 `
+
+export const UPDATE_BUSINESS = gql`
+
+mutation UpdateBusiness(
+    $businessId: String!, $updateData: UpdateBusinessInputType,
+    $financialAssets: [AssetInputType]
+){
+    updateBusiness(
+        businessId: $businessId, updateData: $updateData
+        financialAssets: $financialAssets
+    ){
+        message
+        business{
+            id
+            name
+            parentBusinessId
+            address
+            location
+            isOnline
+            assets{
+                id
+                range
+                chargeRate
+            }
+            owner{
+                email
+            }
+        }
+    }
+}`

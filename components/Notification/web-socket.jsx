@@ -126,11 +126,20 @@ const NotificationSocket = () => {
       }
 
       if (!EXCLUSIVE_MSGS.includes(message_type)) {
-        setMessages(event.data);
+        if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
+          setMessages(`${message_type} \n Amount: ${data?.txn_info?.amount}`);
         toast.info(message_type, {
           position: "top-right",
           autoClose: 4000,
         });
+        } else {
+           setMessages(event.data);
+        toast.info(message_type, {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        }
+       
       }
     };
 

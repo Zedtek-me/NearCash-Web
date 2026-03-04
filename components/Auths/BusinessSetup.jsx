@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check, Contact } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check, Contact, X, ChevronDown, Plus } from 'lucide-react';
 import AnimatedLoader from '../../utils/components/spinner';
-import { UpdateUserMutation } from './mutations/userMutations';
+import { UPDATE_BUSINESS, UpdateUserMutation } from './mutations/userMutations';
 import { toast } from 'react-toastify';
 import { useMutation } from '@apollo/client';
 import useAuth from '../../Hooks/Auths';
@@ -27,10 +27,64 @@ export default function AccountTypePage() {
     description: '',
     address: '',
     country: '',
+    range: [],
+
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [showRangeDropdown, setShowRangeDropdown] = useState(false);
+    const [showCustomRange, setShowCustomRange] = useState(false);
+    const [customRange, setCustomRange] = useState({ min: '', max: '', charge: '' });
   const [updateUserInfo, { loading }] = useMutation(UpdateUserMutation);
+    const rangeDropdownRef = useRef(null);
+      const [errors, setErrors] = useState({});
+
+      const [updateBuzInfo, { loading: updatingBuz }] = useMutation(UPDATE_BUSINESS);
+    
   
+   const rangeOptions = [
+    { label: '1000-5000', value: '1000-5000:200', charge: '200' },
+    { label: '5001-10000', value: '5001-10000:300', charge: '300' },
+    { label: '10001-20000', value: '10001-20000:400', charge: '400' },
+    { label: '20001-50000', value: '20001-50000:500', charge: '500' },
+    { label: '50001-100000', value: '50001-100000:600', charge: '600' },
+    { label: '100001+', value: '100001+:700', charge: '700' }
+  ];
+
+   const handleCustomRangeSubmit = () => {
+    if (customRange.min && customRange.max && customRange.charge) {
+      const customOption = {
+        label: `${customRange.min}-${customRange.max}`,
+        value: `${customRange.min}-${customRange.max}:${customRange.charge}`,
+        charge: customRange.charge
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        range: [...prev.range, customOption]
+      }));
+      
+      setShowCustomRange(false);
+      setCustomRange({ min: '', max: '', charge: '' });
+    }
+  };
+
+    const handleRangeSelect = (option) => {
+    const isSelected = formData.range.some(r => r.value === option.value);
+    
+    if (isSelected) {
+      // Remove from selection
+      setFormData(prev => ({
+        ...prev,
+        range: prev.range.filter(r => r.value !== option.value)
+      }));
+    } else {
+      // Add to selection
+      setFormData(prev => ({
+        ...prev,
+        range: [...prev.range, option]
+      }));
+    }
+  };
 
   const handleTypeSelect = (type) => {
     setSelectedType(type);
@@ -130,6 +184,13 @@ const handleAddressSelect = (suggestion) => {
         toast.error(err?.message);
       })
     } else {
+       const financialData = formData?.range.map(item => ({
+      range: item.label,                
+      chargeRate: Number(item.charge)
+    }));
+  const financialAssets = [...financialData]
+
+
     updateUserInfo({
         variables: {
         data: {
@@ -147,8 +208,22 @@ const handleAddressSelect = (suggestion) => {
         })
         .then(({ data }) => {
             const { message, user } = data?.updateUser || {};
-            navigate(`/dashboard/${user?.userType || 'client'}`);
-            toast.success(message);
+            updateBuzInfo({
+                variables: {
+                    businessId: user?.businesses[0]?.id,
+                    updateData: {
+                        businessName: formData.businessName,
+                        description: formData.description,
+                        address: formData.address,
+                        country: formData.country,
+                    },
+                    financialAssets: financialAssets
+                }
+            }).then(({ data: bizData }) => {
+               navigate(`/dashboard/${user?.userType || 'vendor'}`);
+              toast.success(message);
+            })
+           
         })
         .catch((err) => {
           console.log(err);
@@ -348,6 +423,144 @@ const handleAddressSelect = (suggestion) => {
                               )}
                 </div>
 
+                 <div className="space-y-2 relative" ref={rangeDropdownRef}>
+            <label className=" text-sm font-semibold text-white mb-3 flex items-center gap-2">
+             Price Range *
+            </label>
+            <div
+              onClick={() => setShowRangeDropdown(!showRangeDropdown)}
+              className={`w-full px-6 py-4 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-white focus:bg-black transition-all duration-300 cursor-pointer ${
+                errors.range ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  {formData.range.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.range.map((selectedRange, index) => (
+                        <span
+                          key={index}
+                          className="bg-black text-white px-2 py-1 rounded text-xs flex items-center"
+                        >
+                          {selectedRange.label}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFormData(prev => ({
+                                ...prev,
+                                range: prev.range.filter((_, i) => i !== index)
+                              }));
+                            }}
+                            className="ml-1 hover:bg-gray-700 rounded-full p-0.5 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500">Select ranges</span>
+                  )}
+                </div>
+                <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${showRangeDropdown ? 'rotate-180' : ''}`} />
+              </div>
+            </div>
+
+            {/* Range Dropdown */}
+            {showRangeDropdown && (
+              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="p-2">
+                  <div className="text-xs font-semibold text-gray-600 mb-2 px-2">Select Multiple Ranges</div>
+                  {rangeOptions.map((option, index) => {
+                    const isSelected = formData.range.some(r => r.value === option.value);
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => handleRangeSelect(option)}
+                        className={`flex items-center p-2 rounded cursor-pointer transition-all duration-200 ${
+                          isSelected ? 'bg-black text-white' : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 border-2 rounded mr-3 flex items-center justify-center ${
+                          isSelected ? 'border-white bg-white' : 'border-gray-300'
+                        }`}>
+                          {isSelected && <Check className="w-3 h-3 text-black" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{option.label}</div>
+                          <div className={`text-xs ${isSelected ? 'text-gray-200' : 'text-gray-500'}`}>
+                            charge: {option.charge}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Custom Range Option */}
+                <div className="border-t border-gray-200 mt-2">
+                  <div
+                    onClick={() => setShowCustomRange(!showCustomRange)}
+                    className="flex items-center p-2 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    <span className="text-sm text-gray-700">Add Custom Range</span>
+                  </div>
+                  
+                  {/* Custom Range Form */}
+                  {showCustomRange && (
+                    <div className="p-4 bg-gray-50 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input
+                          type="number"
+                          placeholder="Min"
+                          value={customRange.min}
+                          onChange={(e) => setCustomRange(prev => ({ ...prev, min: e.target.value }))}
+                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Max"
+                          value={customRange.max}
+                          onChange={(e) => setCustomRange(prev => ({ ...prev, max: e.target.value }))}
+                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        />
+                      </div>
+                      <input
+                        type="number"
+                        placeholder="charge"
+                        value={customRange.charge}
+                        onChange={(e) => setCustomRange(prev => ({ ...prev, charge: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCustomRangeSubmit}
+                          className="flex-1 bg-black text-white py-2 rounded text-sm hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center"
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomRange(false)}
+                          className="flex-1 bg-gray-200 text-gray-700 py-2 rounded text-sm hover:bg-gray-300 transition-colors duration-200 flex items-center justify-center"
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {errors.range && <p className="text-red-500 text-sm">{errors.range}</p>}
+          </div>
+
                 <div className="group">
                   <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
@@ -375,14 +588,14 @@ const handleAddressSelect = (suggestion) => {
         <div className="pt-6">
                   <button
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={loading || updatingBuz}
                     className={`w-full py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
                       selectedType && !loading
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40 transform hover:scale-105'
                         : 'bg-white/10 text-slate-400 cursor-not-allowed'
                     }`}
                   >
-                    {loading ? (
+                    {(loading || updatingBuz) ? (
                       <>
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         Creating Your Account...

@@ -24,11 +24,8 @@ export default function SocialAuth({ authType, socialType }){
     const [data, setData] = useState(null)
     
     const authenticated = (Object.entries(userData).length > 0)
-    let authTypeFromContext;
-        Subscriber.subscribe('auth', (data) => {
-    authTypeFromContext = data;
-    });
-    authTypeFromContext = localStorage.getItem("auth_type")
+   
+    const authTypeFromContext = localStorage.getItem("auth_type")
 
     console.log('data', data, authTypeFromContext, userData);
     

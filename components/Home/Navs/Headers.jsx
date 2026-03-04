@@ -161,14 +161,49 @@ const Navbar = ({
         <h3 className="font-semibold text-gray-800">Notifications</h3>
       </div>
       <div className="max-h-64 overflow-y-auto">
-        {notificationData.map((notification) => (
-          <div onClick={() => handleViewNotification(notification)} key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex-col item-center justify-center cursor-pointer">
-            <p className="text-sm text-gray-950 mb-1 font-bold">{notification?.title}</p>
-            <p className="text-xs text-gray-500">{notification?.message}</p>
-            <p className="text-xs text-gray-500 self-end text-end font-bold">{new Date(notification.dateCreated).toLocaleString()}</p>
-          </div>
-        ))}
+  {notificationData.map((notification) => {
+    const isRead = notification.status !== "READ";
+
+    return (
+      <div className="max-h-64 overflow-y-auto">
+  {notificationData.map((notification) => {
+    const isRead = notification.status !== "READ";
+
+    return (
+      <div
+        key={notification.id}
+        onClick={() => handleViewNotification(notification)}
+        className={`
+          p-4 border-b border-gray-100 last:border-b-0 
+          flex items-start gap-3 cursor-pointer
+          hover:bg-gray-50
+          ${isRead ? "bg-gray-50" : "bg-white"}
+        `}
+      >
+        {isRead && (
+          <span className="mt-1 w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+        )}
+
+        <div className="flex-1">
+          <p className={`text-sm mb-1 ${isRead ? "font-medium text-gray-700" : "font-bold text-gray-900"}`}>
+            {notification?.title}
+          </p>
+
+          <p className="text-xs text-gray-500">
+            {notification?.message}
+          </p>
+
+          <p className="text-xs text-gray-400 text-right font-semibold mt-1">
+            {new Date(notification.dateCreated).toLocaleString()}
+          </p>
+        </div>
       </div>
+    );
+  })}
+</div>
+    );
+  })}
+</div>
       <div className="p-3 text-center border-t border-gray-100">
         <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
           View All Notifications
