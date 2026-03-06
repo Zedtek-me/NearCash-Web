@@ -69,15 +69,15 @@ const sendPushNotification = async (data) => {
   setTimeout(() => notification.close(), 6000);
 };
 
-const PUSH_NOTIF_MSG_TYPES = [
-  "New Transaction Interest",
-  "Transaction Initiated!",
-  "Transaction Approved!",
-  "Transaction Declined!",
-  "Transaction Cancelled!",
+export const PUSH_NOTIF_MSG_TYPES = [
+    "New Transaction Interest",
+    "Transaction Initiated!",
+    "Transaction Approved!",
+    "Transaction Declined!",
+    "Transaction Cancelled!",
 ];
 
-const EXCLUSIVE_MSGS = [
+export const EXCLUSIVE_MSGS = [
   "vendor_location_update_ack",
   "client_location_update_ack",
   "vendor_latest_location",

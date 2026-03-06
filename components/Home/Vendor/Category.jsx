@@ -189,7 +189,7 @@ const CategoryManagementPage = () => {
   return (
     <>
      <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar user={userData} />
 
          <div className=" bg-white text-black">
 

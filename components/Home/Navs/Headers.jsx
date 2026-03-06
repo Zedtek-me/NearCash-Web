@@ -19,6 +19,8 @@ import { GET_ALL_NOTIFICATION } from '../../Auths/queries/userQueries';
 import { UPDATE_NOTIFICATION } from '../../Auths/mutations/userMutations';
 import { useMutation } from '@apollo/client';
 import toast from 'react-hot-toast';
+import { useWebSocket } from '../../Notification/WebSocketProvider';
+import { PUSH_NOTIF_MSG_TYPES } from '../../Notification/web-socket';
 
 const Navbar = ({ 
   onNavigate = () => {}, 
@@ -31,6 +33,7 @@ const Navbar = ({
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
+  const socket = useWebSocket();
   const { userType, id } = (user || {});
   const buzId = localStorage.getItem("selected_business");
   
@@ -42,7 +45,7 @@ const Navbar = ({
   if (userType === "VENDOR") delete notificationVariables.userId;
   else delete notificationVariables.businessId;
 
-  const { data, loading, error, refetch } = useQuery(GET_ALL_NOTIFICATION, {
+  const { data: notifData, loading, error, refetch: notifRefetch } = useQuery(GET_ALL_NOTIFICATION, {
   variables: notificationVariables,
   fetchPolicy: "network-only",
   skip: !(id || buzId),
@@ -76,6 +79,25 @@ const Navbar = ({
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showUserMenu, showNotifications]);
 
+
+  useEffect(() => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const handleSocketMessage = (event) => {
+      const data = JSON.parse(event.data);
+      const { message_type } = (
+        data instanceof Object && !Array.isArray(data) ? data : { message_type: data }
+      );
+      if(PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
+        notifRefetch();
+      }
+    };
+    socket.addEventListener('message', handleSocketMessage);
+
+    return () => {
+      socket.removeEventListener('message', handleSocketMessage);
+    };
+  }, [socket]);
+
   const userMenuItems = [
     { name: 'Category', href: '/category', icon: Heart },
     { name: 'Profile', href: '/profile', icon: User },
@@ -84,15 +106,15 @@ const Navbar = ({
     { name: 'Logout', href: 'logout', icon: LogOut },
   ];
 
-  const notifPagination = data?.pagination
+  const notifPagination = notifData?.pagination
   const notificationCount =  (
     notifPagination?.totalUnreadItems ||
     notifPagination?.totalItems ||
-    data?.notifications?.length || 0
+    notifData?.notifications?.length || 0
   );
-  const notificationData = data?.notifications || [];
+  const notificationData = notifData?.notifications || [];
 
-  console.log('all notificationData', data);
+  console.log('all notificationData', notifData);
 
   const handleNavigation = (href) => {
     if (href === 'logout') {
@@ -142,14 +164,13 @@ const Navbar = ({
 
       try {
       const { data } = await updateNotificationStatus({ variables: { notificationId: item.id, status: "READ" } });
-      toast.success(` ${data.updateNotification.message}`);
-      refetch();
+      notifRefetch();
     } catch (err) {
       toast.error(err.message || "Failed to update notification status");
     }
 
     const parsedMeta = JSON.parse(item?.meta);
-    const txnId = parsedMeta.txn_info.txn_id;
+    const txnId = parsedMeta?.txn_info?.txn_id;
     setShowNotifications(!showNotifications);
     navigate(`/transaction-details/${txnId}`)
   }

@@ -124,13 +124,6 @@ export const GET_TRANSACTIONS = gql`
         id
         }
     }
-    pagination {
-        totalItems
-        totalUnreadItems
-        totalReadItems
-        totalPages
-        currentPage
-    }
   }
 `;
 

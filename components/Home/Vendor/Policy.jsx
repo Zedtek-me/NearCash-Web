@@ -141,7 +141,7 @@ const TransactionPolicyPage = () => {
 
   return (
    <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar user={userData}/>
 
      <div className=" bg-white">
       <div className="bg-white backdrop-blur-sm border-t border-gray-800 mt-16">
