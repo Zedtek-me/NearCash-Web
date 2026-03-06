@@ -80,7 +80,6 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
 
 
 export const updateUserPosition = (coordinates, userData, socket) => {
-  console.log("Updating user position to:", coordinates);
   const userType = userData?.userType;
   const isVendor = userType === "VENDOR";
   const clientId = isVendor ? null : (userData?.id || userData?.transaction?.client?.id);

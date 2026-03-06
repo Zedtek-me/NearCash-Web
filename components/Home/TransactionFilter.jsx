@@ -31,7 +31,6 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                     "businessId": businessId
                 }
             }).then((result) => {
-                console.log("Clients data:", result);
                 let clients = result?.data?.clients || [];
                 setClients(clients);
             }).catch((err) => {
@@ -41,7 +40,6 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
         else{
             fetchVendors()
             .then((result) => {
-                console.log("Vendors data:", result);
                 let vendors = result?.data?.vendors || [];
                 setVendors(vendors);
             })

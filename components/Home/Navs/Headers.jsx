@@ -114,8 +114,6 @@ const Navbar = ({
   );
   const notificationData = notifData?.notifications || [];
 
-  console.log('all notificationData', notifData);
-
   const handleNavigation = (href) => {
     if (href === 'logout') {
       localStorage.removeItem('nearcash_token');
