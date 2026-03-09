@@ -213,7 +213,7 @@ const handleSwitchBusiness = (id) =>{
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm opacity-90">Fulfilled Transactions Value
+                  <span className="text-sm opacity-90">Total Transactions
 </span>
                 </div>
                 <div className="flex items-center mb-4">
@@ -222,7 +222,7 @@ const handleSwitchBusiness = (id) =>{
                   </div>
                 </div>
                 <div className="text-2xl font-bold">
-                  {`$${analyticsData?.analytics?.totalTransactionValue || 0}`}
+                  {`$${analyticsData?.analytics?.totalTransactions || 0}`}
                 </div>
               </div>
 

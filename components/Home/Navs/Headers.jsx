@@ -179,13 +179,7 @@ const Navbar = ({
       </div>
       <div className="max-h-64 overflow-y-auto">
   {notificationData.map((notification) => {
-    const isRead = notification.status !== "READ";
-
-    return (
-      <div className="max-h-64 overflow-y-auto">
-  {notificationData.map((notification) => {
-    const isRead = notification.status !== "READ";
-
+    const isUnread = notification.status !== "READ";
     return (
       <div
         key={notification.id}
@@ -194,15 +188,15 @@ const Navbar = ({
           p-4 border-b border-gray-100 last:border-b-0 
           flex items-start gap-3 cursor-pointer
           hover:bg-gray-50
-          ${isRead ? "bg-gray-50" : "bg-white"}
+          ${isUnread ? "bg-gray-50" : "bg-white"}
         `}
       >
-        {isRead && (
+        {isUnread && (
           <span className="mt-1 w-2 h-2 bg-blue-500 rounded-full shrink-0" />
         )}
 
         <div className="flex-1">
-          <p className={`text-sm mb-1 ${isRead ? "font-medium text-gray-700" : "font-bold text-gray-900"}`}>
+          <p className={`text-sm mb-1 ${isUnread ? "font-medium text-gray-700" : "font-bold text-gray-900"}`}>
             {notification?.title}
           </p>
 
@@ -215,9 +209,6 @@ const Navbar = ({
           </p>
         </div>
       </div>
-    );
-  })}
-</div>
     );
   })}
 </div>
