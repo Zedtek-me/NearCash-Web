@@ -108,9 +108,7 @@ const Navbar = ({
 
   const notifPagination = notifData?.pagination
   const notificationCount =  (
-    notifPagination?.totalUnreadItems ||
-    notifPagination?.totalItems ||
-    notifData?.notifications?.length || 0
+    notifPagination?.totalUnreadItems || 0
   );
   const notificationData = notifData?.notifications || [];
 
