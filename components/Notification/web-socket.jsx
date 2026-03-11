@@ -75,6 +75,7 @@ export const PUSH_NOTIF_MSG_TYPES = [
     "Transaction Approved!",
     "Transaction Declined!",
     "Transaction Cancelled!",
+    "Vendor Response Delayed"
 ];
 
 export const EXCLUSIVE_MSGS = [
