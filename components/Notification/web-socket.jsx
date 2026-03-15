@@ -9,28 +9,23 @@ import {
 import { useStateValue } from "../../providers/stateProvider";
 import { useWebSocket } from "./WebSocketProvider";
 
+
 const playAlertTone = () => {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-
     const playBeep = (startTime, frequency, duration) => {
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
-
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
-
       oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(frequency, startTime);
-
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
       gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
-
       oscillator.start(startTime);
       oscillator.stop(startTime + duration);
     };
-
     playBeep(ctx.currentTime, 880, 0.15);
     playBeep(ctx.currentTime + 0.2, 1100, 0.15);
   } catch (err) {
@@ -39,43 +34,37 @@ const playAlertTone = () => {
 };
 
 const triggerVibration = () => {
-  if ("vibrate" in navigator) {
-    navigator.vibrate([200, 100, 200]);
-  }
+  if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
 };
 
-const sendPushNotification = async (data) => {
+
+const sendPushNotification = async (data, onClick) => {
   if (!("Notification" in window)) return;
-
-  if (Notification.permission === "default") {
-    await Notification.requestPermission();
-  }
-
+  if (Notification.permission === "default") await Notification.requestPermission();
   if (Notification.permission !== "granted") return;
 
-  const isVendor = data.message_type === "vendor_latest_location";
-
   const title = data.message_type || "New Transaction";
-  const body = data?.message || "You have a new notification";
+  const body  = data?.message || "You have a new notification";
 
   const notification = new Notification(title, {
     body,
-    //icon: "/favicon.ico",
-    //badge: "/favicon.ico",
     tag: data.message_type,
     renotify: true,
   });
 
-  setTimeout(() => notification.close(), 6000);
+  if (onClick) notification.onclick = onClick;
+
+  setTimeout(() => notification.close(), 10000);
 };
 
+
 export const PUSH_NOTIF_MSG_TYPES = [
-    "New Transaction Interest",
-    "Transaction Initiated!",
-    "Transaction Approved!",
-    "Transaction Declined!",
-    "Transaction Cancelled!",
-    "Vendor Response Delayed"
+  "New Transaction Interest",
+  "Transaction Initiated!",
+  "Transaction Approved!",
+  "Transaction Declined!",
+  "Transaction Cancelled!",
+  "Vendor Response Delayed",
 ];
 
 export const EXCLUSIVE_MSGS = [
@@ -86,7 +75,12 @@ export const EXCLUSIVE_MSGS = [
   "error",
 ];
 
-const NotificationSocket = () => {
+const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
+
+const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
+
+
+const NotificationSocket = ({ onOpportunity }) => {
   const socket = useWebSocket();
   const [messages, setMessages] = useState("");
   const { userData } = useAuth();
@@ -109,12 +103,70 @@ const NotificationSocket = () => {
     }
   }, []);
 
+  
+  useEffect(() => {
+    const pending = localStorage.getItem(PENDING_OPPORTUNITY_KEY);
+    if (pending && onOpportunity) {
+      try {
+        const data = JSON.parse(pending);
+        onOpportunity(data);
+      } catch (e) {
+        console.warn("Could not parse pending opportunity:", e);
+      } finally {
+        localStorage.removeItem(PENDING_OPPORTUNITY_KEY);
+      }
+    }
+  }, [onOpportunity]);
+
   useEffect(() => {
     if (!socket) return;
-    const onMessage = (event) => {
-      const data = JSON.parse(event.data);
 
-      const { message_type } = ( data instanceof Object && !Array.isArray(data) ? data : { message_type: data } );
+    const onMessage = (event) => {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      const { message_type } = (
+        data instanceof Object && !Array.isArray(data)
+          ? data
+          : { message_type: data }
+      );
+
+      if (message_type === OPPORTUNITY_MSG_TYPE) {
+        playAlertTone();
+        triggerVibration();
+
+        if (onOpportunity) {
+          onOpportunity(data);
+        }
+
+        sendPushNotification(
+          {
+            ...data,
+            message: `₦${Number(data?.amount || 0).toLocaleString()} cash request from ${data?.client_name || "a client"}`,
+          },
+          () => {
+            localStorage.setItem(PENDING_OPPORTUNITY_KEY, JSON.stringify(data));
+            window.focus();
+            if (window.location.pathname !== "/dashboard/vendor") { window.location.href = "/dashboard/vendor"; }
+          }
+        );
+
+        toast.info(
+          `New opportunity: ₦${Number(data?.amount || 0).toLocaleString()} from ${data?.client_name || "client"}`,
+          {
+            position: "top-right",
+            autoClose: 8000,
+            onClick: () => onOpportunity && onOpportunity(data),
+          }
+        );
+
+        return; 
+      }
+
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         sendPushNotification(data);
         triggerVibration();
@@ -124,18 +176,11 @@ const NotificationSocket = () => {
       if (!EXCLUSIVE_MSGS.includes(message_type)) {
         if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
           setMessages(`${message_type} \n Amount: ${data?.txn_info?.amount}`);
-        toast.info(message_type, {
-          position: "top-right",
-          autoClose: 4000,
-        });
+          toast.info(message_type, { position: "top-right", autoClose: 4000 });
         } else {
-           setMessages(event.data);
-        toast.info(message_type, {
-          position: "top-right",
-          autoClose: 4000,
-        });
+          setMessages(event.data);
+          toast.info(message_type, { position: "top-right", autoClose: 4000 });
         }
-       
       }
     };
 
@@ -151,7 +196,7 @@ const NotificationSocket = () => {
       socket.removeEventListener("error", onError);
       socket.removeEventListener("close", onClose);
     };
-  }, [socket]);
+  }, [socket, onOpportunity]);
 
   useEffect(() => {
     if (userData?.id) {
@@ -159,7 +204,7 @@ const NotificationSocket = () => {
         updateUserPosition,
         (err) => console.log("error fetching coordinates:", err),
         { ...userData, selectedBusiness },
-        socket,
+        socket
       );
     }
   }, [socket, userData?.id, selectedBusiness]);

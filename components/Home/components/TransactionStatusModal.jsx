@@ -311,6 +311,55 @@ export default function TransactionStatusModal({
               </p>
             </>
           )}
+
+          {status === "noVendors" && (
+  <>
+    <div
+      className="w-16 h-16 rounded-full flex items-center justify-center"
+      style={{ background: "#1a1a2e", border: "2px solid #4f46e5" }}
+    >
+      {/* Shop/store-off icon */}
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l1-5h16l1 5"/>
+        <path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+        <line x1="2" y1="2" x2="22" y2="22"/>
+      </svg>
+    </div>
+ 
+    <div className="text-center">
+      <p className="text-indigo-400 text-base font-medium mb-1">No vendors available</p>
+      <p className="text-slate-500 text-sm leading-relaxed">
+        All vendors in your area are currently busy or offline. Please check back shortly.
+      </p>
+    </div>
+ 
+    <div
+      className="w-full rounded-xl p-4 space-y-2"
+      style={{ background: "#13102b", border: "0.5px solid #3730a3" }}
+    >
+      {[
+        "Vendors may become available in a few minutes.",
+        "Try again during peak service hours.",
+        "New vendors are regularly added in your area.",
+      ].map((tip, i) => (
+        <div key={i} className="flex items-start gap-2">
+          <div className="w-1 h-1 rounded-full bg-indigo-400 mt-2 flex-shrink-0" />
+          <p className="text-indigo-300 text-xs leading-relaxed">{tip}</p>
+        </div>
+      ))}
+    </div>
+ 
+    <button
+      onClick={onClose}
+      className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+      style={{ background: "#3730a3", color: "#e0e7ff" }}
+      onMouseOver={e => e.currentTarget.style.background = "#4338ca"}
+      onMouseOut={e => e.currentTarget.style.background = "#3730a3"}
+    >
+      Close
+    </button>
+  </>
+          )}
         </div>
       </div>
     </div>

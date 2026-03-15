@@ -154,6 +154,9 @@ useEffect(() => {
     if (message_type === "Vendor Response Delayed") {
       setTxStatusModal((prev) => ({ ...prev, status: "delayed" }));
     }
+    if (message_type === "No Available Vendors") {
+      setTxStatusModal((prev) => ({ ...prev, status: "noVendors" }));
+    }
   };
  
   socket.addEventListener("message", onMessage);

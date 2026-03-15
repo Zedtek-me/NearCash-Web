@@ -12,6 +12,9 @@ import EmptyTableState from '../components/EmptyTable';
 import toast from 'react-hot-toast';
 import { useStateValue } from '../../../providers/stateProvider';
 import TransactionFilter from '../TransactionFilter';
+import { useTransactionOpportunity } from '../../../Hooks/useTransactionModal';
+import NotificationSocket from '../../Notification/web-socket';
+import TransactionOpportunityModal from '../components/TransactionOpportunityModal';
 
 
 
@@ -22,6 +25,8 @@ const Dashboard = () => {
   const { userData } = useAuth();
 
   const { userType } = userData;
+
+   const opportunity = useTransactionOpportunity();
 
 
   const getVendorBusinessId = () => {
@@ -202,6 +207,7 @@ const handleSwitchBusiness = (id) =>{
   ]
 
   return (
+  <>
     <div className="min-h-screen bg-gray-50 p-4 sm:p-3">
       <Navbar user={userData}/>
 
@@ -406,6 +412,14 @@ const handleSwitchBusiness = (id) =>{
         </div>
       </div>
     </div>
+    <NotificationSocket onOpportunity={opportunity.open} />
+ 
+      <TransactionOpportunityModal
+        isOpen={opportunity.isOpen}
+        opportunityData={opportunity.opportunityData}
+        onClose={opportunity.close}
+      />
+  </>
   );
 };
 
