@@ -43,7 +43,7 @@ export default function TransactionOpportunityModal({
 
   if (!isOpen || !opportunityData) return null;
 
-  const { txn_id, txn_ref, amount, client_name } = opportunityData;
+  const { txn_id, txn_ref, amount, client_name, business_id } = opportunityData.txn_info;
 
   const handleAccept = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN) {

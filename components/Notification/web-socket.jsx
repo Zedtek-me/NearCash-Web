@@ -73,6 +73,8 @@ export const EXCLUSIVE_MSGS = [
   "vendor_latest_location",
   "client_latest_location",
   "error",
+  "No Available Vendors",
+  "Vendor Response Delayed"
 ];
 
 const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
@@ -135,9 +137,14 @@ const NotificationSocket = ({ onOpportunity }) => {
           : { message_type: data }
       );
 
+      console.log(message_type, data);
+      
+
       if (message_type === OPPORTUNITY_MSG_TYPE) {
         playAlertTone();
         triggerVibration();
+
+  
 
         if (onOpportunity) {
           onOpportunity(data);

@@ -124,10 +124,14 @@ const handlePrevious = () => {
 };
 
 useEffect(() => {
+  console.log("Socket message received:", activeTxId, socket);
+  
   if (!socket || !activeTxId) return;
  
   const onMessage = (event) => {
     let data;
+    console.log(event.data);
+    
     try { data = JSON.parse(event.data); } catch { return; }
  
     const { message_type, txn_info } = data;
@@ -567,11 +571,14 @@ useEffect(() => {
     };
  
     const result = await createTransaction({ variables });
-    const txId = result?.initiateTransaction?.transaction?.id;
+    const txId = result?.data?.initiateTransaction?.transaction?.id;
  
     setShowTransactionModal(false);
     setAmount("");
     setSelectedPolicy(null);
+
+    console.log(txId, result);
+    
  
     setActiveTxId(txId);
     setTxStatusModal({
