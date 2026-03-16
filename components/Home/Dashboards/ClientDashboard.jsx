@@ -149,6 +149,7 @@ useEffect(() => {
           amount: txn_info?.amount || prev.transactionInfo.amount,
         },
       }));
+      refetch();
     }
  
     if (message_type === "Transaction Declined!") {

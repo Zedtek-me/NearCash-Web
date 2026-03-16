@@ -38,7 +38,7 @@ export default function TransactionOpportunityModal({
       setAccepting(false);
       setCountdown(null);
 
-      const businesses = opportunityData?.txn_info?.buss_info ?? [];
+      const businesses = opportunityData?.txn_info?.businesses ?? [];
       if (businesses.length === 1) {
         setSelectedBusiness(businesses[0]);
       } else {
@@ -49,7 +49,7 @@ export default function TransactionOpportunityModal({
 
   if (!isOpen || !opportunityData) return null;
 
-  const { txn_id, txn_ref, amount, client_name, buss_info } = opportunityData.txn_info;
+  const { txn_id, txn_ref, amount, client_name, businesses: buss_info } = opportunityData.txn_info;
   const businesses = buss_info ?? [];
 
   const handleAccept = () => {
@@ -66,7 +66,7 @@ export default function TransactionOpportunityModal({
       message_type: "opportunity_accepted",
       txn_id: String(txn_id),
       txn_ref: txn_ref,
-      business_id: String(selectedBusiness.buss_id),
+      business_id: String(selectedBusiness.id),
     };
 
     try {
@@ -199,10 +199,10 @@ export default function TransactionOpportunityModal({
 
                   <div className="space-y-2">
                     {businesses.map((biz) => {
-                      const isSelected = selectedBusiness?.buss_id === biz.buss_id;
+                      const isSelected = selectedBusiness?.id === biz.id;
                       return (
                         <button
-                          key={biz.buss_id}
+                          key={biz.id}
                           onClick={() => setSelectedBusiness(biz)}
                           disabled={businesses.length === 1}
                           className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all"
@@ -238,7 +238,7 @@ export default function TransactionOpportunityModal({
                               className="text-sm font-medium"
                               style={{ color: isSelected ? "#e2e8f0" : "#94a3b8" }}
                             >
-                              {biz.buss_name}
+                              {biz.name}
                             </span>
                           </div>
 

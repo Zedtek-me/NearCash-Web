@@ -271,20 +271,23 @@ const handleUpdateStatus = async (id, status) => {
               <InfoRow icon={CreditCard} label="Amount Demanded" value={transaction?.amount} />
               <InfoRow icon={Hash} label="Transaction Fee" value={transaction?.charge} />
               <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
-              <InfoRow icon={FileText} label="Category" value={transaction.category} />
+              <InfoRow icon={FileText} label="Vendor" value={transaction?.business?.name} />
             </div>
           </Section>
 
           {/* Customer Information */}
-          <Section title={getSectionTitle(userType)}>
+          {userType == "VENDOR" && (
+            <Section title={getSectionTitle(userType)}>
             <div className="space-y-2">
-              <InfoRow icon={User} label={userType == "VENDOR"? "Customer Name": "Vendor Name"} value={trxnUserInfo?.fullName} highlight />
+              <InfoRow icon={User} label={userType == "VENDOR" ? "Customer Name": "Vendor Name"} value={trxnUserInfo?.fullName} highlight />
               <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
               <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
               {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}
               <InfoRow icon={Building} label="City" value={trxnUserInfo?.city} />
             </div>
           </Section>
+          )}
+          
          
 
           {/* <Section title="Financial Breakdown">
