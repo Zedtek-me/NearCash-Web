@@ -347,4 +347,19 @@ mutation UpdateBusiness(
             }
         }
     }
-}`
+}`;
+
+export const RESPOND_TO_TRANSACTION = gql`
+mutation RespondToDelayedTransaction(
+    $txnId: String!,
+    $decision: DelayedTransactionResponseEnum
+){
+    respondToDelayedTransaction(
+        txnId: $txnId,
+        decision: $decision
+    ){
+        message
+    }
+}
+
+`

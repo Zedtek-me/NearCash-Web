@@ -8,7 +8,7 @@ import { useStateValue } from "../../../providers/stateProvider";
 import Navbar from '../Navs/Headers';
 import { VENDOR_LIST, GET_VENDOR_POLICIES, GET_ASSETS, GET_TRANSACTIONS } from '../../Auths/queries/userQueries';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
-import { CREATE_TRANSACTION } from '../../Auths/mutations/userMutations';
+import { CREATE_TRANSACTION, RESPOND_TO_TRANSACTION } from '../../Auths/mutations/userMutations';
 import { GET_ANALYTICS } from "./queries/analytics";
 import useAuth from '../../../Hooks/Auths';
 import TransactionCard from '../TransactionCard';
@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import EmptyTableState from '../components/EmptyTable';
 import TransactionFilter from '../TransactionFilter';
+import { useWebSocket } from '../../Notification/WebSocketProvider';
+import TransactionStatusModal from '../components/TransactionStatusModal';
 
 export default function ClientDashboard() {
   const [clientInfo, setClientInfo] = useState({});
@@ -39,8 +41,16 @@ export default function ClientDashboard() {
   const [amount, setAmount] = useState("");
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [assetId, setAssets] = useState(null);
-      const [pageNumber, setPageNumber] = useState(1);
-  
+  const [pageNumber, setPageNumber] = useState(1);
+  const [txStatusModal, setTxStatusModal] = useState({
+  isOpen: false,
+  status: "loading",        
+  transactionInfo: {},
+  delayActionLoading: null,
+});
+ 
+const [activeTxId, setActiveTxId] = useState(null);
+  const socket = useWebSocket();
 
 
   const getStatusColor = (status) => {
@@ -85,6 +95,7 @@ export default function ClientDashboard() {
     useLazyQuery(GET_VENDOR_POLICIES);
 
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
+  const [respondToTransaction, { loading: responding }] = useMutation(RESPOND_TO_TRANSACTION);
 
   const [fetchAsset, { data: assetData, loading: assetLoading }] =
     useLazyQuery(GET_ASSETS);
@@ -112,12 +123,52 @@ const handlePrevious = () => {
   if (pageNumber > 1) setPageNumber((prev) => prev - 1);
 };
 
+useEffect(() => {
+  console.log("Socket message received:", activeTxId, socket);
+  
+  if (!socket || !activeTxId) return;
+ 
+  const onMessage = (event) => {
+    let data;
+    console.log(event.data);
+    
+    try { data = JSON.parse(event.data); } catch { return; }
+ 
+    const { message_type, txn_info } = data;
+ 
+    if (txn_info?.transaction_id && txn_info.transaction_id !== activeTxId) return;
+ 
+    if (message_type === "Transaction Approved!") {
+      setTxStatusModal((prev) => ({
+        ...prev,
+        status: "approved",
+        transactionInfo: {
+          ...prev.transactionInfo,
+          transactionId: txn_info?.transaction_id,
+          vendorName: txn_info?.vendor_name || prev.transactionInfo.vendorName,
+          amount: txn_info?.amount || prev.transactionInfo.amount,
+        },
+      }));
+      refetch();
+    }
+ 
+    if (message_type === "Transaction Declined!") {
+      setTxStatusModal((prev) => ({ ...prev, status: "declined" }));
+    }
+ 
+    if (message_type === "Vendor Response Delayed") {
+      setTxStatusModal((prev) => ({ ...prev, status: "delayed" }));
+    }
+    if (message_type === "No Available Vendors") {
+      setTxStatusModal((prev) => ({ ...prev, status: "noVendors" }));
+    }
+  };
+ 
+  socket.addEventListener("message", onMessage);
+  return () => socket.removeEventListener("message", onMessage);
+}, [socket, activeTxId]);
 
 
-  console.log(userLocation, data);
-  console.log('userData', userData);
-  
-  
 
   useEffect(() => {
   const getLocation = (highAccuracy = false) => {
@@ -499,41 +550,55 @@ const handlePrevious = () => {
     fetchPolicies({ variables: { businessId: String(vendor.id) } });
   };
 
-  const handleSubmitTransaction = async () => {
-    if (!amount || !selectedPolicy) {
-      toast.error("Please enter an amount and select a policy");
-      return;
-    }
-
-    console.log(assetId);
-    
-
-    try {
-      const variables = {
-        transactionData: {
-          assetId: assetId,
-          vendorId: selectedVendor.id.toString(),
-          amountToWithdraw: parseFloat(amount),
-          clientCurrentCoordinates: {
-            latitude: userLocation.lat,
-            longitude: userLocation.lng,
-          },
-          collectionMode: policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
-          collectionLocation: "",
+ const handleSubmitTransaction = async () => {
+  if (!amount || !selectedPolicy) {
+    toast.error("Please enter an amount and select a policy");
+    return;
+  }
+ 
+  try {
+    const variables = {
+      transactionData: {
+        assetId: assetId,
+        vendorId: selectedVendor.id.toString(),
+        amountToWithdraw: parseFloat(amount),
+        clientCurrentCoordinates: {
+          latitude: userLocation.lat,
+          longitude: userLocation.lng,
         },
-      };
+        collectionMode: policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
+        collectionLocation: "",
+      },
+    };
+ 
+    const result = await createTransaction({ variables });
+    const txId = result?.data?.initiateTransaction?.transaction?.id;
+ 
+    setShowTransactionModal(false);
+    setAmount("");
+    setSelectedPolicy(null);
 
-      await createTransaction({ variables });
-      setShowTransactionModal(false);
-      setAmount("");
-      setSelectedPolicy(null);
-      refetch()
-      toast.success("Transaction Created Successfully");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create transaction");
-    }
-  };
+    console.log(txId, result);
+    
+ 
+    setActiveTxId(txId);
+    setTxStatusModal({
+      isOpen: true,
+      status: "loading",
+      transactionInfo: {
+        amount: parseFloat(amount),
+        vendorName: selectedVendor?.name,
+        transactionId: txId,
+      },
+      delayActionLoading: null,
+    });
+ 
+    refetch();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to create transaction");
+  }
+};
 
   const ViewAssets = (vendorId) => {
      toggleExpanded(vendorId);
@@ -542,7 +607,51 @@ const handlePrevious = () => {
 
   const transactionHistory = transactionData?.transactions || [];
 
+const handleCloseStatusModal = () => {
+  setTxStatusModal({ isOpen: false, status: "loading", transactionInfo: {}, delayActionLoading: null });
+  setActiveTxId(null);
+};
 
+const handleDelayResponse = async (decision) => {
+  const loadingKey =
+    decision === "WAIT" ? "keepWaiting"  : decision === "CANCEL" ? "selectVendor" :  "autoAssign";
+ 
+  setTxStatusModal((prev) => ({ ...prev, delayActionLoading: loadingKey }));
+ 
+  try {
+    await respondToTransaction({
+      variables: {
+        txnId: activeTxId,
+        decision,
+      },
+    });
+ 
+    if (decision === "WAIT") {
+      setTxStatusModal((prev) => ({
+        ...prev,
+        status: "loading",
+        delayActionLoading: null,
+      }));
+ 
+    } else if (decision === "SYSTEM_SEARCH") {
+      setTxStatusModal((prev) => ({
+        ...prev,
+        status: "loading",
+        delayActionLoading: null,
+      }));
+      toast.info("Looking for the nearest available vendor…");
+ 
+    } else if (decision === "CANCEL") {
+      handleCloseStatusModal();
+      toast.info("Select a vendor and initiate a new request.");
+    }
+ 
+  } catch (err) {
+    console.error(err);
+    toast.error("Something went wrong. Please try again.");
+    setTxStatusModal((prev) => ({ ...prev, delayActionLoading: null }));
+  }
+};
 
   const MapModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -855,6 +964,17 @@ const handlePrevious = () => {
 
          
             </div>
+
+            <TransactionStatusModal
+              isOpen={txStatusModal.isOpen}
+              status={txStatusModal.status}
+              transactionInfo={txStatusModal.transactionInfo}
+              delayActionLoading={txStatusModal.delayActionLoading}
+              onClose={handleCloseStatusModal}
+              onKeepWaiting={() => handleDelayResponse("WAIT")}
+              onSelectVendor={() => handleDelayResponse("CANCEL")}
+              onAutoAssign={() => handleDelayResponse("SYSTEM_SEARCH")}
+            />
     </div>
   );
 }
