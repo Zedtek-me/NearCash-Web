@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check } from "lucide-react";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
-import useAuth from "../../../Hooks/Auths";
+import useAuth from "../../../hooks/useAuth";
 
 
 export default function TransactionOpportunityModal({

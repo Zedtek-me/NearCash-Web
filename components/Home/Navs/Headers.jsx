@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  MapPin, 
-  Search, 
-  ShoppingBag, 
-  User, 
-  Bell, 
+import {
+  Menu,
+  X,
+  MapPin,
+  User,
+  Bell,
   Heart,
   Settings,
   LogOut,
@@ -21,21 +18,25 @@ import { useMutation } from '@apollo/client';
 import toast from 'react-hot-toast';
 import { useWebSocket } from '../../Notification/WebSocketProvider';
 import { PUSH_NOTIF_MSG_TYPES } from '../../Notification/web-socket';
+import useAuth from '../../../hooks/useAuth';
 
-const Navbar = ({ 
-  onNavigate = () => {}, 
-  currentPage = 'home',
-  user = null,
-  notifications = 0 
-}) => {
+const Navbar = ({ currentPage = 'home' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
   const socket = useWebSocket();
+  const { userData: user } = useAuth();
   const { userType, id } = (user || {});
   const buzId = localStorage.getItem("selected_business");
+
+  const profilePicture = (() => {
+    try {
+      const meta = typeof user?.meta === 'string' ? JSON.parse(user.meta) : (user?.meta || {});
+      return meta?.picture || null;
+    } catch { return null; }
+  })();
   
   const notificationVariables = {
    businessId: buzId,
@@ -45,7 +46,7 @@ const Navbar = ({
   if (userType === "VENDOR") delete notificationVariables.userId;
   else delete notificationVariables.businessId;
 
-  const { data: notifData, loading, error, refetch: notifRefetch } = useQuery(GET_ALL_NOTIFICATION, {
+  const { data: notifData, refetch: notifRefetch } = useQuery(GET_ALL_NOTIFICATION, {
   variables: notificationVariables,
   fetchPolicy: "network-only",
   skip: !(id || buzId),
@@ -126,40 +127,10 @@ const Navbar = ({
     navigate(href);
   };
 
-  const NavItem = ({ item, isMobile = false }) => {
-    const isActive = currentPage === item.href;
-    const Icon = item.icon;
-    
-    return (
-      <button
-        onClick={() => handleNavigation(item.href)}
-        className={`
-          relative flex items-center space-x-2 px-3 py-2 rounded-lg font-medium transition-all duration-200
-          ${isMobile 
-            ? 'w-full justify-start text-left hover:bg-gray-100 text-gray-700' 
-            : 'text-sm hover:bg-gray-100'
-          }
-          ${isActive 
-            ? isMobile 
-              ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600' 
-              : 'text-blue-600 bg-blue-50'
-            : 'text-gray-700 hover:text-gray-900'
-          }
-        `}
-      >
-        <Icon size={18} />
-        <span>{item.name}</span>
-        {isActive && !isMobile && (
-          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full" />
-        )}
-      </button>
-    );
-  };
-
-   const handleViewNotification = async (item) => {
+  const handleViewNotification = async (item) => {
 
       try {
-      const { data } = await updateNotificationStatus({ variables: { notificationId: item.id, status: "READ" } });
+      await updateNotificationStatus({ variables: { notificationId: item.id, status: "READ" } });
       notifRefetch();
     } catch (err) {
       toast.error(err.message || "Failed to update notification status");
@@ -192,7 +163,7 @@ const Navbar = ({
         `}
       >
         {isUnread && (
-          <span className="mt-1 w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+          <span className="mt-1 w-2 h-2 bg-emerald-500 rounded-full shrink-0" />
         )}
 
         <div className="flex-1">
@@ -213,7 +184,7 @@ const Navbar = ({
   })}
 </div>
       <div className="p-3 text-center border-t border-gray-100">
-        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
           View All Notifications
         </button>
       </div>
@@ -263,8 +234,8 @@ const Navbar = ({
     <>
       <nav className={`
         fixed top-0 left-0 right-0 z-40 transition-all duration-300
-        ${isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-lg' 
+        ${isScrolled
+          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-emerald-100/50'
           : 'bg-white shadow-sm'
         }
       `}>
@@ -273,10 +244,10 @@ const Navbar = ({
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate("/")}>
-                <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-900 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900">NearCash</span>
+                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">NearCash</span>
               </div>
             </div>
 
@@ -308,8 +279,11 @@ const Navbar = ({
                   }}
                   className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <User size={16} className="text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {profilePicture
+                      ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                      : <User size={16} className="text-white" />
+                    }
                   </div>
                   <ChevronDown size={16} className={`transform transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
                 </button>
@@ -339,7 +313,6 @@ const Navbar = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('Menu clicked, current state:', isOpen);
                   setIsOpen(!isOpen);
                 }}
                 className="menu-button p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
@@ -367,8 +340,11 @@ const Navbar = ({
               {/* User Info Section */}
               <div className="pb-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User size={24} className="text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {profilePicture
+                      ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                      : <User size={24} className="text-white" />
+                    }
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-gray-900 truncate">{user?.fullName || 'John Doe'}</p>

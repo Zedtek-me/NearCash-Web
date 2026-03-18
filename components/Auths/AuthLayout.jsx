@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { Outlet, useNavigate } from "react-router";
 import { handleBackToggle, toggleAuthPageBtnClassList } from "../../utils/helpers.js";
 import { FaArrowLeft } from "react-icons/fa";
-import useAuth from "../../Hooks/Auths.js";
+import useAuth from "../../hooks/useAuth.js";
 
 
 const Layout = () => {

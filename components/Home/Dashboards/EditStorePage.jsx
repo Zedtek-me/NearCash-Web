@@ -9,7 +9,7 @@ import { GET_SUB_BUSINESSES } from '../../Auths/queries/userQueries';
 import { UPDATE_STORE, UPDATE_ASSET } from '../../Auths/mutations/userMutations'; 
 import { google_key } from '../../../configs/environs';
 import { backArrowReturnFunc } from '../../../utils/auths';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 
 const libraries = ['places'];
 

@@ -4,9 +4,9 @@ import AnimatedLoader from '../../utils/components/spinner';
 import { UPDATE_BUSINESS, UpdateUserMutation } from './mutations/userMutations';
 import { toast } from 'react-toastify';
 import { useMutation } from '@apollo/client';
-import useAuth from '../../Hooks/Auths';
+import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
-import { geoapify_key, google_key } from  '../../configs/environs';
+import { google_key } from  '../../configs/environs';
 import { useLoadScript } from '@react-google-maps/api';
 
 const libraries = ['places'];
@@ -161,8 +161,6 @@ const handleAddressSelect = (suggestion) => {
   const isFormValid = formData.businessName && formData.description && formData.address && formData.country;
 
   const handleSubmit = async () => {
-    console.log('ooooo', selectedType);
-    
     if (selectedType === 'vendor' && !isFormValid) return;
 
     if (!selectedType) return;

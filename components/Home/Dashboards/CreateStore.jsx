@@ -4,10 +4,10 @@ import { ArrowLeft, MapPin, ChevronDown, Plus, X, Check, Search } from 'lucide-r
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { CREATE_STORE } from '../../Auths/mutations/userMutations';
 import { useMutation } from '@apollo/client';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
-import { geoapify_key, google_key } from '../../../configs/environs';
+import { google_key } from '../../../configs/environs';
 import { backArrowReturnFunc } from '../../../utils/auths';
 import { useLoadScript } from '@react-google-maps/api';
 
@@ -177,9 +177,6 @@ const handleAddressSelect = (suggestion) => {
     
     if (!formData.name.trim()) newErrors.name = 'Store name is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
-    // if (!formData.location.latitude || !formData.location.longitude) {
-    //   newErrors.location = 'Please select a valid address from suggestions';
-    // }
     if (!formData.range.length) newErrors.range = 'At least one range must be selected';
     if (!formData.country.trim()) newErrors.country = 'Country is required';
     
@@ -188,18 +185,12 @@ const handleAddressSelect = (suggestion) => {
   };
 
   const handleSubmit = async () => {
-  // if (!validateForm()) return;
-
   const data = {
           parentBusinessId: userData.id,
           businessName: formData.name,
           address: formData.address,
           description: formData.description,
           country: formData.country,
-          // location: {
-          //   latitude: formData.location.latitude,
-          //   longitude: formData.location.longitude
-          // }
     }
 
     const backendData = formData?.range.map(item => ({
@@ -339,16 +330,6 @@ const handleAddressSelect = (suggestion) => {
             {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
           </div>
 
-          {/* {formData.location.latitude && formData.location.longitude && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 mr-2" />
-                <span>
-                  Coordinates: {formData.location.latitude.toFixed(6)}, {formData.location.longitude.toFixed(6)}
-                </span>
-              </div>
-            </div>
-          )} */}
 
           <div className="space-y-2 relative" ref={rangeDropdownRef}>
             <label className="block text-sm font-semibold text-black">

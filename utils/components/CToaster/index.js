@@ -5,11 +5,10 @@ const CToaster = () => (
   <>
     <style>
       {`
-        @media (max-width: 991px) {
+        @media (max-width: 768px) {
           .toast {
-            font-size: 2rem;
-            width: 100%;
-            max-width: 100%;
+            font-size: 0.8rem;
+            max-width: 90vw;
           }
         }
       `}

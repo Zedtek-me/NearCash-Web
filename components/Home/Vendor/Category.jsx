@@ -1,28 +1,37 @@
 import React, { useState } from 'react';
-import { Plus, Users, Tag, UserPlus, X, ChevronDown, Search, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { Plus, Users, Tag, UserPlus, X, Search, Trash2, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import Navbar from '../Navs/Headers';
 import { ADD_CLIENTS_TO_CATEGORY, CREATE_CLIENT_CATEGORY } from '../../Auths/mutations/userMutations';
 import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES, GET_CATEGORIES } from '../../Auths/queries/userQueries';
 import { useMutation, useQuery } from '@apollo/client';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { getItemFromLocalStorage } from '../../../utils/helpers';
 import { useStateValue } from '../../../providers/stateProvider';
+
+// ── Avatar initials helper ────────────────────────────────────────────────────
+
+function Avatar({ name, size = 'sm' }) {
+  const initials = name?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+  const dim = size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-9 text-sm';
+  return (
+    <div className={`${dim} rounded-full bg-emerald-100 text-emerald-700 font-semibold flex items-center justify-center flex-shrink-0`}>
+      {initials}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 const CategoryManagementPage = () => {
   const [categories, setCategories] = useState([]);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [showClientForm, setShowClientForm] = useState(false);
+  const [showClientForm, setShowClientForm]     = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const { userData } = useAuth();
-  const [
-    {
-      businessStates: { selectedBusiness }
-    },
-    dispatch
-  ] = Object.values(useStateValue())
+  const [expandedCards, setExpandedCards]       = useState({});
 
+  const { userData } = useAuth();
+  const [{ businessStates: { selectedBusiness } }] = Object.values(useStateValue());
   const vendorBusinessId = selectedBusiness ?? getItemFromLocalStorage('selected_business');
-  
 
   const { data: policiesData } = useQuery(FETCH_TRANSACTION_POLICIES, {
     variables: { businessId: vendorBusinessId, pageCount: 20, pageNumber: 1 },
@@ -32,91 +41,63 @@ const CategoryManagementPage = () => {
     variables: { businessId: vendorBusinessId },
   });
 
-  const {
-    data: categoriesData,
-    refetch: refetchCategories
-  } = useQuery(GET_CATEGORIES, {
-    variables: {
-      businessId: vendorBusinessId
-    },
-    onCompleted: (data) => {
-      console.log("Fetched categories data: ", data);
-      setCategories(data?.categories || []);
-    },
-    onError: (err) => {
-      console.error("Error fetching categories:", err);
-    }
-  })
-
+  const { refetch: refetchCategories } = useQuery(GET_CATEGORIES, {
+    variables: { businessId: vendorBusinessId },
+    onCompleted: (data) => setCategories(data?.categories || []),
+  });
 
   const [createCategory, { loading: creatingCategory }] = useMutation(CREATE_CLIENT_CATEGORY);
-  const [addClients, { loading: addingClients }] = useMutation(ADD_CLIENTS_TO_CATEGORY);
+  const [addClients,     { loading: addingClients }]    = useMutation(ADD_CLIENTS_TO_CATEGORY);
 
   const [categoryFormData, setCategoryFormData] = useState({
-    name: '',
-    description: '',
-    transactionPolicyId: ''
+    name:               '',
+    description:        '',
+    transactionPolicyId:'',
   });
 
-  const [clientFormData, setClientFormData] = useState({
-    clientIds: [],
-    categoryId: ''
-  });
-
+  const [clientFormData, setClientFormData] = useState({ clientIds: [], categoryId: '' });
   const [clientSearchTerm, setClientSearchTerm] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCategoryInputChange = (e) => {
     const { name, value } = e.target;
-    setCategoryFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setCategoryFormData(prev => ({ ...prev, [name]: value }));
   };
 
-
-  
-
- const handleCreateCategory = async () => {
+  const handleCreateCategory = async () => {
     try {
       const { data } = await createCategory({
         variables: {
           businessId: vendorBusinessId,
-          categoryInfo: {
-            ...categoryFormData,
-            transactionPolicyId: categoryFormData.transactionPolicyId,
-          },
+          categoryInfo: { ...categoryFormData },
         },
       });
       if (data?.createClientCategory?.category) {
         setCategories(prev => [data.createClientCategory.category, ...prev]);
-        setCategoryFormData({ name: "", description: "", transactionPolicyId: "" });
+        setCategoryFormData({ name: '', description: '', transactionPolicyId: '' });
         setShowCategoryForm(false);
       }
     } catch (err) {
-      console.error("Error creating category:", err);
+      toast?.error(err?.message || 'Failed to create category');
     }
   };
 
- const handleAddClients = async () => {
+  const handleAddClients = async () => {
     try {
       const { data } = await addClients({
         variables: {
           data: {
-            clientIds: clientFormData.clientIds,
+            clientIds:  clientFormData.clientIds,
             categoryId: clientFormData.categoryId,
             businessId: vendorBusinessId,
           },
         },
       });
-
       if (data?.addClientsToACategory?.categoryClients.length > 0) {
         const updatedClients = data.addClientsToACategory.categoryClients.map(c => ({
-          id: c.client.id,
+          id:       c.client.id,
           fullName: `${c.client.firstName} ${c.client.lastName}`,
-          email: c.client.email,
+          email:    c.client.email,
         }));
-
         setCategories(prev =>
           prev.map(cat =>
             cat.id === clientFormData.categoryId
@@ -124,176 +105,143 @@ const CategoryManagementPage = () => {
               : cat
           )
         );
-
         setShowClientForm(false);
-        setClientFormData({ clientIds: [], categoryId: "" })
+        setClientFormData({ clientIds: [], categoryId: '' });
         refetchCategories();
       }
     } catch (err) {
-      console.error("Error adding clients:", err);
+      toast?.error(err?.message || 'Failed to add clients');
     }
   };
-
 
   const toggleClientSelection = (clientId) => {
     setClientFormData(prev => ({
       ...prev,
       clientIds: prev.clientIds.includes(clientId)
         ? prev.clientIds.filter(id => id !== clientId)
-        : [...prev.clientIds, clientId]
+        : [...prev.clientIds, clientId],
     }));
   };
 
   const removeClientFromCategory = (categoryId, clientId) => {
-    setCategories(prev => prev.map(category => {
-      if (category.id === categoryId) {
-        return {
-          ...category,
-          busineessclientSet: category?.businessclientSet?.filter(c => c.id !== clientId)
-        };
-      }
-      return category;
+    setCategories(prev => prev.map(cat => {
+      if (cat.id !== categoryId) return cat;
+      return { ...cat, businessclientSet: cat.businessclientSet?.filter(c => c.id !== clientId) };
     }));
   };
 
   const deleteCategory = (categoryId) => {
-    setCategories(prev => prev.filter(category => category.id !== categoryId));
+    setCategories(prev => prev.filter(cat => cat.id !== categoryId));
   };
 
   const openAddClientsForm = (category) => {
     setSelectedCategory(category);
-    setClientFormData({
-      clientIds: [],
-      categoryId: category.id
-    });
+    setClientFormData({ clientIds: [], categoryId: category.id });
     setShowClientForm(true);
+    setShowCategoryForm(false);
   };
 
-  const getPolicyName = (policyId) => {
-    const policy = transactionPolicies.find(p => p.id === policyId);
-    return policy ? policy.name : 'Unknown Policy';
+  const toggleCardExpand = (id) => {
+    setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const transactionPolicies = policiesData?.businessTransactionPolicies || [];
+  const getPolicyName = (policyId) => transactionPolicies.find(p => p.id === policyId)?.name || 'Unknown Policy';
+
   const availableClients = clientsData?.businessClients?.map(c => ({
-    id: c.client.id,
-    name: `${c.client.firstName} ${c.client.lastName}`,
+    id:    c.client.id,
+    name:  `${c.client.firstName} ${c.client.lastName}`,
     email: c.client.email,
   })) || [];
 
-  const filteredClients = availableClients.filter(client =>
-    client.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(clientSearchTerm.toLowerCase())
+  const filteredClients = availableClients.filter(c =>
+    c.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+    c.email.toLowerCase().includes(clientSearchTerm.toLowerCase())
   );
 
   return (
-    <>
-     <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar user={userData} />
 
-         <div className=" bg-white text-black">
-
-      <div className=" border-t border-gray-800 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* ── Page header ── */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 mt-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
-                <Tag className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+                <Tag size={20} className="text-slate-200" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 ">Categories</h1>
-                <p className="text-gray-400 text-sm sm:text-base">Organize your clients into categories</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Categories</h1>
+                <p className="text-slate-400 text-sm mt-0.5">Organise your clients into groups</p>
               </div>
             </div>
             <button
-              onClick={() => setShowCategoryForm(!showCategoryForm)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900  text-white rounded-xl font-medium hover:bg-gray-500 transform hover:scale-105 transition-all duration-200"
+              onClick={() => { setShowCategoryForm(v => !v); setShowClientForm(false); }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
             >
-              <Plus className="w-5 h-5" />
-              Create Category
+              {showCategoryForm ? <ChevronUp size={16} /> : <Plus size={16} />}
+              {showCategoryForm ? 'Hide Form' : 'Create Category'}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className={`transition-all duration-500 ease-in-out ${showCategoryForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
-            <div className="bg-white px-6 py-4">
-              <h2 className="text-xl font-semibold text-gray-900 ">Create New Category</h2>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+        {/* ── Create category form ── */}
+        <div className={`transition-all duration-400 ease-in-out ${showCategoryForm ? 'opacity-100 max-h-[600px]' : 'opacity-0 max-h-0 overflow-hidden'}`}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">New Category</h2>
             </div>
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                    Category Name
-                  </label>
+            <div className="p-5 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Category Name</label>
                   <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={categoryFormData.name}
-                    onChange={handleCategoryInputChange}
-                    className="w-full px-4 py-3 rounded-xl bg-black border border-gray-700 text-white focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 placeholder-gray-500"
-                    placeholder="Enter category name"
+                    type="text" name="name" value={categoryFormData.name}
+                    onChange={handleCategoryInputChange} placeholder="e.g. Premium Clients"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="transactionPolicyId" className="block text-sm font-medium text-gray-300">
-                    Transaction Policy
-                  </label>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Transaction Policy</label>
                   <select
-                    id="transactionPolicyId"
-                    name="transactionPolicyId"
-                    value={categoryFormData.transactionPolicyId}
+                    name="transactionPolicyId" value={categoryFormData.transactionPolicyId}
                     onChange={handleCategoryInputChange}
-                    className="w-full px-4 py-3 rounded-xl bg-black border border-gray-700 text-white focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all bg-white"
                   >
                     <option value="">Select a policy</option>
-                    {transactionPolicies.map(policy => (
-                      <option key={policy.id} value={policy.id}>{policy.name}</option>
+                    {transactionPolicies.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-300">
-                  Description
-                </label>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Description</label>
                 <textarea
-                  id="description"
-                  name="description"
-                  value={categoryFormData.description}
-                  onChange={handleCategoryInputChange}
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-black border border-gray-700 text-white focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 resize-none placeholder-gray-500"
-                  placeholder="Describe the category..."
+                  name="description" value={categoryFormData.description}
+                  onChange={handleCategoryInputChange} rows={3}
+                  placeholder="Describe this category…"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all resize-none"
                 />
               </div>
-
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-1">
                 <button
-                  onClick={handleCreateCategory}
-                  //disabled={isSubmitting || !categoryFormData.name || !categoryFormData.transactionPolicyId}
-                  className="flex-1 sm:flex-none px-8 py-3 bg-white text-black rounded-xl font-medium hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  onClick={handleCreateCategory} disabled={creatingCategory}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
                 >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                      Creating...
-                    </div>
+                  {creatingCategory ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating…</>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Create Category
-                    </div>
+                    <><CheckCircle size={15} /> Create Category</>
                   )}
                 </button>
                 <button
                   onClick={() => setShowCategoryForm(false)}
-                  className="px-6 py-3 border border-gray-600 text-gray-300 rounded-xl font-medium hover:bg-gray-800 transition-all duration-200"
+                  className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -302,196 +250,216 @@ const CategoryManagementPage = () => {
           </div>
         </div>
 
-        <div className={`transition-all duration-500 ease-in-out ${showClientForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
-            <div className="bg-white px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-black">
-                Add Clients to "{selectedCategory?.name}"
-              </h2>
+        {/* ── Add clients form ── */}
+        <div className={`transition-all duration-400 ease-in-out ${showClientForm ? 'opacity-100 max-h-[700px]' : 'opacity-0 max-h-0 overflow-hidden'}`}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  Add Clients to <span className="text-emerald-600">"{selectedCategory?.name}"</span>
+                </h2>
+              </div>
               <button
                 onClick={() => setShowClientForm(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-black" />
+                <X size={16} />
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-5 space-y-4">
+              {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
-                  value={clientSearchTerm}
+                  type="text" value={clientSearchTerm}
                   onChange={(e) => setClientSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl bg-black border border-gray-700 text-white focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 placeholder-gray-500"
-                  placeholder="Search clients..."
+                  placeholder="Search by name or email…"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
                 />
               </div>
 
-              <div className="max-h-80 overflow-y-auto space-y-2">
-                {filteredClients.map(client => (
-                  <label
-                    key={client.id}
-                    className="flex items-center gap-3 p-4 rounded-xl bg-black border border-gray-700 hover:border-gray-600 cursor-pointer transition-all duration-200"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={clientFormData.clientIds.includes(client.id)}
-                      onChange={() => toggleClientSelection(client.id)}
-                      className="w-5 h-5 rounded border-gray-600 text-white focus:ring-white focus:ring-2"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-white">{client.name}</div>
-                      <div className="text-sm text-gray-400">{client.email}</div>
-                    </div>
-                  </label>
-                ))}
+              {/* Client list */}
+              <div className="max-h-64 overflow-y-auto space-y-1.5 pr-1">
+                {filteredClients.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-6">No clients found</p>
+                ) : filteredClients.map(client => {
+                  const checked = clientFormData.clientIds.includes(client.id);
+                  return (
+                    <label
+                      key={client.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        checked ? 'border-emerald-200 bg-emerald-50' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox" checked={checked}
+                        onChange={() => toggleClientSelection(client.id)}
+                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <Avatar name={client.name} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{client.name}</p>
+                        <p className="text-xs text-gray-400 truncate">{client.email}</p>
+                      </div>
+                      {checked && <CheckCircle size={15} className="text-emerald-500 flex-shrink-0" />}
+                    </label>
+                  );
+                })}
               </div>
 
               {clientFormData.clientIds.length > 0 && (
-                <div className="bg-gray-800 rounded-xl p-4">
-                  <p className="text-sm text-gray-300 mb-2">
-                    Selected: {clientFormData.clientIds.length} client{clientFormData.clientIds.length !== 1 ? 's' : ''}
-                  </p>
+                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                  <Users size={14} className="text-emerald-500" />
+                  <span className="text-xs text-emerald-700 font-medium">
+                    {clientFormData.clientIds.length} client{clientFormData.clientIds.length !== 1 ? 's' : ''} selected
+                  </span>
                 </div>
               )}
 
-              <div className="flex gap-4 pt-4">
-                <button
-                  onClick={handleAddClients}
-                  disabled={isSubmitting || clientFormData.clientIds.length === 0}
-                  className="flex-1 sm:flex-none px-8 py-3 bg-white text-black rounded-xl font-medium hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                      Adding...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <UserPlus className="w-5 h-5" />
-                      Add Clients ({clientFormData.clientIds.length})
-                    </div>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={handleAddClients}
+                disabled={addingClients || clientFormData.clientIds.length === 0}
+                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {addingClients ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Adding…</>
+                ) : (
+                  <><UserPlus size={15} /> Add Clients ({clientFormData.clientIds.length})</>
+                )}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Categories List */}
-        <div className="space-y-6">
+        {/* ── Categories list ── */}
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Categories</h2>
-            <div className="text-sm text-gray-400">
+            <h2 className="text-sm font-semibold text-gray-900">Your Categories</h2>
+            <span className="text-xs text-gray-400">
               {categories.length} {categories.length === 1 ? 'category' : 'categories'}
-            </div>
+            </span>
           </div>
 
           {categories.length === 0 ? (
-            <div className="bg-gray-900 rounded-2xl border border-gray-800 p-12 text-center">
-              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Tag className="w-8 h-8 text-gray-400" />
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+              <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Tag size={24} className="text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">No categories created yet</h3>
-              <p className="text-gray-400 mb-6">Create your first category to organize your clients</p>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">No categories yet</h3>
+              <p className="text-xs text-gray-400 mb-5">Create your first category to organise your clients</p>
               <button
                 onClick={() => setShowCategoryForm(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-medium hover:bg-gray-100 transform hover:scale-105 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
-                <Plus className="w-5 h-5" />
-                Create First Category
+                <Plus size={15} /> Create First Category
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden hover:border-gray-700 transform hover:scale-105 transition-all duration-300"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                          <Tag className="w-5 h-5 text-black" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {categories.map((category) => {
+                const clientCount = category.businessclientSet?.length || 0;
+                const expanded    = expandedCards[category.id];
+                return (
+                  <div
+                    key={category.id}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
+                  >
+                    {/* Top accent */}
+                    <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+
+                    <div className="p-5">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 flex-shrink-0 bg-emerald-50 rounded-lg flex items-center justify-center">
+                            <Tag size={16} className="text-emerald-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-gray-900 truncate">{category.name}</h3>
+                            <p className="text-xs text-gray-400 font-mono truncate">#{category.id}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-white text-lg">{category?.name}</h3>
-                          <p className="text-sm text-gray-400">Category #{category?.id}</p>
-                        </div>
+                        <button
+                          onClick={() => deleteCategory(category.id)}
+                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => deleteCategory(category.id)}
-                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
 
-                    <p className="text-gray-300 mb-4">{category?.description}</p>
+                      {/* Description */}
+                      {category.description && (
+                        <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">{category.description}</p>
+                      )}
 
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center gap-2 p-3 bg-gray-800 rounded-lg">
-                        <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-300">
-                          Policy: {getPolicyName(category?.txnPolicy?.id)}
+                      {/* Meta pills */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg text-xs font-medium">
+                          <CheckCircle size={11} />
+                          {getPolicyName(category.txnPolicy?.id)}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-50 text-gray-600 border border-gray-100 rounded-lg text-xs font-medium">
+                          <Users size={11} />
+                          {clientCount} {clientCount === 1 ? 'client' : 'clients'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-300">
-                            {category?.businessclientSet?.length} client{category?.businessclientSet?.length !== 1 ? 's' : ''}
-                          </span>
+                      {/* Clients list */}
+                      {clientCount > 0 && (
+                        <div className="mb-4">
+                          <button
+                            onClick={() => toggleCardExpand(category.id)}
+                            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 font-medium mb-2 transition-colors"
+                          >
+                            {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                            {expanded ? 'Hide' : 'Show'} clients
+                          </button>
+                          {expanded && (
+                            <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                              {category.businessclientSet.map(item => (
+                                <div
+                                  key={item.id}
+                                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-gray-50 border border-gray-100"
+                                >
+                                  <Avatar name={item?.client?.fullName} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-gray-900 truncate">{item?.client?.fullName}</p>
+                                    <p className="text-xs text-gray-400 truncate">{item?.client?.email}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => removeClientFromCategory(category.id, item.id)}
+                                    className="p-1 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
+                      )}
+
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                        <p className="text-xs text-gray-400">
+                          {new Date(category.dateCreated).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
                         <button
                           onClick={() => openAddClientsForm(category)}
-                          className="text-sm text-white hover:text-gray-300 font-medium transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors"
                         >
-                          Add Clients
+                          <UserPlus size={12} /> Add Clients
                         </button>
                       </div>
                     </div>
-
-                    {category?.businessclientSet.length > 0 && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-400 mb-2">Clients:</h4>
-                        <div className="max-h-32 overflow-y-auto space-y-1">
-                          {category.businessclientSet.map(client => (
-                             <div key={client.id} className="flex items-center justify-between p-2 bg-black rounded-lg">
-                              <div>
-                                <div className="text-sm font-medium text-white">{client?.client?.fullName}</div>
-                                <div className="text-xs text-gray-400">{client?.client?.email}</div>
-                              </div>
-                              <button
-                                onClick={() => removeClientFromCategory(category.id, client.id)}
-                                className="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-4 pt-4 border-t border-gray-800">
-                      <p className="text-xs text-gray-500">
-                        Created {new Date(category?.dateCreated).toLocaleDateString()}
-                      </p>
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
     </div>
-     </div>
-    </>
-    
   );
 };
 

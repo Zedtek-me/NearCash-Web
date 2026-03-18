@@ -1,72 +1,52 @@
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 
 let watchID = null;
 
 export function toTitleCase(str) {
-    if (!str) {
-      return "";
-    }
-    return str.toLowerCase().replace(/\b\w/g, function(char) {
-      return char.toUpperCase();
-    });
+  if (!str) return "";
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function handleBackToggle(navigator, url = null) {
+  if (!url) navigator(-1);
+  navigator(url);
+}
+
+export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator = null, authBtnUpdateFn) {
+  const btn = e.target;
+  if (btn.classList.contains("login-btn")) {
+    authBtnUpdateFn({ login: true, signup: false });
+    setActiveBtns((prev) => ({ ...prev, login: true, signup: false }));
+    setTimeout(() => navigator?.("/auth/login"), 500);
+  } else {
+    authBtnUpdateFn({ login: false, signup: true });
+    setActiveBtns((prev) => ({ ...prev, login: false, signup: true }));
+    setTimeout(() => navigator?.("/auth/signup"), 500);
   }
-
-
-export function handleBackToggle(navigator, url=null){
-    if(!url) navigator(-1);
-    navigator(url);
 }
 
-export function toggleAuthPageBtnClassList(e, setActiveBtns, navigator=null, authBtnUpdateFn) {
-    let btn = e.target;
-    if(btn.classList.contains("login-btn")){
-      authBtnUpdateFn({ login: true, signup: false });
-      setActiveBtns((prevState) => ({...prevState, login: true, signup: false}))
-      setTimeout(()=> navigator?.("/auth/login"), 500);
-    }
-    else{
-      authBtnUpdateFn({ login: false, signup: true });
-      setActiveBtns((prevState) => ({...prevState, login: false, signup: true}))
-      setTimeout(()=> navigator?.("/auth/signup"), 500);
-    }
-}
-
-
+/**
+ * Requests location permission, then starts watchPosition to stream live
+ * coordinates to the backend via WebSocket.
+ * Returns a cleanup function that clears the watch.
+ */
 export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userData, socket) => {
- if (watchID !== null) {
+  if (watchID !== null) {
     navigator.geolocation.clearWatch(watchID);
     watchID = null;
   }
 
-  // First: Ask permission
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      toast.success("GPS ON");
-
-      // Now start live tracking
+    () => {
       watchID = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude, accuracy } = pos.coords;
-          // console.log("LIVE GPS:", latitude, longitude, "±", accuracy + "m");
-
-          updateFunc(pos.coords, userData, socket);
-        },
+        (pos) => updateFunc(pos.coords, userData, socket),
         (err) => {
-          console.error("GPS Error:", err.code, err.message);
-          if (err.code === 2) {
-            toast.error("GPS signal lost. Move outside?");
-          }
+          if (err.code === 2) toast.error("GPS signal lost. Move outside?");
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 200000,
-          maximumAge: 5000
-        }
+        { enableHighAccuracy: true, timeout: 200000, maximumAge: 5000 }
       );
     },
-    (err) => {
-      console.error("GPS Permission DENIED:", err);
-    },
+    (err) => errorFunc?.(err),
     { enableHighAccuracy: false, timeout: 200000 }
   );
 
@@ -78,82 +58,76 @@ export const fetchAndUpdateUserCurrentLocation = (updateFunc, errorFunc, userDat
   };
 };
 
-
+/**
+ * Builds and sends a vendor_location_update or client_location_update
+ * message to the backend via WebSocket.
+ */
 export const updateUserPosition = (coordinates, userData, socket) => {
-  const userType = userData?.userType;
-  const isVendor = userType === "VENDOR";
-  const clientId = isVendor ? null : (userData?.id || userData?.transaction?.client?.id);
-  const vendorId = isVendor ? userData?.id : userData?.transaction?.vendor?.id;
-  const payload = JSON.stringify({
-    message_type: isVendor
-      ? "vendor_location_update" 
-      : "client_location_update",
-    vendor_id: vendorId,
-    txn_id: userData?.transaction?.id,
-    client_id: clientId,
+  const isVendor = userData?.userType === "VENDOR";
+  const payload  = JSON.stringify({
+    message_type: isVendor ? "vendor_location_update" : "client_location_update",
+    vendor_id:    isVendor ? userData?.id : userData?.transaction?.vendor?.id,
+    client_id:    isVendor ? null : (userData?.id || userData?.transaction?.client?.id),
+    txn_id:       userData?.transaction?.id,
     location: {
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude
+      latitude:  coordinates.latitude,
+      longitude: coordinates.longitude,
     },
-    business_id: userData?.selectedBusiness || userData?.transaction?.business_id
+    business_id: userData?.selectedBusiness || userData?.transaction?.business_id,
   });
 
-  const send = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(payload);
-    } else if (socket && socket.readyState === WebSocket.CONNECTING) {
-      socket.addEventListener('open', () => socket.send(payload), { once: true });
-    }
-  };
+  if (!socket) return;
 
-  send();
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(payload);
+  } else if (socket.readyState === WebSocket.CONNECTING) {
+    socket.addEventListener("open", () => socket.send(payload), { once: true });
+  }
 };
 
-
+/**
+ * Sends retrieve_vendor_latest_location and retrieve_client_latest_location
+ * messages so both sides receive each other's last known position.
+ */
 export const fetchUserLatestLocation = (userData, socket, txnId, vendorId, clientId = null) => {
-  const isVendor = userData?.userType === "VENDOR"
-  const payload = JSON.stringify({
-    message_type: isVendor
-      ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
+  const isVendor = userData?.userType === "VENDOR";
+
+  const ownPayload = JSON.stringify({
+    message_type: isVendor ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
     vendor_id: vendorId,
     client_id: clientId,
-    txn_id: txnId
+    txn_id:    txnId,
   });
 
-  const otherUserpayload = JSON.stringify({
-    message_type: !isVendor
-      ? "retrieve_vendor_latest_location" : "retrieve_client_latest_location",
+  const otherPayload = JSON.stringify({
+    message_type: isVendor ? "retrieve_client_latest_location" : "retrieve_vendor_latest_location",
     vendor_id: vendorId,
     client_id: clientId,
-    txn_id: txnId
+    txn_id:    txnId,
   });
-
 
   const sendWhenReady = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(payload);
-      socket.send(otherUserpayload);
-
-    } else if (socket && socket.readyState === WebSocket.CONNECTING) {
-      socket.addEventListener('open', () => { socket.send(payload),  socket.send(otherUserpayload)}, { once: true });
-    } else {
-      console.warn("WebSocket closed. Cannot fetch location.");
+    if (socket?.readyState === WebSocket.OPEN) {
+      socket.send(ownPayload);
+      socket.send(otherPayload);
+    } else if (socket?.readyState === WebSocket.CONNECTING) {
+      socket.addEventListener(
+        "open",
+        () => { socket.send(ownPayload); socket.send(otherPayload); },
+        { once: true }
+      );
     }
   };
 
   sendWhenReady();
-  return payload;
 };
 
 export const getDateAndTimeFromDateTimeStr = (dateTime) => {
   const dT = new Date(dateTime);
-  let date = dT.toLocaleDateString()
-  let time = dT.toTimeString()
-  return [date, time]
-}
+  return [dT.toLocaleDateString(), dT.toTimeString()];
+};
 
-export const getItemFromLocalStorage = (keyName, defaultValue=null) => {
-  let item = localStorage.getItem(keyName);
-  if(!item) return defaultValue;
-  return item;
-}
+export const getItemFromLocalStorage = (keyName, defaultValue = null) => {
+  const item = localStorage.getItem(keyName);
+  return item ?? defaultValue;
+};

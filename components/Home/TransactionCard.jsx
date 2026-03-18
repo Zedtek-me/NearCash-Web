@@ -50,15 +50,13 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
         <div
           className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}
         >
-          {/* <span className="text-white text-sm font-medium">
-            {transaction.name.split(" ").map((n) => n[0]).join("")}
-          </span> */}
+
         </div>
         <div>
            <span
           className={`font-bold text-gray-800`}
         >
-          ₦{transaction?.amount}
+          ₦{Number(transaction?.amount || 0).toLocaleString()}
         </span>
           <div className="font-medium text-gray-800">{transaction?.name}</div>
           <div className="text-sm text-gray-500"> {new Date(transaction.dateCreated).toLocaleString('en-GB', {

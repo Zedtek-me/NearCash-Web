@@ -1,274 +1,183 @@
 import React, { useState } from 'react';
-import { Plus, FileText, DollarSign, MapPin, Store, Users, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { Plus, FileText, MapPin, Store, Trash2, CheckCircle, ChevronUp, Banknote } from 'lucide-react';
 import Navbar from '../Navs/Headers';
 import { CREATE_TRANSACTION_POLICY } from '../../Auths/mutations/userMutations';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { useMutation, useQuery } from '@apollo/client';
 import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
 import toast from 'react-hot-toast';
 import { useStateValue } from '../../../providers/stateProvider';
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const MODE_LABELS = {
+  STORE_WALK_IN:            'Store Walk-in',
+  MEET_UP_AND_STORE_WALK_IN:'Meet-up & Walk-in',
+  MEET_UP:                  'Meet-up Only',
+};
+
+const MODE_COLORS = {
+  STORE_WALK_IN:            'bg-teal-50 text-teal-700 border-teal-100',
+  MEET_UP_AND_STORE_WALK_IN:'bg-emerald-50 text-emerald-700 border-emerald-100',
+  MEET_UP:                  'bg-sky-50 text-sky-700 border-sky-100',
+};
+
+const MODE_ICONS = {
+  STORE_WALK_IN:            Store,
+  MEET_UP_AND_STORE_WALK_IN:MapPin,
+  MEET_UP:                  MapPin,
+};
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 const TransactionPolicyPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    name:               '',
+    description:        '',
     cashCollectionMode: 'STORE_WALK_IN',
-    meetUpCharge: ''
+    meetUpCharge:       '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-    const { userData } = useAuth();
 
-  
-  let vendorBusinessId = userData?.businesses?.find(item => Object.is(item.isPrimary, true))?.id;
-  const [
-    {
-      businessStates: { selectedBusiness }
-    },
-    dispatch
-  ] = Object.values(useStateValue())
+  const { userData } = useAuth();
+  let vendorBusinessId = userData?.businesses?.find(item => item.isPrimary)?.id;
 
-  vendorBusinessId = (selectedBusiness || vendorBusinessId)
+  const [{ businessStates: { selectedBusiness } }] = Object.values(useStateValue());
+  vendorBusinessId = selectedBusiness || vendorBusinessId;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
-  const { data, loading, error, refetch } = useQuery(FETCH_TRANSACTION_POLICIES, {
-    variables: { businessId:  vendorBusinessId, pageCount: 10, pageNumber: 1 },
-    fetchPolicy: "network-only",
+
+  const { data, loading, refetch } = useQuery(FETCH_TRANSACTION_POLICIES, {
+    variables: { businessId: vendorBusinessId, pageCount: 10, pageNumber: 1 },
+    fetchPolicy: 'network-only',
   });
 
   const policies = data?.businessTransactionPolicies || [];
 
-
   const [createPolicy, { loading: creating }] = useMutation(CREATE_TRANSACTION_POLICY);
 
-  // const handleSubmit = async () => {
-  //   if (!formData.name) return;
-  //   setIsSubmitting(true);
-    
-  //   await new Promise(resolve => setTimeout(resolve, 1000));
-    
-  //   const newPolicy = {
-  //     id: Date.now(),
-  //     businessId: "12",
-  //     data: {
-  //       ...formData,
-  //       meetUpCharge: formData.meetUpCharge ? parseFloat(formData.meetUpCharge) : 0
-  //     },
-  //     createdAt: new Date().toISOString()
-  //   };
-    
-  //   setPolicies(prev => [newPolicy, ...prev]);
-  //   setFormData({
-  //     name: '',
-  //     description: '',
-  //     cashCollectionMode: 'STORE_WALK_IN',
-  //     meetUpCharge: ''
-  //   });
-  //   setShowForm(false);
-  //   setIsSubmitting(false);
-  // };
-
-  // const deletePolicy = (id) => {
-  //   setPolicies(prev => prev.filter(policy => policy.id !== id));
-  // };
-
   const handleSubmit = async () => {
-    console.log(formData);
-    
-  if (!formData.name) {
-    toast.error("Policy name is required.");
-    return;
-  }
-
-  try {
-
-    const { data } = await createPolicy({
-      variables: {
-        businessId: vendorBusinessId,
-        data: {
-          ...formData,
-          meetUpCharge: formData.meetUpCharge
-            ? parseFloat(formData.meetUpCharge)
-            : 0,
+    if (!formData.name) { toast.error('Policy name is required.'); return; }
+    try {
+      const { data } = await createPolicy({
+        variables: {
+          businessId: vendorBusinessId,
+          data: {
+            ...formData,
+            meetUpCharge: formData.meetUpCharge ? parseFloat(formData.meetUpCharge) : 0,
+          },
         },
-      },
-    });
-
-    if (data?.createTransactionPolicy?.policy) {
-      setFormData({
-        name: "",
-        description: "",
-        cashCollectionMode: "STORE_WALK_IN",
-        meetUpCharge: "",
       });
-      refetch()
-      toast.success("Policy created successfully!");
-      setShowForm(false);
-    }
-  } catch (err) {
-    console.error("Error creating policy:", err);
-  }
-};
-  const getCashCollectionModeDisplay = (mode) => {
-    switch(mode) {
-      case 'STORE_WALK_IN':
-        return 'Store Walk-in';
-      case 'MEET_UP_AND_STORE_WALK_IN':
-        return 'Meet-up & Store Walk-in';
-      case 'MEET_UP':
-        return 'Meet-up Only';
-      default:
-        return mode;
-    }
-  };
-
-  const getCashCollectionModeIcon = (mode) => {
-    switch(mode) {
-      case 'STORE_WALK_IN':
-        return <Store className="w-4 h-4" />;
-      case 'MEET_UP_AND_STORE_WALK_IN':
-        return <MapPin className="w-4 h-4" />;
-      default:
-        return <Store className="w-4 h-4" />;
+      if (data?.createTransactionPolicy?.policy) {
+        setFormData({ name: '', description: '', cashCollectionMode: 'STORE_WALK_IN', meetUpCharge: '' });
+        refetch();
+        toast.success('Policy created successfully!');
+        setShowForm(false);
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Failed to create policy');
     }
   };
 
   return (
-   <div className="min-h-screen bg-white">
-      <Navbar user={userData}/>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar user={userData} />
 
-     <div className=" bg-white">
-      <div className="bg-white backdrop-blur-sm border-t border-gray-800 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* ── Page header ── */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 mt-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-gray-600 to-gray-900 rounded-xl flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20">
+                <FileText size={20} className="text-slate-200" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Transaction Policies</h1>
-                <p className="text-slate-600 text-sm sm:text-base">Manage your business transaction policies</p>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">Transaction Policies</h1>
+                <p className="text-slate-400 text-sm mt-0.5">Manage your business transaction policies</p>
               </div>
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-900 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              onClick={() => setShowForm(v => !v)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
             >
-              <Plus className="w-5 h-5" />
-              Create Policy
+              {showForm ? <ChevronUp size={16} /> : <Plus size={16} />}
+              {showForm ? 'Hide Form' : 'Create Policy'}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className={`transition-all duration-500 ease-in-out ${showForm ? 'opacity-100 max-h-screen mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-900 to-gray-700 px-6 py-4">
-              <h2 className="text-xl font-semibold text-white">Create New Policy</h2>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+
+        {/* ── Create form ── */}
+        <div className={`transition-all duration-400 ease-in-out ${showForm ? 'opacity-100 max-h-[800px] mb-8' : 'opacity-0 max-h-0 overflow-hidden'}`}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">New Policy</h2>
             </div>
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-slate-700">
-                    Policy Name
-                  </label>
+            <div className="p-5 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Policy Name</label>
                   <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter policy name"
+                    type="text" name="name" value={formData.name} onChange={handleInputChange}
+                    placeholder="e.g. Standard Walk-in Policy"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="cashCollectionMode" className="block text-sm font-medium text-slate-700">
-                    Cash Collection Mode
-                  </label>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Cash Collection Mode</label>
                   <select
-                    id="cashCollectionMode"
-                    name="cashCollectionMode"
-                    value={formData.cashCollectionMode}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    name="cashCollectionMode" value={formData.cashCollectionMode} onChange={handleInputChange}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all bg-white"
                   >
                     <option value="STORE_WALK_IN">Store Walk-in</option>
-                    <option value="MEET_UP_AND_STORE_WALK_IN">Meet-up & Store Walk-in</option>
+                    <option value="MEET_UP_AND_STORE_WALK_IN">Meet-up &amp; Store Walk-in</option>
                     <option value="MEET_UP">Meet-up Only</option>
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="description" className="block text-sm font-medium text-slate-700">
-                  Description
-                </label>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Description</label>
                 <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                  placeholder="Describe the policy details..."
+                  name="description" value={formData.description} onChange={handleInputChange}
+                  rows={3} placeholder="Describe the policy details…"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all resize-none"
                 />
               </div>
 
               {formData.cashCollectionMode === 'MEET_UP_AND_STORE_WALK_IN' && (
-                <div className="space-y-2 animate-fadeIn">
-                  <label htmlFor="meetUpCharge" className="block text-sm font-medium text-slate-700">
-                    Meet-up Charge ($)
-                  </label>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Meet-up Charge (₦)</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₦</span>
                     <input
-                      type="number"
-                      id="meetUpCharge"
-                      name="meetUpCharge"
-                      value={formData.meetUpCharge}
-                      onChange={handleInputChange}
-                      min="0"
-                      step="0.01"
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="0.00"
+                      type="number" name="meetUpCharge" value={formData.meetUpCharge}
+                      onChange={handleInputChange} min="0" step="0.01" placeholder="0.00"
+                      className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 pt-1">
                 <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={creating}
-                  className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  type="button" onClick={handleSubmit} disabled={creating}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creating ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Creating...
-                    </div>
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating…</>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Create Policy
-                    </div>
+                    <><CheckCircle size={15} /> Create Policy</>
                   )}
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all duration-200"
+                  type="button" onClick={() => setShowForm(false)}
+                  className="px-5 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -277,91 +186,100 @@ const TransactionPolicyPage = () => {
           </div>
         </div>
 
-        <div className="space-y-6">
+        {/* ── Policies list ── */}
+        <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-900">Active Policies</h2>
-            <div className="text-sm text-slate-500">
-              {policies?.length} {policies?.length === 1 ? 'policy' : 'policies'}
-            </div>
+            <h2 className="text-sm font-semibold text-gray-900">Active Policies</h2>
+            <span className="text-xs text-gray-400">{policies.length} {policies.length === 1 ? 'policy' : 'policies'}</span>
           </div>
 
-          { loading ? (
-          <p className="text-gray-500">Loading policies...</p>
-        ) : policies?.length === 0 ? (
-            <div className="bg-gray-900 rounded-2xl border border-gray-800  shadow-lg  p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-slate-400" />
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 py-8 justify-center">
+              <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              Loading policies…
+            </div>
+          ) : policies.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+              <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText size={24} className="text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No policies created yet</h3>
-              <p className="text-slate-300 mb-6">Create your first transaction policy to get started</p>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">No policies yet</h3>
+              <p className="text-xs text-gray-400 mb-5">Create your first transaction policy to get started</p>
               <button
                 onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-900 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
-                <Plus className="w-5 h-5" />
-                Create First Policy
+                <Plus size={15} /> Create First Policy
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {policies.map((policy) => (
-                <div
-                  key={policy.id}
-                  className="bg-gray-900 rounded-2xl border border-gray-800  shadow-lg overflow-hidden hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-gray-900" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-100 text-lg">{policy?.name}</h3>
-                          <p className="text-sm text-slate-300">Policy #{policy?.id}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => deletePolicy(policy?.id)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {policies.map((policy) => {
+                const ModeIcon  = MODE_ICONS[policy.cashCollectionMode] || Store;
+                const modeColor = MODE_COLORS[policy.cashCollectionMode] || 'bg-gray-50 text-gray-600 border-gray-100';
+                return (
+                  <div
+                    key={policy.id}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    {/* Card top accent */}
+                    <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
 
-                    <p className="text-slate-200 mb-4 line-clamp-3">{policy?.description}</p>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                        {getCashCollectionModeIcon(policy?.cashCollectionMode)}
-                        <span className="text-sm font-medium text-slate-700">
-                          {getCashCollectionModeDisplay(policy.cashCollectionMode)}
-                        </span>
+                    <div className="p-5">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-9 h-9 flex-shrink-0 bg-emerald-50 rounded-lg flex items-center justify-center">
+                            <FileText size={16} className="text-emerald-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-sm font-semibold text-gray-900 truncate">{policy.name}</h3>
+                            <p className="text-xs text-gray-400 font-mono truncate">#{policy.id}</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => deletePolicy?.(policy.id)}
+                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
 
-                      {policy?.meetUpCharge > 0 && (
-                        <div className="flex items-center gap-2 p-3  rounded-lg">
-                          <DollarSign className="w-4 h-4 text-gray-200" />
-                          <span className="text-sm font-medium text-gray-300">
-                            Meet-up Charge: ${policy?.meetUpCharge}
-                          </span>
-                        </div>
+                      {/* Description */}
+                      {policy.description && (
+                        <p className="text-xs text-gray-500 leading-relaxed mb-4 line-clamp-2">{policy.description}</p>
                       )}
-                    </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <p className="text-xs text-slate-200">
-                        Created {new Date(policy.dateCreated).toLocaleDateString()}
-                      </p>
+                      {/* Tags */}
+                      <div className="space-y-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border ${modeColor}`}>
+                          <ModeIcon size={12} />
+                          {MODE_LABELS[policy.cashCollectionMode] || policy.cashCollectionMode}
+                        </span>
+
+                        {policy.meetUpCharge > 0 && (
+                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <Banknote size={13} className="text-gray-400" />
+                            Meet-up charge: <span className="font-medium text-gray-700">₦{Number(policy.meetUpCharge).toLocaleString()}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="mt-4 pt-3 border-t border-gray-50">
+                        <p className="text-xs text-gray-400">
+                          Created {new Date(policy.dateCreated).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
     </div>
-   </div>
   );
 };
 

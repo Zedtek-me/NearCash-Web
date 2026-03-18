@@ -10,7 +10,7 @@ import Home from "../components/Home/Home.jsx"
 import GetStarted from "../components/Auths/GetStarted.jsx";
 import SocialAuth from "../components/Auths/SocialAuths.jsx";
 import { checkCurrentSession } from "../utils/auths.js";
-import useAuth from "../Hooks/Auths.js";
+import useAuth from "../hooks/useAuth.js";
 import { CURRENT_USER } from "../components/Auths/queries/userQueries.js"
 import ClientDashboard from "../components/Home/Dashboards/ClientDashboard.jsx";
 import BusinessSetUpPage from "../components/Auths/BusinessSetup.jsx";
