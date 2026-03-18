@@ -1,30 +1,25 @@
 import React, { useState } from "react";
-import { handleSubmit, handleState } from "../../utils/auths.js";
+import { handleState } from "../../utils/auths.js";
 import Loader from "./Loader.jsx";
 import { FcGoogle } from "react-icons/fc";
 import { HiOutlineMail } from "react-icons/hi";
 import { MdLockOutline } from "react-icons/md";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
-import useAuth from "../../Hooks/Auths.js";
+import useAuth from "../../hooks/useAuth.js";
 import { useStateValue } from "../../providers/stateProvider.jsx";
 import { useMutation } from "@apollo/client";
-import { LOGIN, SIGNUP } from "./mutations/userMutations.js";
+import { LOGIN } from "./mutations/userMutations.js";
 import { useNavigate } from "react-router";
 import AuthActionTypes from "../../providers/reducers/auth/authTypes.js";
 import toast from "react-hot-toast";
 
 export default function Login(){
   const [data, setData] = useState({})
-  const { isLoading: loading, setIsLoading: setLoading, updateUser } = useAuth()
+  const { updateUser } = useAuth()
   const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate()
 
-     const [
-    {
-      auth,
-    },
-    dispatch
-  ] = Object.values(useStateValue());
+     const [, dispatch] = Object.values(useStateValue());
 
     const [getAuthUrl, { loading: googleLoading }] = useMutation(LOGIN, {
   onCompleted: (data) => {
@@ -184,13 +179,6 @@ const handleLoginWithEmail =  () => {
                 className="w-5 h-5 mr-2" />
             <span className="text-sm font-medium text-gray-700">Google</span>
           </button>
-          {/* <button 
-            type="button"
-            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
-          >
-            <FaFacebook className="w-5 h-5 mr-2 text-blue-600" />
-            <span className="text-sm font-medium">Facebook</span>
-          </button> */}
         </div>
     </div>
     </div>

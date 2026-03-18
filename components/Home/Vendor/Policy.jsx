@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, FileText, DollarSign, MapPin, Store, Users, Edit, Trash2, CheckCircle } from 'lucide-react';
 import Navbar from '../Navs/Headers';
 import { CREATE_TRANSACTION_POLICY } from '../../Auths/mutations/userMutations';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { useMutation, useQuery } from '@apollo/client';
 import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
 import toast from 'react-hot-toast';

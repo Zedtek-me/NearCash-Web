@@ -1,32 +1,25 @@
 import React, { useState } from "react";
-import { handleSubmit, handleState } from "../../utils/auths.js";
+import { handleState } from "../../utils/auths.js";
 import Loader from "./Loader.jsx";
 import { MdEmail, MdLockOutline } from "react-icons/md";
 import { IoEyeOffOutline, IoEyeOutline } from "react-icons/io5";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook } from "react-icons/fa";
 import { SIGNUP } from "./mutations/userMutations.js";
 import { useMutation } from "@apollo/client";
 import { useStateValue } from "../../providers/stateProvider.jsx";
 import AuthActionTypes from "../../providers/reducers/auth/authTypes.js";
-import useAuth from "../../Hooks/Auths.js";
+import useAuth from "../../hooks/useAuth.js";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { Subscriber } from "../../utils/subscriber.js";
 
 export default function SignUp(){
     const [data, setData] = useState({})
-    const [loading, setLoading] = useState(false)
-    const [showPassword, setShowPassword] = useState(false);
+const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const { updateUser, clearUser, userData } = useAuth()
+    const { updateUser } = useAuth()
     const navigate = useNavigate()
-     const [
-    {
-      auth,
-    },
-    dispatch
-  ] = Object.values(useStateValue());
+     const [, dispatch] = Object.values(useStateValue());
 
     const [getAuthUrl, { loading: googleLoading }] = useMutation(SIGNUP, {
   onCompleted: (data) => {
@@ -241,13 +234,6 @@ const handleSignUpWithEmail =  () => {
                             <FcGoogle className="w-5 h-5 mr-2" />
                             <span className="text-sm font-medium text-gray-700">Google</span>
                           </button>
-                          {/* <button 
-                            type="button"
-                            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
-                          >
-                            <FaFacebook className="w-5 h-5 mr-2 text-blue-600" />
-                            <span className="text-sm font-medium">Facebook</span>
-                          </button> */}
                         </div>
 
                 <div className="text-center pt-2">

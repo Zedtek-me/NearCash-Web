@@ -1,25 +1,17 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useSearchParams, useNavigate, Navigate, replace } from "react-router";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate, Navigate } from "react-router";
 import { handleSocialAuth } from "../../utils/auths.js";
 import { useMutation } from "@apollo/client";
 import { AUTHORIZE_WITH_SOCIAL_CODE } from "./mutations/userMutations.js";
-import useAuth from "../../Hooks/Auths.js";
+import useAuth from "../../hooks/useAuth.js";
 import Spinner from "../../utils/components/spinner.jsx";
-import { useStateValue } from "../../providers/stateProvider.jsx";
-import { Subscriber } from "../../utils/subscriber.js";
 
 
 export default function SocialAuth({ authType, socialType }){
     const [queryParams, _] = useSearchParams();
-    const { updateUser, clearUser, userData } = useAuth()
+    const { updateUser, userData } = useAuth()
     const navigate = useNavigate()
-      const [
-        {
-          auth,
-        },
-        dispatch
-      ] = Object.values(useStateValue());
-    const [ mutationFunc, { loading, error, data: resData } ] = useMutation(AUTHORIZE_WITH_SOCIAL_CODE)
+    const [ mutationFunc ] = useMutation(AUTHORIZE_WITH_SOCIAL_CODE)
     const authCode = queryParams.get("code")
     const [data, setData] = useState(null)
     
@@ -27,7 +19,6 @@ export default function SocialAuth({ authType, socialType }){
    
     const authTypeFromContext = localStorage.getItem("auth_type")
 
-    console.log('data', data, authTypeFromContext, userData);
     
 
     useEffect( ()=>{
@@ -40,7 +31,6 @@ export default function SocialAuth({ authType, socialType }){
             } else {
                 if(!data?.authorizeWithCode?.data){
                     handleSocialAuth(authCode, mutationFunc, authTypeFromContext, socialType, navigate).then((res) => {
-                    console.log("handled social auth response:::: ", res);
                     setData(res);
                 })
                 }
@@ -54,15 +44,12 @@ export default function SocialAuth({ authType, socialType }){
     useEffect(
         ()=>{
             if(data?.authorizeWithCode.data){
-                console.log("entered into the if authorize check::::::::")
                 const {user, token} = data.authorizeWithCode.data;
-                console.log("user data directly from mutation before attempting to set in context and state::::: ", user, `token destructured::: ${token}`)
                 localStorage.setItem("nearcash_token", token)
                 updateUser(user)
             }
         }, [data]
     )
-    console.log(`authenticated state::: ${authenticated}`)
     return (
         <div className="social-auth-handler w-full h-full border border-solid border-grey relative flex flex-col justify-center items-center">
             {authenticated ? (

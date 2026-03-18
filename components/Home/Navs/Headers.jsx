@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  MapPin, 
-  Search, 
-  ShoppingBag, 
-  User, 
-  Bell, 
+import {
+  Menu,
+  X,
+  MapPin,
+  User,
+  Bell,
   Heart,
   Settings,
   LogOut,
@@ -339,7 +336,6 @@ const Navbar = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('Menu clicked, current state:', isOpen);
                   setIsOpen(!isOpen);
                 }}
                 className="menu-button p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"

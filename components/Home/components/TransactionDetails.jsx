@@ -1,28 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  ArrowLeft, 
-  Download, 
-  Share2, 
-  Check, 
-  X, 
-  Clock, 
-  User, 
-  Calendar, 
-  CreditCard, 
-  Hash, 
+import {
+  ArrowLeft,
+  Check,
+  X,
+  Clock,
+  User,
+  Calendar,
+  CreditCard,
+  Hash,
   MapPin,
   Building,
   Mail,
   Phone,
   FileText,
   AlertCircle,
-  Hand,
   HandHelping
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_TRANSACTION } from '../Dashboards/queries/analytics';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/helpers';
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
@@ -38,12 +35,9 @@ export default function TransactionDetails() {
 const [vendorLocation, setVendorLocation] = useState(null);
 
   const transactionId = params?.id
-  const id = transactionId
 
   const {
     data: transactionData,
-    error: tranactionError,
-    loading: transactionLoading,
     refetch
   } = useQuery(
     GET_TRANSACTION, {
@@ -227,8 +221,7 @@ const handleUpdateStatus = async (id, status) => {
         <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
 
         {(
-          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status) //&&
-          //transaction?.collectionMode === "MEET_UP"
+          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status)
         )
           && (
           <TransactionMap
@@ -290,45 +283,6 @@ const handleUpdateStatus = async (id, status) => {
           
          
 
-          {/* <Section title="Financial Breakdown">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600">Gross Amount</span>
-                <span className="font-semibold text-gray-900 text-lg">{transaction.amount}</span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600">Transaction Fee</span>
-                <span className="font-medium text-red-600">-{transaction.transactionFee}</span>
-              </div>
-              <div className="flex justify-between items-center py-4 bg-gray-50 rounded-lg px-4">
-                <span className="text-gray-900 font-semibold">Net Amount</span>
-                <span className="font-bold text-black text-xl">{transaction.netAmount}</span>
-              </div>
-            </div>
-          </Section>
-
-          <Section title="Additional Details">
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-gray-500 mb-2">Transaction Type</div>
-                <div className="font-medium text-gray-900 bg-gray-50 px-4 py-3 rounded-lg">
-                  {transaction.type}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500 mb-2">Description</div>
-                <div className="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg leading-relaxed">
-                  {transaction.description}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-500 mb-2">Notes</div>
-                <div className="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg leading-relaxed">
-                  {transaction.notes}
-                </div>
-              </div>
-            </div>
-          </Section> */}
 
         </div>
 

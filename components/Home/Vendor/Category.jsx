@@ -4,7 +4,7 @@ import Navbar from '../Navs/Headers';
 import { ADD_CLIENTS_TO_CATEGORY, CREATE_CLIENT_CATEGORY } from '../../Auths/mutations/userMutations';
 import { FETCH_BUSINESS_CLIENTS, FETCH_TRANSACTION_POLICIES, GET_CATEGORIES } from '../../Auths/queries/userQueries';
 import { useMutation, useQuery } from '@apollo/client';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { getItemFromLocalStorage } from '../../../utils/helpers';
 import { useStateValue } from '../../../providers/stateProvider';
 

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router";
-import useAuth from "../../Hooks/Auths";
+import useAuth from "../../hooks/useAuth";
 import PointingFinger from "../../assets/images/fingerTapping1.jpg";
 
 export default function GetStarted(){

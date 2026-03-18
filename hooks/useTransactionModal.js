@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 
-
 export function useTransactionOpportunity() {
   const [opportunityData, setOpportunityData] = useState(null);
 

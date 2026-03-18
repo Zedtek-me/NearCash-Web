@@ -1,35 +1,37 @@
-import React, { useEffect, useState, useRef } from "react";
-import useAuth from "../../Hooks/Auths";
-import { toast } from "react-toastify";
-import NotificationDialog from "./NotificationDialog";
+import { useEffect, useRef } from "react";
+import toast from "react-hot-toast";
+import useAuth from "../../hooks/useAuth";
+import { useWebSocket } from "./WebSocketProvider";
+import { useStateValue } from "../../providers/stateProvider";
 import {
   fetchAndUpdateUserCurrentLocation,
   updateUserPosition,
 } from "../../utils/helpers";
-import { useStateValue } from "../../providers/stateProvider";
-import { useWebSocket } from "./WebSocketProvider";
 
+
+// ─── Audio / vibration helpers ───────────────────────────────────────────────
 
 const playAlertTone = () => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtx = window.AudioContext || window["webkitAudioContext"];
+    const ctx = new AudioCtx();
     const playBeep = (startTime, frequency, duration) => {
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, startTime);
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
-      gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frequency, startTime);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
+      gain.gain.linearRampToValueAtTime(0, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
     };
     playBeep(ctx.currentTime, 880, 0.15);
     playBeep(ctx.currentTime + 0.2, 1100, 0.15);
-  } catch (err) {
-    console.warn("Audio playback failed:", err);
+  } catch {
+    // audio blocked — silent fallback
   }
 };
 
@@ -38,26 +40,26 @@ const triggerVibration = () => {
 };
 
 
-const sendPushNotification = async (data, onClick) => {
+// ─── Push notification helper ─────────────────────────────────────────────────
+
+const sendPushNotification = async (title, body, onClick) => {
   if (!("Notification" in window)) return;
   if (Notification.permission === "default") await Notification.requestPermission();
   if (Notification.permission !== "granted") return;
 
-  const title = data.message_type || "New Transaction";
-  const body  = data?.message || "You have a new notification";
-
-  const notification = new Notification(title, {
-    body,
-    tag: data.message_type,
-    renotify: true,
-  });
-
-  if (onClick) notification.onclick = onClick;
-
-  setTimeout(() => notification.close(), 10000);
+  const notif = new Notification(title, { body, tag: title, renotify: true });
+  if (onClick) notif.onclick = onClick;
+  setTimeout(() => notif.close(), 10000);
 };
 
 
+// ─── Message type constants ───────────────────────────────────────────────────
+
+/**
+ * These message types trigger user-visible toast notifications.
+ * Keep in sync with the backend's notify_client_of_txn_status and
+ * other_vendor_transaction_notif tasks.
+ */
 export const PUSH_NOTIF_MSG_TYPES = [
   "New Transaction Interest",
   "Transaction Initiated!",
@@ -67,6 +69,10 @@ export const PUSH_NOTIF_MSG_TYPES = [
   "Vendor Response Delayed",
 ];
 
+/**
+ * These are silent protocol messages — they carry data for UI updates
+ * but must not produce any toast.
+ */
 export const EXCLUSIVE_MSGS = [
   "vendor_location_update_ack",
   "client_location_update_ack",
@@ -74,26 +80,33 @@ export const EXCLUSIVE_MSGS = [
   "client_latest_location",
   "error",
   "No Available Vendors",
-  "Vendor Response Delayed"
+  "Vendor Response Delayed",
 ];
 
 const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
-
 const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
 
 
+// ─── NotificationSocket component ─────────────────────────────────────────────
+
+/**
+ * Mounts once per dashboard page (ClientDashboard or VendorDashboard).
+ * Responsibilities:
+ *  1. Listen to WebSocket messages and route them.
+ *  2. Fire exactly ONE toast per notification message (react-hot-toast only).
+ *  3. Call onOpportunity for vendor opportunity messages.
+ *  4. Keep the user's live location streaming to the backend.
+ *
+ * NOT mounted at the app root — each dashboard mounts its own instance.
+ */
 const NotificationSocket = ({ onOpportunity }) => {
-  const socket = useWebSocket();
-  const [messages, setMessages] = useState("");
+  const socket    = useWebSocket();
   const { userData } = useAuth();
   const permissionRequested = useRef(false);
 
-  const [
-    {
-      businessStates: { selectedBusiness },
-    },
-  ] = Object.values(useStateValue());
+  const [{ businessStates: { selectedBusiness } }] = Object.values(useStateValue());
 
+  // ── Request browser notification permission once ─────────────────────────
   useEffect(() => {
     if (
       !permissionRequested.current &&
@@ -105,21 +118,21 @@ const NotificationSocket = ({ onOpportunity }) => {
     }
   }, []);
 
-  
+  // ── Re-open any opportunity that arrived while the page was backgrounded ─
   useEffect(() => {
     const pending = localStorage.getItem(PENDING_OPPORTUNITY_KEY);
     if (pending && onOpportunity) {
       try {
-        const data = JSON.parse(pending);
-        onOpportunity(data);
-      } catch (e) {
-        console.warn("Could not parse pending opportunity:", e);
+        onOpportunity(JSON.parse(pending));
+      } catch {
+        // malformed stored data — discard
       } finally {
         localStorage.removeItem(PENDING_OPPORTUNITY_KEY);
       }
     }
   }, [onOpportunity]);
 
+  // ── Main WebSocket message handler ───────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
@@ -132,97 +145,77 @@ const NotificationSocket = ({ onOpportunity }) => {
       }
 
       const { message_type } = (
-        data instanceof Object && !Array.isArray(data)
+        data && typeof data === "object" && !Array.isArray(data)
           ? data
           : { message_type: data }
       );
 
-      console.log(message_type, data);
-      
-
+      // ── Transaction opportunity (vendor only) ──────────────────────────
       if (message_type === OPPORTUNITY_MSG_TYPE) {
         playAlertTone();
         triggerVibration();
-
-  
 
         if (onOpportunity) {
           onOpportunity(data);
         }
 
+        const amount     = Number(data?.amount || 0).toLocaleString();
+        const clientName = data?.client_name || "a client";
+
         sendPushNotification(
-          {
-            ...data,
-            message: `₦${Number(data?.amount || 0).toLocaleString()} cash request from ${data?.client_name || "a client"}`,
-          },
+          "New Cash Request",
+          `₦${amount} from ${clientName}`,
           () => {
             localStorage.setItem(PENDING_OPPORTUNITY_KEY, JSON.stringify(data));
             window.focus();
-            if (window.location.pathname !== "/dashboard/vendor") { window.location.href = "/dashboard/vendor"; }
+            if (window.location.pathname !== "/dashboard/vendor") {
+              window.location.href = "/dashboard/vendor";
+            }
           }
         );
 
-        toast.info(
-          `New opportunity: ₦${Number(data?.amount || 0).toLocaleString()} from ${data?.client_name || "client"}`,
-          {
-            position: "top-right",
-            autoClose: 8000,
-            onClick: () => onOpportunity && onOpportunity(data),
-          }
-        );
+        toast(`New opportunity: ₦${amount} from ${clientName}`, {
+          duration: 8000,
+          icon: "💰",
+        });
 
-        return; 
+        return;
       }
 
+      // ── Silent protocol messages — no toast ────────────────────────────
+      if (EXCLUSIVE_MSGS.includes(message_type)) return;
+
+      // ── User-facing notification messages — single toast ───────────────
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
-        sendPushNotification(data);
-        triggerVibration();
         playAlertTone();
-      }
+        triggerVibration();
+        sendPushNotification(message_type, data?.message || "");
 
-      if (!EXCLUSIVE_MSGS.includes(message_type)) {
-        if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
-          setMessages(`${message_type} \n Amount: ${data?.txn_info?.amount}`);
-          toast.info(message_type, { position: "top-right", autoClose: 4000 });
-        } else {
-          setMessages(event.data);
-          toast.info(message_type, { position: "top-right", autoClose: 4000 });
-        }
+        const amount = data?.txn_info?.amount;
+        const label  = amount
+          ? `${message_type} · ₦${Number(amount).toLocaleString()}`
+          : message_type;
+
+        toast(label, { duration: 5000 });
       }
     };
-
-    const onError = (e) => console.log("WS error in Notification module:", e);
-    const onClose = () => console.log("WS closed in Notification module");
 
     socket.addEventListener("message", onMessage);
-    socket.addEventListener("error", onError);
-    socket.addEventListener("close", onClose);
-
-    return () => {
-      socket.removeEventListener("message", onMessage);
-      socket.removeEventListener("error", onError);
-      socket.removeEventListener("close", onClose);
-    };
+    return () => socket.removeEventListener("message", onMessage);
   }, [socket, onOpportunity]);
 
+  // ── Live location streaming ──────────────────────────────────────────────
   useEffect(() => {
-    if (userData?.id) {
-      fetchAndUpdateUserCurrentLocation(
-        updateUserPosition,
-        (err) => console.log("error fetching coordinates:", err),
-        { ...userData, selectedBusiness },
-        socket
-      );
-    }
+    if (!userData?.id) return;
+    return fetchAndUpdateUserCurrentLocation(
+      updateUserPosition,
+      () => {},
+      { ...userData, selectedBusiness },
+      socket
+    );
   }, [socket, userData?.id, selectedBusiness]);
 
-  return (
-    <div>
-      {messages && (
-        <NotificationDialog message={messages} setMessage={setMessages} />
-      )}
-    </div>
-  );
+  return null;
 };
 
 export default NotificationSocket;

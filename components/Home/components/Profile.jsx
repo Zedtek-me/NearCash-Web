@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, Edit2, Save, X, Camera, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Edit2, Save, X, Camera, CheckCircle } from 'lucide-react';
 import { UpdateUserMutation } from '../../Auths/mutations/userMutations';
-import useAuth from '../../../Hooks/Auths';
+import useAuth from '../../../hooks/useAuth';
 import { useMutation } from '@apollo/client';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 import { cloudinaryName, cloudinaryPreset } from '../../../configs/environs';
 
 export default function ProfilePage() {
-  const { updateUser, clearUser, userData } = useAuth();
+  const { userData } = useAuth();
   const [updateUserInfo, { loading }] = useMutation(UpdateUserMutation);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,15 +35,11 @@ export default function ProfilePage() {
   if (typeof userData.meta === 'string') {
     try {
       parsedMeta = JSON.parse(userData.meta);
-      console.log('Parsed meta:', parsedMeta);
-      
     } catch (e) {
       parsedMeta = {};
     }
   } else if (typeof userData.meta === 'object' && userData.meta !== null) {
     parsedMeta = userData.meta;
-      console.log('Parsed metattttt:', parsedMeta);
-
   }
 
   setFormData({
@@ -140,7 +135,7 @@ export default function ProfilePage() {
           }
         }
       }).then(({ data }) => {
-        const { message, user } = data?.updateUser || {};
+        const { message } = data?.updateUser || {};
         toast.success(message || 'Profile updated successfully!');
         
         setFormData(prev => ({
@@ -153,7 +148,6 @@ export default function ProfilePage() {
         toast.error(err?.message || 'Failed to update profile');
       });
 
-      setShowSuccess(true);
       setIsEditing(false);
     } catch (error) {
       toast.error('Failed to upload image. Please try again.');
@@ -391,22 +385,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(400px);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

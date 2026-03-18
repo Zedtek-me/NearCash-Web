@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, useLoadScript, Marker, Polyline } from '@react-google-maps/api';
-import { MapPin, User, X } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { fetchAndUpdateUserCurrentLocation, fetchUserLatestLocation, updateUserPosition } from '../../../utils/helpers';
 import { google_key } from '../../../configs/environs';
 import { useWebSocket } from '../../Notification/WebSocketProvider';
@@ -18,20 +18,6 @@ const mapOptions = {
   fullscreenControl: false,
 };
 
-function svgToDataUrl(svgComponent) {
-  // Render the SVG to a string with desired size + fill color
-  const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
-         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-         stroke-linejoin="round">
-      ${svgComponent}
-    </svg>
-  `.trim();
-
-  // Encode as base64 data URL
-  return `data:image/svg+xml;base64,${btoa(svgString)}`;
-}
-
 export default function TransactionMap({
   txnId,
   status,
@@ -48,7 +34,6 @@ export default function TransactionMap({
 
   const isPending = ['INITIATED', 'IN_PROGRESS'].includes(status);
   const isVendor = userData?.userType === 'VENDOR';
-  const movingRole = collectionMode === 'STORE_WALK_IN' ? 'CLIENT' : 'VENDOR';
   const transactionBusiness = transaction?.business;
 
 
@@ -85,7 +70,6 @@ export default function TransactionMap({
     if (!socket || socket.readyState !== 1) return;
     if (!isPending || !txnId || !userData) return;
 
-    console.log("📡 Socket ready — enabling live map tracking...");
 
     // Start sending current user location every X seconds
     fetchAndUpdateUserCurrentLocation(
@@ -111,8 +95,6 @@ export default function TransactionMap({
           case "vendor_latest_location":
             
             if (data.location?.latitude && data.location?.longitude) {
-            console.log('got vendor location', data);
-
               setVendorLoc({
                 latitude: Number(data.location.latitude),
                 longitude: Number(data.location.longitude)
@@ -123,8 +105,6 @@ export default function TransactionMap({
           case "client_latest_location":
 
             if (data.location?.latitude && data.location?.longitude) {
-            console.log('got client location', data);
-
               setClientLoc({
                 latitude: Number(data.location.latitude),
                 longitude: Number(data.location.longitude)
@@ -179,8 +159,6 @@ export default function TransactionMap({
       transactionBusiness?.location || vendorLoc
     );
   }
-  console.log('vendorLoc::: ', vendorLoc, "client loc::: ", clientLoc, "other party location:::: ", otherPartyLocation);
-  console.log("transaction business ", transactionBusiness);
 
   if (!centerLocation) {
     return (
@@ -199,14 +177,6 @@ export default function TransactionMap({
   if (loadError) return <div>Error loading map</div>;
   if (!isLoaded) return <div>Loading Google Maps...</div>;
 
- const customerIcon = {
-  url: svgToDataUrl(
-    <User className="w-full h-full" color="#000" strokeWidth={3} />
-  ),
-  scaledSize: new google.maps.Size(48, 48),
-  anchor: new google.maps.Point(24, 48),      // bottom center of the pin
-  labelOrigin: new google.maps.Point(24, 18), // where the "C"/"V" sits
-};
   return (
     <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
       <div className="h-96 relative">
