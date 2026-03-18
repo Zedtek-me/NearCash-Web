@@ -77,15 +77,17 @@ export default function ClientDashboard() {
   const [assetId, setAssetId]                = useState(null);
   const [amount, setAmount]                  = useState("");
   const [selectedPolicy, setSelectedPolicy]  = useState(null);
+  const [selectedAssetRange, setSelectedAssetRange] = useState(null);
 
   const [fetchPolicies, { data: policiesData, loading: policiesLoading }] =
     useLazyQuery(GET_VENDOR_POLICIES);
 
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
 
-  const handleInitiateTransaction = (vendor, rangeAssetId) => {
+  const handleInitiateTransaction = (vendor, rangeAssetId, assetRange) => {
     setSelectedVendor(vendor);
     setAssetId(rangeAssetId);
+    setSelectedAssetRange(assetRange ?? null);
     setShowTransactionModal(true);
     fetchPolicies({ variables: { businessId: String(vendor.id) } });
   };
@@ -342,7 +344,7 @@ export default function ClientDashboard() {
                               <span className="text-sm text-gray-600">Range: {formatRange(asset.range)}</span>
                               <span className="font-medium text-green-600">₦{formatAmount(asset.chargeRate)}</span>
                               <button
-                                onClick={() => handleInitiateTransaction(store, asset.id)}
+                                onClick={() => handleInitiateTransaction(store, asset.id, asset.range)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                               >
                                 Request Cash
@@ -410,7 +412,8 @@ export default function ClientDashboard() {
           policiesData={policiesData}
           policiesLoading={policiesLoading}
           onSubmit={handleSubmitTransaction}
-          onClose={() => { setShowTransactionModal(false); setAmount(""); setSelectedPolicy(null); }}
+          assetRange={selectedAssetRange}
+          onClose={() => { setShowTransactionModal(false); setAmount(""); setSelectedPolicy(null); setSelectedAssetRange(null); }}
           submitting={creating}
         />
       )}

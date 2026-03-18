@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Check,
   X,
-  Clock,
   User,
   Calendar,
   CreditCard,
@@ -13,219 +12,214 @@ import {
   Mail,
   Phone,
   FileText,
-  AlertCircle,
-  HandHelping
+  HandHelping,
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_TRANSACTION } from '../Dashboards/queries/analytics';
 import useAuth from '../../../hooks/useAuth';
-import { handleBackToggle, getDateAndTimeFromDateTimeStr } from '../../../utils/helpers';
 import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 import TransactionMap from './TransactionMap';
 
+// ── Status config ─────────────────────────────────────────────────────────────
+
+const STATUS_CFG = {
+  FULFILLED:   { label: 'Fulfilled',   pill: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  INITIATED:   { label: 'Initiated',   pill: 'bg-amber-100  text-amber-700',    dot: 'bg-amber-500'   },
+  IN_PROGRESS: { label: 'In Progress', pill: 'bg-blue-100   text-blue-700',     dot: 'bg-blue-500'    },
+  DECLINED:    { label: 'Declined',    pill: 'bg-red-100    text-red-700',       dot: 'bg-red-500'     },
+  CANCELLED:   { label: 'Cancelled',   pill: 'bg-red-100    text-red-700',       dot: 'bg-red-500'     },
+};
+
+// ── Date formatter ────────────────────────────────────────────────────────────
+
+const formatTxnDate = (dateStr) => {
+  if (!dateStr) return '—';
+  const d  = new Date(dateStr);
+  const tz = 'Africa/Lagos';
+  const weekday  = d.toLocaleDateString('en-GB', { weekday: 'long', timeZone: tz });
+  const datePart = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: tz });
+  const timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz })
+                    .toLowerCase().replace(' ', '');
+  return `${weekday}, ${datePart} · ${timePart} WAT`;
+};
+
+const STEPS = [
+  { key: 'INITIATED',   label: 'Initiated'    },
+  { key: 'IN_PROGRESS', label: 'In Progress'  },
+  { key: 'FULFILLED',   label: 'Fulfilled'    },
+];
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function InfoRow({ icon: Icon, label, value, highlight = false, mono = false }) {
+  return (
+    <div className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+      <div className="mt-0.5 flex-shrink-0">
+        <Icon size={15} className="text-gray-400" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+        <p className={`break-words ${
+          highlight
+            ? 'text-sm font-semibold text-gray-900'
+            : mono
+            ? 'text-xs font-mono text-gray-600'
+            : 'text-sm text-gray-700'
+        }`}>
+          {value || '—'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Card({ title, children }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      </div>
+      <div className="divide-y divide-gray-50">{children}</div>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export default function TransactionDetails() {
   const { userData } = useAuth();
-  const params = useParams()
-  const navigate = useNavigate()
-  const { userData: { userType } } = useAuth()
+  const params = useParams();
+  const navigate = useNavigate();
+  const { userData: { userType } } = useAuth();
   const [clientLocation, setClientLocation] = useState(null);
-const [vendorLocation, setVendorLocation] = useState(null);
+  const [vendorLocation, setVendorLocation] = useState(null);
 
-  const transactionId = params?.id
+  const transactionId = params?.id;
 
-  const {
-    data: transactionData,
-    refetch
-  } = useQuery(
-    GET_TRANSACTION, {
-      variables: {
-        transactionId: transactionId
-      },
-      skip: !transactionId
-    }
-  )
+  const { data: transactionData, refetch } = useQuery(GET_TRANSACTION, {
+    variables: { transactionId },
+    skip: !transactionId,
+  });
 
-  const transaction = transactionData?.transaction || {}
+  const transaction = transactionData?.transaction || {};
 
   useEffect(() => {
-  if (!transaction?.meta) return;
+    if (!transaction?.meta) return;
+    try {
+      const meta = JSON.parse(transaction.meta);
+      if (meta.client_current_location) {
+        const loc = meta.client_current_location;
+        setClientLocation({ lat: loc.latitude, lng: loc.longitude });
+      }
+      if (meta.vendor_current_location) {
+        const loc = meta.vendor_current_location;
+        setVendorLocation({ lat: loc.latitude, lng: loc.longitude });
+      }
+    } catch {}
+  }, [transaction]);
 
-  try {
-    const meta = JSON.parse(transaction.meta); // Parse the JSON string
+  // ── Amount formatting ───────────────────────────────────────────────────────
 
-    // Client location (always sent)
-    if (meta.client_current_location) {
-      const loc = meta.client_current_location;
-      setClientLocation({
-        lat: loc.latitude,
-        lng: loc.longitude
-      });
-    }
-
-    // Vendor location (only sent when vendor moves)
-    if (meta.vendor_current_location) {
-      const loc = meta.vendor_current_location;
-      setVendorLocation({
-        lat: loc.latitude,
-        lng: loc.longitude
-      });
-    }
-
-    
-
-  } catch (err) {
-    console.log("Failed to parse meta:", err);
-  }
-}, [transaction]);
   const formatTrxnAmount = (amount) => {
-    switch(userType){
-      case "VENDOR":
-        if(amount.includes("+")) return amount?.replace("+", "-");
+    switch (userType) {
+      case 'VENDOR':
+        if (amount.includes('+')) return amount.replace('+', '-');
         return `-${amount}`;
-      case "CLIENT":
-        if(!amount?.includes("+")) return `+${amount}`;
-        return amount
+      case 'CLIENT':
+        if (!amount?.includes('+')) return `+${amount}`;
+        return amount;
       default:
         return amount;
     }
-  }
-  const formattedAmount = formatTrxnAmount(String(transactionData?.transaction?.amount))
-  const amountSign    = ["+", "-"].includes(formattedAmount?.[0]) ? formattedAmount[0] : "";
-  const amountDisplay = `${amountSign}${Number((formattedAmount || "0").replace(/[+-]/, "") || 0).toLocaleString()}`;
-  const [localDate, localTime] = getDateAndTimeFromDateTimeStr(transactionData?.transaction?.dateCreated || Date.now())
+  };
 
-  const trxnClient = transactionData?.transaction?.client;
-  const trxnVendor = transactionData?.transaction?.vendor;
-  const trxnBusiness = transactionData?.transaction?.business
+  const formattedAmount  = formatTrxnAmount(String(transactionData?.transaction?.amount));
+  const amountSign       = ['+', '-'].includes(formattedAmount?.[0]) ? formattedAmount[0] : '';
+  const amountDisplay    = `${amountSign}${Number((formattedAmount || '0').replace(/[+-]/, '') || 0).toLocaleString()}`;
+  const netAmount        = Number(
+    parseFloat((formattedAmount || '0').replace(/[+-]/, '')) - (transaction?.charge || 0)
+  ).toLocaleString();
+
+  const txnDate = formatTxnDate(transactionData?.transaction?.dateCreated);
+
+  // ── Participants ────────────────────────────────────────────────────────────
+
+  const trxnClient   = transactionData?.transaction?.client;
+  const trxnVendor   = transactionData?.transaction?.vendor;
+  const trxnBusiness = transactionData?.transaction?.business;
+
   const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
-  
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'FULFILLED': return 'bg-green-100 text-green-700 border-green-200';
-      case 'INITIATED': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'DECLINED': return 'bg-red-100 text-red-700 border-red-200';
-      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  const getSectionTitle = (type) => {
+    if (type === 'VENDOR') return 'Customer Information';
+    if (type === 'CLIENT') return 'Vendor Information';
+    return 'Party Information';
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'FULFILLED': return <Check className="w-5 h-5" />;
-      case 'INITIATED': return <Clock className="w-5 h-5" />;
-      case 'CANCELLED': return <X className="w-5 h-5" />;
-      case 'DECLINED': return <X className="w-5 h-5" />;
-      default: return <AlertCircle className="w-5 h-5" />;
-    }
+  const getTrxnUserInfo = (type) => {
+    if (type === 'VENDOR') return {
+      name:        trxnClient?.fullName,
+      email:       trxnClient?.email,
+      phoneNumber: trxnClient?.phoneNumber || 'N/A',
+      location:    trxnBusiness?.address  || 'N/A',
+    };
+    if (type === 'CLIENT') return {
+      name:        trxnVendor?.fullName,
+      email:       trxnVendor?.email,
+      phoneNumber: trxnVendor?.phoneNumber || 'N/A',
+      location:    trxnBusiness?.address  || 'N/A',
+    };
+    return {
+      name:        trxnClient?.fullName,
+      email:       trxnClient?.email,
+      phoneNumber: trxnClient?.phoneNumber || 'N/A',
+      location:    trxnClient?.transaction?.txnLocation,
+    };
   };
 
-  const getSectionTitle = (userType) => {
-    switch (userType){
-      case "VENDOR":
-        return "Customer Information";
-      case "CLIENT":
-        return "Vendor Information";
-      default: return "Transaction Information";
-    }
-  }
+  const trxnUserInfo = getTrxnUserInfo(userType);
 
-  const getTrxnUserInfo = (userType) => {
-    switch(userType){
-      case "VENDOR": return {
-        name: trxnClient?.fullName,
-        email: trxnClient?.email,
-        phoneNumber: trxnClient?.phoneNumber || "N/A",
-        location: trxnBusiness?.address || "N/A"
-      }
-      case "CLIENT": return {
-        name: trxnVendor?.fullName,
-        email: trxnVendor?.email,
-        phoneNumber: trxnVendor?.phoneNumber || "N/A",
-        location: trxnBusiness?.address || "N/A"
-      }
-      default: return {
-        name: trxnClient?.fullName,
-        email: trxnClient?.email,
-        phoneNumber: trxnClient?.phoneNumber || "N/A",
-        location: trxnClient?.transaction?.txnLocation
-      }
-    }
-  }
-
-  const trxnUserInfo = getTrxnUserInfo(userType)
-
-  const InfoRow = ({ icon: Icon, label, value, highlight = false }) => (
-    <div className="flex items-start space-x-3 py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-4 -mx-4 rounded-lg transition-colors duration-200">
-      <div className="mt-0.5">
-        <Icon className="w-5 h-5 text-gray-400" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm text-gray-500 mb-1">{label}</div>
-        <div className={`font-medium ${highlight ? 'text-black text-lg' : 'text-gray-900'} break-words`}>
-          {value}
-        </div>
-      </div>
-    </div>
-  );
-
-  const Section = ({ title, children }) => (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
-        <h2 className="text-lg font-bold text-white">{title}</h2>
-      </div>
-      <div className="p-6">
-        {children}
-      </div>
-    </div>
-  );
-
-  const date = new Date(transaction.dateCreated).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).replace(',', ':');
-
-  function formatLabel(text) {
-  if (!text) return '';
-  return text
-    .toLowerCase()  
-    .split('_')      
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');  
-}
-
-const handleUpdateStatus = async (id, status) => {
+  const handleUpdateStatus = async (id, status) => {
     try {
       const { data } = await updateStatus({ variables: { id, status } });
-      refetch()
-      toast.success(`Transaction approved: ${data.updateTransactionStatus.message}`);
+      refetch();
+      toast.success(`Transaction updated: ${data.updateTransactionStatus.message}`);
     } catch (err) {
-      toast.error(err.message || "Failed to approve transaction");
+      toast.error(err.message || 'Failed to update transaction');
     }
   };
 
-  const goBack = () => {
-    navigate(-1);
-  };
+  // ── Derived flags ────────────────────────────────────────────────────────────
 
+  const isPending          = ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status);
+  const isTerminal         = ['DECLINED', 'CANCELLED', 'FULFILLED'].includes(transaction?.status);
+  const statusCfg          = STATUS_CFG[transaction?.status] || STATUS_CFG.INITIATED;
+  const currentStepIdx     = STEPS.findIndex((s) => s.key === transaction?.status);
+  const isPositive         = formattedAmount?.startsWith('+');
+
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <Navbar user={userData}/>
-      <div className="max-w-7xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className='flex mb-5 cursor-pointer' onClick={goBack}><ArrowLeft /> Back</div>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar user={userData} />
 
-        {(
-          ['INITIATED', 'IN_PROGRESS'].includes(transaction?.status)
-        )
-          && (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-16">
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 mb-6 transition-colors text-sm font-medium"
+        >
+          <ArrowLeft size={17} />
+          Back
+        </button>
+
+        {/* Live map */}
+        {isPending && (
           <TransactionMap
             txnId={transaction.id}
             status={transaction.status}
@@ -237,88 +231,143 @@ const handleUpdateStatus = async (id, status) => {
             transaction={transaction}
           />
         )}
-        
-        <div className="bg-gradient-to-br from-black to-gray-900 rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-gray-800">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-            <div className="text-center sm:text-left">
-              <div className="text-gray-400 text-sm mb-2">Transaction Amount</div>
-              <div className={`text-4xl sm:text-5xl font-bold ${
-                formattedAmount?.startsWith('+') ? 'text-green-400' : 'text-red-400'
+
+        {/* ── Hero card ── */}
+        <div className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-900 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+            {/* Amount block */}
+            <div>
+              <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-2">
+                Transaction Amount
+              </p>
+              <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight ${
+                isPositive ? 'text-emerald-400' : 'text-rose-400'
               }`}>
                 ₦ {amountDisplay}
-              </div>
-              <div className="text-gray-500 text-sm mt-2">Net: ₦{Number(parseFloat((formattedAmount || "0").replace(/[+-]/, "")) - (transaction?.charge || 0)).toLocaleString()}</div>
+              </p>
+              <p className="text-indigo-400 text-sm mt-2">
+                Net after fees: <span className="text-indigo-200 font-medium">₦{netAmount}</span>
+              </p>
             </div>
-            <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction?.status)} shadow-lg`}>
-              {getStatusIcon(transaction?.status)}
-              <span className="text-lg">{transaction?.status}</span>
+
+            {/* Status + meta */}
+            <div className="flex flex-col items-start sm:items-end gap-2 sm:text-right">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusCfg.pill}`}>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
+                {statusCfg.label}
+              </span>
+              <p className="text-indigo-300 text-xs font-mono tracking-wide">{transaction?.txnRef}</p>
+              <p className="text-indigo-400 text-xs">{txnDate}</p>
             </div>
           </div>
-        </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          
-          <Section title="Transaction Information">
-            <div className="space-y-2">
-              <InfoRow icon={Hash} label="Transaction ID" value={transaction?.id} />
-              <InfoRow icon={FileText} label="Reference" value={transaction?.txnRef} />
-              <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
-              <InfoRow icon={CreditCard} label="Amount Demanded" value={`₦${Number(transaction?.amount || 0).toLocaleString()}`} />
-              <InfoRow icon={Hash} label="Transaction Fee" value={`₦${Number(transaction?.charge || 0).toLocaleString()}`} />
-              <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
-              <InfoRow icon={FileText} label="Vendor" value={transaction?.business?.name} />
+          {/* Progress steps — hidden for terminal declined/cancelled */}
+          {!['DECLINED', 'CANCELLED'].includes(transaction?.status) && (
+            <div className="mt-7 pt-6 border-t border-indigo-800/60">
+              <div className="flex items-center justify-between relative">
+                {/* Track */}
+                <div className="absolute inset-x-0 top-3 h-px bg-indigo-800/70" />
+
+                {STEPS.map((step, idx) => {
+                  const done   = currentStepIdx > idx;
+                  const active = currentStepIdx === idx;
+                  return (
+                    <div key={step.key} className="flex flex-col items-center gap-2 z-10">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${
+                        done
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : active
+                          ? 'bg-white border-white'
+                          : 'bg-indigo-900 border-indigo-700'
+                      }`}>
+                        {done
+                          ? <Check size={12} className="text-white" />
+                          : <span className={`w-2 h-2 rounded-full ${active ? 'bg-indigo-600' : 'bg-indigo-700'}`} />
+                        }
+                      </div>
+                      <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${
+                        done || active ? 'text-white' : 'text-indigo-500'
+                      }`}>
+                        {step.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </Section>
-
-          {/* Customer Information */}
-          {userType == "VENDOR" && (
-            <Section title={getSectionTitle(userType)}>
-            <div className="space-y-2">
-              <InfoRow icon={User} label={userType == "VENDOR" ? "Customer Name": "Vendor Name"} value={trxnUserInfo?.fullName} highlight />
-              <InfoRow icon={Mail} label="Email Address" value={trxnUserInfo?.email} />
-              <InfoRow icon={Phone} label="Phone Number" value={trxnUserInfo?.phoneNumber} />
-              {userType == "CLIENT" && <InfoRow icon={MapPin} label="Vendor Business Address" value={trxnUserInfo?.location} />}
-              <InfoRow icon={Building} label="City" value={trxnUserInfo?.city} />
-            </div>
-          </Section>
           )}
-          
-         
-
-
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-          {transaction.status === 'INITIATED' && userData?.userType === 'VENDOR' && (
-            <button  onClick={() => {
-                handleUpdateStatus(transaction.id, 'IN_PROGRESS');
-              }}  className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-            <Check className="w-5 h-5" />
-            <span>Approve Transaction</span>
-          </button>
-          )}
+        {/* ── Info cards ── */}
+        <div className={
+          userType === 'VENDOR'
+            ? 'grid lg:grid-cols-2 gap-5'
+            : 'max-w-2xl mx-auto'
+        }>
+          {/* Transaction details */}
+          <Card title="Transaction Details">
+            <InfoRow icon={Hash}        label="Transaction ID"   value={transaction?.id}           mono />
+            <InfoRow icon={FileText}    label="Reference"        value={transaction?.txnRef}        mono />
+            <InfoRow icon={Calendar}    label="Date & Time"      value={txnDate} />
+            <InfoRow icon={CreditCard}  label="Amount Demanded"  value={`₦${Number(transaction?.amount || 0).toLocaleString()}`} highlight />
+            <InfoRow icon={Hash}        label="Transaction Fee"  value={`₦${Number(transaction?.charge || 0).toLocaleString()}`} />
+            <InfoRow icon={HandHelping} label="Collection Mode"  value={transaction?.collectionMode?.replaceAll('_', ' ')} />
+            <InfoRow icon={Building}    label="Vendor"           value={transaction?.business?.name} />
+          </Card>
 
-          {userData?.userType === 'VENDOR' && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
-          <button onClick={() => {
-                handleUpdateStatus(transaction.id, 'DECLINED');
-              }} className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-            <X className="w-5 h-5" />
-            <span>Reject Transaction</span>
-          </button>
+          {/* Customer / vendor info — vendor view only */}
+          {userType === 'VENDOR' && (
+            <Card title={getSectionTitle(userType)}>
+              <InfoRow icon={User}     label={userType === 'VENDOR' ? 'Customer Name' : 'Vendor Name'} value={trxnUserInfo?.name} highlight />
+              <InfoRow icon={Mail}     label="Email Address"       value={trxnUserInfo?.email} />
+              <InfoRow icon={Phone}    label="Phone Number"        value={trxnUserInfo?.phoneNumber} />
+              {userType === 'CLIENT' && (
+                <InfoRow icon={MapPin} label="Business Address"    value={trxnUserInfo?.location} />
+              )}
+              <InfoRow icon={Building} label="City"               value={trxnUserInfo?.city} />
+            </Card>
           )}
-
-          {userData?.userType !== 'VENDOR' && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
-          <button onClick={() => {
-                handleUpdateStatus(transaction.id, 'CANCELLED');
-              }} className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
-            <X className="w-5 h-5" />
-            <span>Cancel Transaction</span>
-          </button>
-          )}
-          
-         
-          
         </div>
+
+        {/* ── Action buttons ── */}
+        {isPending && (
+          <div className={`mt-6 flex flex-col sm:flex-row gap-3 ${
+            userType === 'VENDOR' ? '' : 'max-w-2xl mx-auto'
+          }`}>
+            {/* Vendor: Approve */}
+            {transaction.status === 'INITIATED' && userData?.userType === 'VENDOR' && (
+              <button
+                onClick={() => handleUpdateStatus(transaction.id, 'IN_PROGRESS')}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-sm"
+              >
+                <Check size={17} />
+                Approve Transaction
+              </button>
+            )}
+
+            {/* Vendor: Reject */}
+            {userData?.userType === 'VENDOR' && (
+              <button
+                onClick={() => handleUpdateStatus(transaction.id, 'DECLINED')}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-xl font-semibold transition-all shadow-sm"
+              >
+                <X size={17} />
+                Reject Transaction
+              </button>
+            )}
+
+            {/* Client: Cancel */}
+            {userData?.userType !== 'VENDOR' && (
+              <button
+                onClick={() => handleUpdateStatus(transaction.id, 'CANCELLED')}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-xl font-semibold transition-all shadow-sm"
+              >
+                <X size={17} />
+                Cancel Transaction
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

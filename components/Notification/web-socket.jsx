@@ -224,6 +224,13 @@ const NotificationSocket = ({ onOpportunity, onNewInterest }) => {
         return;
       }
 
+      // ── Delayed-response alert — sound + vibration only, no toast ────────
+      if (message_type === "Vendor Response Delayed") {
+        playAlertTone();
+        triggerVibration();
+        return;
+      }
+
       // ── Silent protocol messages — no toast ────────────────────────────
       if (EXCLUSIVE_MSGS.includes(message_type)) return;
 
