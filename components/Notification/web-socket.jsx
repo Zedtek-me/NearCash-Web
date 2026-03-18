@@ -120,7 +120,6 @@ export const EXCLUSIVE_MSGS = [
   "client_location_update_ack",
   "vendor_latest_location",
   "client_latest_location",
-  "error",
   "No Available Vendors",
   "Vendor Response Delayed",
   "acceptance_ack",
@@ -230,6 +229,12 @@ const NotificationSocket = ({ onOpportunity, onNewInterest }) => {
       if (message_type === "Vendor Response Delayed") {
         playAlertTone();
         triggerVibration();
+        return;
+      }
+
+      // ── WebSocket errors — toast for visibility ────────────────────────
+      if (message_type === "error") {
+        toast.error(data?.message || "WebSocket error occurred");
         return;
       }
 

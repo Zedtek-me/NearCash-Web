@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle } from "lucide-react";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
 
@@ -12,6 +12,7 @@ export default function TransactionOpportunityModal({
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [failedMessage, setFailedMessage] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const timeoutRef = useRef(null);
@@ -39,6 +40,7 @@ export default function TransactionOpportunityModal({
       setAccepted(false);
       setAccepting(false);
       setFailed(false);
+      setFailedMessage(null);
       setCountdown(null);
 
       const businesses = opportunityData?.txn_info?.businesses ?? [];
@@ -66,6 +68,11 @@ export default function TransactionOpportunityModal({
       } else if (message_type === "opportunity_lost") {
         clearTimeout(timeoutRef.current);
         setAccepting(false);
+        setFailed(true);
+      } else if (message_type === "error") {
+        clearTimeout(timeoutRef.current);
+        setAccepting(false);
+        setFailedMessage(data?.message || null);
         setFailed(true);
       }
     };
@@ -449,10 +456,10 @@ export default function TransactionOpportunityModal({
 
               <div>
                 <p className="text-base font-semibold mb-1" style={{ color: "#f87171" }}>
-                  Opportunity no longer available
+                  {failedMessage ? "Error processing acceptance" : "Opportunity no longer available"}
                 </p>
                 <p className="text-sm" style={{ color: "#64748b" }}>
-                  This transaction was already taken by another vendor or has expired.
+                  {failedMessage || "This transaction was already taken by another vendor or has expired."}
                 </p>
               </div>
 
