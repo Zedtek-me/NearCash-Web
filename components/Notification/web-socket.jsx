@@ -141,7 +141,7 @@ const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
  *
  * NOT mounted at the app root — each dashboard mounts its own instance.
  */
-const NotificationSocket = ({ onOpportunity }) => {
+const NotificationSocket = ({ onOpportunity, onNewInterest }) => {
   const socket    = useWebSocket();
   const { userData } = useAuth();
   const permissionRequested = useRef(false);
@@ -201,8 +201,8 @@ const NotificationSocket = ({ onOpportunity }) => {
           onOpportunity(data);
         }
 
-        const amount     = Number(data?.amount || 0).toLocaleString();
-        const clientName = data?.client_name || "a client";
+        const amount     = Number(data?.txn_info?.amount || 0).toLocaleString();
+        const clientName = data?.txn_info?.client_name || "a client";
 
         sendPushNotification(
           "New Cash Request",
@@ -233,10 +233,21 @@ const NotificationSocket = ({ onOpportunity }) => {
         triggerVibration();
         sendPushNotification(message_type, data?.message || "");
 
-        const amount = data?.txn_info?.amount;
-        const label  = amount
-          ? `${message_type} · ₦${Number(amount).toLocaleString()}`
-          : message_type;
+        const txnInfo    = data?.txn_info;
+        const amount     = txnInfo?.amount;
+        const amountStr  = amount ? `₦${Number(amount).toLocaleString()}` : null;
+
+        let label;
+        if (message_type === "New Transaction Interest") {
+          const clientName  = txnInfo?.client_name || "A client";
+          const bizName     = txnInfo?.vendor_name ? ` → ${txnInfo.vendor_name}` : "";
+          label = amountStr
+            ? `${clientName} wants to withdraw ${amountStr}${bizName}`
+            : `New transaction interest from ${clientName}${bizName}`;
+          onNewInterest?.();
+        } else {
+          label = amountStr ? `${message_type} · ${amountStr}` : message_type;
+        }
 
         toast(label, { duration: 5000 });
       }
@@ -244,7 +255,7 @@ const NotificationSocket = ({ onOpportunity }) => {
 
     socket.addEventListener("message", onMessage);
     return () => socket.removeEventListener("message", onMessage);
-  }, [socket, onOpportunity]);
+  }, [socket, onOpportunity, onNewInterest]);
 
   // ── Live location streaming ──────────────────────────────────────────────
   useEffect(() => {

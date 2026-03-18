@@ -56,7 +56,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
            <span
           className={`font-bold text-gray-800`}
         >
-          ₦{transaction?.amount}
+          ₦{Number(transaction?.amount || 0).toLocaleString()}
         </span>
           <div className="font-medium text-gray-800">{transaction?.name}</div>
           <div className="text-sm text-gray-500"> {new Date(transaction.dateCreated).toLocaleString('en-GB', {

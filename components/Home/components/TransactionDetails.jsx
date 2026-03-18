@@ -93,6 +93,8 @@ const [vendorLocation, setVendorLocation] = useState(null);
     }
   }
   const formattedAmount = formatTrxnAmount(String(transactionData?.transaction?.amount))
+  const amountSign    = ["+", "-"].includes(formattedAmount?.[0]) ? formattedAmount[0] : "";
+  const amountDisplay = `${amountSign}${Number((formattedAmount || "0").replace(/[+-]/, "") || 0).toLocaleString()}`;
   const [localDate, localTime] = getDateAndTimeFromDateTimeStr(transactionData?.transaction?.dateCreated || Date.now())
 
   const trxnClient = transactionData?.transaction?.client;
@@ -243,9 +245,9 @@ const handleUpdateStatus = async (id, status) => {
               <div className={`text-4xl sm:text-5xl font-bold ${
                 formattedAmount?.startsWith('+') ? 'text-green-400' : 'text-red-400'
               }`}>
-                ₦ {formattedAmount}
+                ₦ {amountDisplay}
               </div>
-              <div className="text-gray-500 text-sm mt-2">Net: {`${parseFloat(formattedAmount.replace("-", "")) - transaction?.charge}`}</div>
+              <div className="text-gray-500 text-sm mt-2">Net: ₦{Number(parseFloat((formattedAmount || "0").replace(/[+-]/, "")) - (transaction?.charge || 0)).toLocaleString()}</div>
             </div>
             <div className={`px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 border-2 ${getStatusColor(transaction?.status)} shadow-lg`}>
               {getStatusIcon(transaction?.status)}
@@ -261,8 +263,8 @@ const handleUpdateStatus = async (id, status) => {
               <InfoRow icon={Hash} label="Transaction ID" value={transaction?.id} />
               <InfoRow icon={FileText} label="Reference" value={transaction?.txnRef} />
               <InfoRow icon={Calendar} label="Date & Time" value={`${localDate} at ${localTime}`} />
-              <InfoRow icon={CreditCard} label="Amount Demanded" value={transaction?.amount} />
-              <InfoRow icon={Hash} label="Transaction Fee" value={transaction?.charge} />
+              <InfoRow icon={CreditCard} label="Amount Demanded" value={`₦${Number(transaction?.amount || 0).toLocaleString()}`} />
+              <InfoRow icon={Hash} label="Transaction Fee" value={`₦${Number(transaction?.charge || 0).toLocaleString()}`} />
               <InfoRow icon={HandHelping} label="Collection Mode" value={transactionData?.transaction?.collectionMode?.replaceAll("_", "-")} />
               <InfoRow icon={FileText} label="Vendor" value={transaction?.business?.name} />
             </div>

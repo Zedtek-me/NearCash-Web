@@ -25,6 +25,27 @@ export const getStatusColor = (status) => {
   }
 };
 
+/** Formats a numeric amount with locale-aware thousands separators. */
+export const formatAmount = (value) =>
+  Number(value || 0).toLocaleString();
+
+/**
+ * Formats a range string like "1000-5000" into "1,000 - 5,000".
+ * Each segment separated by "-" is treated as an independent figure.
+ */
+export const formatRange = (range) => {
+  if (!range) return "";
+  return range
+    .split("-")
+    .map((n) => {
+      const trimmed  = n.trim();
+      const hasPlus  = trimmed.endsWith("+");
+      const numeric  = Number(hasPlus ? trimmed.slice(0, -1) : trimmed);
+      return isNaN(numeric) ? trimmed : `₦${numeric.toLocaleString()}${hasPlus ? "+" : ""}`;
+    })
+    .join(" - ");
+};
+
 export const STATUS_MAP = [
   { name: "All" },
   { name: "Initiated" },

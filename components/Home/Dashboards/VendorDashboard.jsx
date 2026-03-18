@@ -132,7 +132,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="text-xl font-bold text-gray-800">
-                    ₦{analyticsData?.analytics?.totalChargesPlusExtra || 0}
+                    ₦{Number(analyticsData?.analytics?.totalChargesPlusExtra || 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% from last month
@@ -294,7 +294,7 @@ const Dashboard = () => {
       </div>
 
       {/* Single NotificationSocket instance; passes onOpportunity to vendor flow */}
-      <NotificationSocket onOpportunity={opportunity.open} />
+      <NotificationSocket onOpportunity={opportunity.open} onNewInterest={refetch} />
 
       <TransactionOpportunityModal
         isOpen={opportunity.isOpen}

@@ -31,7 +31,7 @@ import TransactionStatusModal from "../components/TransactionStatusModal";
 import LocationModal from "../components/LocationModal";
 import MapModal from "../components/MapModal";
 import TransactionRequestModal from "../components/TransactionRequestModal";
-import { getAvatarColor, STATUS_MAP } from "../../../utils/transactionHelpers";
+import { getAvatarColor, STATUS_MAP, formatAmount, formatRange } from "../../../utils/transactionHelpers";
 
 
 export default function ClientDashboard() {
@@ -107,19 +107,20 @@ export default function ClientDashboard() {
   // useTxnStatusMessages drives the modal state; NotificationSocket handles toasting
   const onTxnStatusMessage = useCallback((message_type, data) => {
     const { txn_info } = data;
-
     if (message_type === "Transaction Approved!") {
+      const txnId = txn_info?.txn_id;
       setTxStatusModal((prev) => ({
         ...prev,
         status: "approved",
         transactionInfo: {
           ...prev.transactionInfo,
-          transactionId: txn_info?.transaction_id,
+          transactionId: txnId,
           vendorName:    txn_info?.vendor_name || prev.transactionInfo.vendorName,
           amount:        txn_info?.amount      || prev.transactionInfo.amount,
         },
       }));
       refetch();
+      setTimeout(() => navigate(`/transaction-details/${txnId}`), 5000);
     }
 
     if (message_type === "Transaction Declined!") {
@@ -133,7 +134,7 @@ export default function ClientDashboard() {
     if (message_type === "No Available Vendors") {
       setTxStatusModal((prev) => ({ ...prev, status: "noVendors" }));
     }
-  }, []);
+  }, [navigate]);
 
   useTxnStatusMessages(socket, activeTxId, onTxnStatusMessage);
 
@@ -177,13 +178,20 @@ export default function ClientDashboard() {
         },
         delayActionLoading: null,
       });
+
+      setExpandedCards((prev) => {
+        const next = new Set(prev);
+        next.delete(selectedVendor.id);
+        return next;
+      });
+      toast.success("Transaction request sent! Awaiting vendor response.");
+
       refetch();
     } catch {
       toast.error("Failed to create transaction");
     }
   };
 
-  // ── Delayed response ──────────────────────────────────────────────────────
   const [respondToTransaction] = useMutation(RESPOND_TO_TRANSACTION);
 
   const handleDelayResponse = async (decision) => {
@@ -331,8 +339,8 @@ export default function ClientDashboard() {
                               key={asset.id}
                               className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
                             >
-                              <span className="text-sm text-gray-600">Range: {asset.range}</span>
-                              <span className="font-medium text-green-600">₦{asset.chargeRate}</span>
+                              <span className="text-sm text-gray-600">Range: {formatRange(asset.range)}</span>
+                              <span className="font-medium text-green-600">₦{formatAmount(asset.chargeRate)}</span>
                               <button
                                 onClick={() => handleInitiateTransaction(store, asset.id)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -411,7 +419,7 @@ export default function ClientDashboard() {
         <LocationModal
           onClose={() => { setShowLocationModal(false); setSelectedStore(null); }}
           onAllow={() =>
-            requestLocationPermission((loc) => {
+            requestLocationPermission(() => {
               setShowLocationModal(false);
               if (selectedStore) {
                 setShowMap(true);
