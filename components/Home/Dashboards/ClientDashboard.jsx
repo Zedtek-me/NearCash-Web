@@ -239,8 +239,9 @@ export default function ClientDashboard() {
     <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
-          <h1 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1">
-            Welcome, {userData?.fullName ?? userData?.email}
+          <h1 className="text-xl md:text-2xl font-semibold mb-1">
+            <span className="text-emerald-500">Welcome,</span>{' '}
+            <span className="text-gray-900">{userData?.fullName ?? userData?.email}</span>
           </h1>
         </div>
 
@@ -267,7 +268,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
+            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Current Month Transactions Value</h2>
                 <ArrowUpRight className="w-5 h-5 text-white/80" />
@@ -283,7 +284,7 @@ export default function ClientDashboard() {
         <div className="w-full grid sm:grid-cols-1 md:grid-cols-2 gap-6 mt-10">
 
           {/* Nearby vendors */}
-          <div className="bg-grey-50 rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+          <div className="bg-white rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
             </div>
@@ -345,7 +346,7 @@ export default function ClientDashboard() {
                               <span className="font-medium text-green-600">₦{formatAmount(asset.chargeRate)}</span>
                               <button
                                 onClick={() => handleInitiateTransaction(store, asset.id, asset.range)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
                               >
                                 Request Cash
                               </button>
@@ -361,7 +362,7 @@ export default function ClientDashboard() {
           </div>
 
           {/* Transaction history */}
-          <div className="bg-grey-50 rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+          <div className="bg-white rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
             <div className="md:flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
               <div className="flex items-center gap-10 pt-5 md:pt-0">
@@ -370,13 +371,13 @@ export default function ClientDashboard() {
                   <button
                     onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                     disabled={pageNumber === 1}
-                    className="p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 disabled:opacity-50"
+                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                   >
                     <ArrowLeft />
                   </button>
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
-                    className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400"
+                    className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
                   >
                     <ArrowRight />
                   </button>

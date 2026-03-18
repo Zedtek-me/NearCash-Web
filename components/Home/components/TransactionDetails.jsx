@@ -233,11 +233,11 @@ export default function TransactionDetails() {
         )}
 
         {/* ── Hero card ── */}
-        <div className="bg-gradient-to-br from-indigo-950 via-indigo-900 to-violet-900 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
             {/* Amount block */}
             <div>
-              <p className="text-indigo-400 text-xs font-semibold uppercase tracking-widest mb-2">
+              <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">
                 Transaction Amount
               </p>
               <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight ${
@@ -245,8 +245,8 @@ export default function TransactionDetails() {
               }`}>
                 ₦ {amountDisplay}
               </p>
-              <p className="text-indigo-400 text-sm mt-2">
-                Net after fees: <span className="text-indigo-200 font-medium">₦{netAmount}</span>
+              <p className="text-slate-400 text-sm mt-2">
+                Net after fees: <span className="text-slate-200 font-medium">₦{netAmount}</span>
               </p>
             </div>
 
@@ -256,17 +256,17 @@ export default function TransactionDetails() {
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
                 {statusCfg.label}
               </span>
-              <p className="text-indigo-300 text-xs font-mono tracking-wide">{transaction?.txnRef}</p>
-              <p className="text-indigo-400 text-xs">{txnDate}</p>
+              <p className="text-slate-300 text-xs font-mono tracking-wide">{transaction?.txnRef}</p>
+              <p className="text-slate-400 text-xs">{txnDate}</p>
             </div>
           </div>
 
           {/* Progress steps — hidden for terminal declined/cancelled */}
           {!['DECLINED', 'CANCELLED'].includes(transaction?.status) && (
-            <div className="mt-7 pt-6 border-t border-indigo-800/60">
+            <div className="mt-7 pt-6 border-t border-slate-700/60">
               <div className="flex items-center justify-between relative">
                 {/* Track */}
-                <div className="absolute inset-x-0 top-3 h-px bg-indigo-800/70" />
+                <div className="absolute inset-x-0 top-3 h-px bg-slate-700/50" />
 
                 {STEPS.map((step, idx) => {
                   const done   = currentStepIdx > idx;
@@ -278,15 +278,15 @@ export default function TransactionDetails() {
                           ? 'bg-emerald-500 border-emerald-500'
                           : active
                           ? 'bg-white border-white'
-                          : 'bg-indigo-900 border-indigo-700'
+                          : 'bg-slate-800 border-slate-700'
                       }`}>
                         {done
                           ? <Check size={12} className="text-white" />
-                          : <span className={`w-2 h-2 rounded-full ${active ? 'bg-indigo-600' : 'bg-indigo-700'}`} />
+                          : <span className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-600'}`} />
                         }
                       </div>
                       <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${
-                        done || active ? 'text-white' : 'text-indigo-500'
+                        done || active ? 'text-white' : 'text-slate-500'
                       }`}>
                         {step.label}
                       </span>

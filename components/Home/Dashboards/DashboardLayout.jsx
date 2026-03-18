@@ -1,13 +1,13 @@
-import React, { useState, createContext } from "react";
+import React from "react";
 import { Outlet } from "react-router";
-import Header from "../Navs/Headers.jsx"
+import Navbar from "../Navs/Headers.jsx"
 import Footer from "../Navs/Footers.jsx"
 
 
 export default function Layout(){
     return (
         <div className="dashboard-layout">
-            <Header/>
+            <Navbar/>
                 <div className="dashboard-out text-white">
                     <Outlet/>
                 </div>

@@ -107,7 +107,7 @@ const Dashboard = () => {
 
               {/* ── Analytics cards ───────────────────────────────────── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm opacity-90">Total Transactions</span>
                   </div>
@@ -127,8 +127,8 @@ const Dashboard = () => {
                     <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-teal-600 text-lg">₦</span>
+                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-emerald-600 text-lg">₦</span>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-gray-800">
@@ -145,8 +145,8 @@ const Dashboard = () => {
                     <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-purple-600 text-lg">₦</span>
+                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-teal-600 text-lg">₦</span>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-gray-800">
@@ -159,7 +159,7 @@ const Dashboard = () => {
 
                 <div className="flex justify-end px-6 py-2">
                   <button
-                    className="flex items-center h-12 gap-2 px-4 py-2 bg-black text-white hover:bg-white hover:text-black border border-black transition-all duration-200 rounded-2xl text-sm font-medium"
+                    className="flex items-center h-12 gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 transition-all duration-200 rounded-2xl text-sm font-medium"
                     onClick={() => navigate("/create-store")}
                   >
                     <Plus size={16} />
@@ -172,7 +172,7 @@ const Dashboard = () => {
               <div className="w-full grid grid-cols-1 lg:grid-cols-2 md:grid-cols-2 gap-6 mt-20">
 
                 {/* Transaction history */}
-                <div className="bg-grey-50 rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="bg-white rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
                   <div className="md:flex items-center justify-between mb-6">
                     <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
                     <div className="flex items-center gap-10 pt-5 md:pt-0">
@@ -186,13 +186,13 @@ const Dashboard = () => {
                         <button
                           onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                           disabled={pageNumber === 1}
-                          className="p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 disabled:opacity-50"
+                          className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                         >
                           <ArrowLeft />
                         </button>
                         <button
                           onClick={() => setPageNumber((p) => p + 1)}
-                          className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400"
+                          className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
                         >
                           <ArrowRight />
                         </button>
@@ -218,20 +218,20 @@ const Dashboard = () => {
                 </div>
 
                 {/* Sub-businesses */}
-                <div className="bg-grey-50 rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="bg-white rounded-2xl py-6 px-2 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-semibold text-gray-800">Sub Business List</h2>
                     <div className="flex items-center">
                       <button
                         onClick={() => setSubBizPage((p) => Math.max(1, p - 1))}
                         disabled={subBizPage === 1}
-                        className="p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 disabled:opacity-50"
+                        className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                       >
                         <ArrowLeft />
                       </button>
                       <button
                         onClick={() => setSubBizPage((p) => p + 1)}
-                        className="ml-3 p-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400"
+                        className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
                       >
                         <ArrowRight />
                       </button>
@@ -266,7 +266,7 @@ const Dashboard = () => {
 
                           <div className="mt-4 lg:mt-0 grid items-center gap-2 ml-2 max-w-full md:max-w-[35%]">
                             <button
-                              className="relative border px-4 py-2 justify-center flex gap-2 items-center text-black border-black hover:bg-black hover:text-white rounded-full transition-all duration-300 group-hover:scale-110 font-medium text-sm"
+                              className="relative border px-4 py-2 justify-center flex gap-2 items-center text-emerald-600 border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 rounded-full transition-all duration-300 group-hover:scale-110 font-medium text-sm"
                               onClick={() => navigate(`/edit-business/${store?.id}`)}
                             >
                               <Pencil className="w-3.5 h-3.5" />
