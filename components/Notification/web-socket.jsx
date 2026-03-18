@@ -11,25 +11,67 @@ import {
 
 // ─── Audio / vibration helpers ───────────────────────────────────────────────
 
+/**
+ * A single shared AudioContext for the lifetime of the page.
+ * Browsers require a user gesture before audio can play; we resume the context
+ * on first interaction so that notifications that arrive without a prior
+ * gesture (e.g. "Transaction Opportunity!", "New Transaction Interest") can
+ * still produce sound.
+ */
+let _audioCtx = null;
+
+const getAudioContext = () => {
+  if (!_audioCtx) {
+    const AudioCtx = window.AudioContext || window["webkitAudioContext"];
+    if (!AudioCtx) return null;
+    _audioCtx = new AudioCtx();
+  }
+  return _audioCtx;
+};
+
+// Unlock audio on first user gesture (click, touch, or keydown).
+const unlockAudio = () => {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume();
+  }
+};
+
+if (typeof window !== "undefined") {
+  ["click", "touchstart", "keydown"].forEach((evt) =>
+    window.addEventListener(evt, unlockAudio, { once: false, passive: true })
+  );
+}
+
 const playAlertTone = () => {
   try {
-    const AudioCtx = window.AudioContext || window["webkitAudioContext"];
-    const ctx = new AudioCtx();
-    const playBeep = (startTime, frequency, duration) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequency, startTime);
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
-      gain.gain.linearRampToValueAtTime(0, startTime + duration);
-      osc.start(startTime);
-      osc.stop(startTime + duration);
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // Resume in case the context is still suspended (e.g. very first message).
+    const play = () => {
+      const playBeep = (startTime, frequency, duration) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(frequency, startTime);
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
+        gain.gain.linearRampToValueAtTime(0, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+      playBeep(ctx.currentTime, 880, 0.15);
+      playBeep(ctx.currentTime + 0.2, 1100, 0.15);
     };
-    playBeep(ctx.currentTime, 880, 0.15);
-    playBeep(ctx.currentTime + 0.2, 1100, 0.15);
+
+    if (ctx.state === "suspended") {
+      ctx.resume().then(play);
+    } else {
+      play();
+    }
   } catch {
     // audio blocked — silent fallback
   }
