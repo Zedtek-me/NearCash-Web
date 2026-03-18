@@ -123,6 +123,8 @@ export const EXCLUSIVE_MSGS = [
   "error",
   "No Available Vendors",
   "Vendor Response Delayed",
+  "acceptance_ack",
+  "opportunity_lost",
 ];
 
 const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
