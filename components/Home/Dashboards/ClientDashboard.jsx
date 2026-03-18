@@ -240,8 +240,8 @@ export default function ClientDashboard() {
       <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
           <h1 className="text-xl md:text-2xl font-semibold mb-1">
-            <span className="text-emerald-500">Welcome,</span>{' '}
-            <span className="text-gray-900">{userData?.fullName ?? userData?.email}</span>
+            <span className="text-gray-900">Welcome,</span>{' '}
+            <span className="text-emerald-500">{userData?.fullName ?? userData?.email}</span>
           </h1>
         </div>
 
