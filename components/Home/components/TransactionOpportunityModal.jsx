@@ -69,10 +69,14 @@ export default function TransactionOpportunityModal({
         clearTimeout(timeoutRef.current);
         setAccepting(false);
         setFailed(true);
-      } else if (message_type === "error") {
+      } else if (
+        message_type === "error" &&
+        (data?.message?.includes("couldn't find vendor with id:") ||
+          data?.message?.includes("couldn't find a transaction with id:"))
+      ) {
         clearTimeout(timeoutRef.current);
         setAccepting(false);
-        setFailedMessage(data?.message || null);
+        setFailedMessage(data.message);
         setFailed(true);
       }
     };
