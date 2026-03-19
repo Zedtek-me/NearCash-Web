@@ -362,4 +362,16 @@ mutation RespondToDelayedTransaction(
     }
 }
 
-`
+`;
+
+export const ACCEPT_TRANSACTION_OPPORTUNITY = gql`
+  mutation AcceptTransactionOpportunity(
+    $txnId: String
+    $txnRef: String
+    $businessId: String
+  ) {
+    acceptTransactionOpportunity(txnId: $txnId, txnRef: $txnRef, businessId: $businessId) {
+      message
+    }
+  }
+`;

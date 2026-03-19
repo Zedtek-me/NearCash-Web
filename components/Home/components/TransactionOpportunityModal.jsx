@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle } from "lucide-react";
+import { useMutation } from "@apollo/client";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
+import { ACCEPT_TRANSACTION_OPPORTUNITY } from "../../Auths/mutations/userMutations";
 
 
 export default function TransactionOpportunityModal({
@@ -9,6 +11,7 @@ export default function TransactionOpportunityModal({
   onClose,
 }) {
   const socket = useWebSocket();
+  const [acceptOpportunity] = useMutation(ACCEPT_TRANSACTION_OPPORTUNITY);
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -100,32 +103,54 @@ export default function TransactionOpportunityModal({
   const { txn_id, txn_ref, amount, client_name, businesses: buss_info } = opportunityData.txn_info;
   const businesses = buss_info ?? [];
 
-  const handleAccept = () => {
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket not open — cannot accept transaction");
-      return;
-    }
-
+  // ── GraphQL mutation path (primary) ──────────────────────────────────────
+  const handleAccept = async () => {
     if (!selectedBusiness) return;
 
     setFailed(false);
     setAccepting(true);
 
-    const message = {
-      message_type: "opportunity_accepted",
-      txn_id: String(txn_id),
-      txn_ref: txn_ref,
-      business_id: String(selectedBusiness.id),
-    };
-
     try {
-      socket.send(JSON.stringify(message));
+      const { data } = await acceptOpportunity({
+        variables: {
+          txnId: String(txn_id),
+          txnRef: txn_ref,
+          businessId: String(selectedBusiness.id),
+        },
+      });
+      const result = data?.acceptTransactionOpportunity?.message;
+      if (result === "opportunity_ack") {
+        setAccepted(true);
+      } else {
+        setFailed(true);
+      }
     } catch (err) {
-      console.error("Failed to send acceptance:", err);
+      setFailedMessage(err?.graphQLErrors?.[0]?.message || err?.message || null);
+      setFailed(true);
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  /* ── WebSocket acceptance path (preserved for fallback / revert) ──────────
+  const handleAcceptViaWebSocket = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    if (!selectedBusiness) return;
+    setFailed(false);
+    setAccepting(true);
+    try {
+      socket.send(JSON.stringify({
+        message_type: "opportunity_accepted",
+        txn_id: String(txn_id),
+        txn_ref: txn_ref,
+        business_id: String(selectedBusiness.id),
+      }));
+    } catch (err) {
       setAccepting(false);
       setFailed(true);
     }
   };
+  ── end WebSocket path ─────────────────────────────────────────────────── */
 
   const handleIgnore = () => {
     onClose();
