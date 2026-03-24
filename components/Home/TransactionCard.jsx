@@ -77,34 +77,36 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
       </div>
 
       {/* Right side */}
-      <div className="flex pt-5 md:pt-0 justify-between items-center space-x-2">
+      <div className="flex flex-col pt-5 md:pt-0 items-end gap-1">
         {isAwaitingTransfer && (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200 whitespace-nowrap">
-            Awaiting Transfer
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
+            {isVendor ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
           </span>
         )}
-        <span
-          className={`font-medium ${
-            transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {transaction?.charge}
-        </span>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            transaction.status
-          )}`}
-        >
-          {transaction.status}
-        </span>
+        <div className="flex items-center space-x-2">
+          <span
+            className={`font-medium ${
+              transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {transaction?.charge}
+          </span>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+              transaction.status
+            )}`}
+          >
+            {transaction.status}
+          </span>
 
-        {/* Dropdown Trigger */}
-        <button
-          onClick={() => setOpen((prev) => !prev)}
-          className="ml-2 p-2 rounded-full hover:bg-gray-100 transition"
-        >
-          <MoreVertical className="w-5 h-5 text-gray-600" />
-        </button>
+          {/* Dropdown Trigger */}
+          <button
+            onClick={() => setOpen((prev) => !prev)}
+            className="ml-2 p-2 rounded-full hover:bg-gray-100 transition"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
 
         {/* Dropdown Menu */}
         {open && (

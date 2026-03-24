@@ -55,6 +55,22 @@ const buildIcon = (url) => ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Haversine straight-line distance in km between two {lat,lng} points.
+ * Used as fallback ETA when the Directions API hasn't responded yet.
+ */
+const haversineKm = (a, b) => {
+  const R  = 6371;
+  const dL = ((b.lat - a.lat) * Math.PI) / 180;
+  const dG = ((b.lng - a.lng) * Math.PI) / 180;
+  const h  =
+    Math.sin(dL / 2) ** 2 +
+    Math.cos((a.lat * Math.PI) / 180) *
+    Math.cos((b.lat * Math.PI) / 180) *
+    Math.sin(dG / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+};
+
 /** Normalises any location shape — {lat,lng} or {latitude,longitude} — to {lat, lng}. */
 const toLatLng = (loc) => {
   if (!loc) return null;
@@ -328,6 +344,44 @@ export default function TransactionMap({
           )}
         </GoogleMap>
       </div>
+
+      {/* ── ETA strip ── */}
+      {otherLoc && (() => {
+        // Prefer Directions API duration; fall back to Haversine ÷ 30 km/h
+        const leg      = directions?.routes?.[0]?.legs?.[0];
+        const etaText  = leg?.duration?.text ?? null;
+        const distText = leg?.distance?.text  ?? null;
+        const fallbackEta = !etaText
+          ? Math.round((haversineKm(myLoc, otherLoc) / 30) * 60)
+          : null;
+
+        // Label: MEET_UP — the other party is coming to you (client perspective)
+        //                   or you're going to the client (vendor perspective)
+        // STORE_WALK_IN  — client walks to vendor store
+        const etaLabel = collectionMode === 'STORE_WALK_IN'
+          ? isVendor ? `${otherTitle} ETA` : 'Your ETA to the vendor'
+          : isVendor ? `${otherTitle} ETA` : 'Your ETA to the vendor';
+
+        return (
+          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-t border-gray-100 text-xs text-gray-600">
+            <span className="font-medium text-gray-700">{etaLabel}</span>
+            <span className="flex items-center gap-3">
+              {distText && (
+                <span className="text-gray-400">{distText}</span>
+              )}
+              <span
+                className="font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: '#EFF6FF', color: '#2563EB' }}
+              >
+                {etaText ?? `~${fallbackEta} min`}
+              </span>
+              {!etaText && (
+                <span className="text-gray-400 italic">est.</span>
+              )}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

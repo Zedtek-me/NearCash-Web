@@ -29,6 +29,7 @@ export const GET_TRANSACTION = gql`
             description
             status
             collectionMode
+            awaitingTransfer
             txnLocation
             discounted
             meta

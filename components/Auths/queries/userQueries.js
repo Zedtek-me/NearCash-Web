@@ -113,6 +113,7 @@ export const GET_TRANSACTIONS = gql`
       dateCreated
       charge
       transferMode
+      awaitingTransfer
       vendor {
         firstName
         lastName

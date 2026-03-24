@@ -8,7 +8,11 @@ import toast from "react-hot-toast";
 
 import useAuth from "../../../hooks/useAuth";
 import useGeolocation from "../../../hooks/useGeolocation";
-import { useTransactionOpportunity } from "../../../hooks/useTransactionModal";
+import {
+  useTransactionOpportunity,
+  saveOpportunityToStore,
+  getOpportunityForBusiness,
+} from "../../../hooks/useTransactionModal";
 import { useStateValue } from "../../../providers/stateProvider";
 
 import { GET_SUB_BUSINESSES, GET_TRANSACTIONS } from "../../Auths/queries/userQueries";
@@ -48,24 +52,30 @@ const Dashboard = () => {
     }
   }, [selectedBusiness]);
 
-  const [pendingTransferTxnIds, setPendingTransferTxnIds] = useState(new Set());
+  const handleOpportunityAccepted = useCallback(() => { refetch(); }, []);
 
-  const handleOpportunityAccepted = useCallback((txnId, transferMode) => {
-    if (transferMode === "BANK_TRANSFER") {
-      setPendingTransferTxnIds((prev) => new Set([...prev, String(txnId)]));
-    }
-    refetch();
-  }, []);
+  const handleTransferConfirmed = useCallback(() => { refetch(); }, []);
 
-  const handleTransferConfirmed = useCallback((txnInfo) => {
-    const txnId = String(txnInfo?.txn_id);
-    setPendingTransferTxnIds((prev) => {
-      const next = new Set(prev);
-      next.delete(txnId);
-      return next;
-    });
-    refetch();
-  }, []);
+  /**
+   * Handles an incoming opportunity from the WebSocket.
+   * Saves to localStorage (persists across navigation / context switches)
+   * and opens the modal immediately — the vendor selects which of their
+   * grouped businesses to accept for inside the modal.
+   */
+  const handleOpportunity = useCallback((data) => {
+    saveOpportunityToStore(data);
+    opportunity.open(data);
+  }, [opportunity]);
+
+  /**
+   * Restores a pending opportunity modal whenever the vendor switches to a
+   * business context that has an un-actioned opportunity in localStorage.
+   */
+  useEffect(() => {
+    if (!vendorBusinessId || opportunity.isOpen) return;
+    const pending = getOpportunityForBusiness(vendorBusinessId);
+    if (pending) opportunity.open(pending);
+  }, [vendorBusinessId]);
 
   const handleSwitchBusiness = (id) => {
     localStorage.setItem("selected_business", id);
@@ -235,7 +245,7 @@ const Dashboard = () => {
                         refetch={refetch}
                         onViewDetails={() => navigate(`/transaction-details/${tx.id}`)}
                         isVendor
-                        isAwaitingTransfer={pendingTransferTxnIds.has(String(tx.id))}
+                        isAwaitingTransfer={tx.awaitingTransfer}
                       />
                     ))}
                   </div>
@@ -327,7 +337,7 @@ const Dashboard = () => {
       </div>
 
       {/* Single NotificationSocket instance; passes onOpportunity to vendor flow */}
-      <NotificationSocket onOpportunity={opportunity.open} onNewInterest={refetch} onTransferConfirmed={handleTransferConfirmed} />
+      <NotificationSocket onOpportunity={handleOpportunity} onNewInterest={refetch} onTransferConfirmed={handleTransferConfirmed} />
 
       <TransactionOpportunityModal
         isOpen={opportunity.isOpen}

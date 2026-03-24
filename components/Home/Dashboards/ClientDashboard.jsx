@@ -411,6 +411,7 @@ export default function ClientDashboard() {
                   transaction={tx}
                   index={index}
                   refetch={refetch}
+                  isAwaitingTransfer={tx.awaitingTransfer}
                 />
               ))}
             </div>
