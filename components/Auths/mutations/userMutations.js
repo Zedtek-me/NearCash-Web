@@ -364,6 +364,25 @@ mutation RespondToDelayedTransaction(
 
 `;
 
+export const GENERATE_VIRTUAL_ACCOUNT = gql`
+  mutation GenerateVirtualAccount($txnId: String!) {
+    generateVirtualAccount(txnId: $txnId) {
+      message
+      accountInfo {
+        accountNumber
+        accountBankName
+        accountName
+        amount
+        reference
+        accountExpirationDatetime
+        note
+        provider
+        currency
+      }
+    }
+  }
+`;
+
 export const ACCEPT_TRANSACTION_OPPORTUNITY = gql`
   mutation AcceptTransactionOpportunity(
     $txnId: String
