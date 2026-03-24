@@ -10,6 +10,7 @@ import { google_key } from '../../../configs/environs';
 import { useWebSocket } from '../../Notification/WebSocketProvider';
 
 const mapContainerStyle = { width: '100%', height: '100%' };
+const NIGERIA_CENTER    = { lat: 9.082, lng: 8.6753 };
 
 const mapOptions = {
   disableDefaultUI: false,
@@ -99,7 +100,15 @@ export default function TransactionMap({
     } catch {}
   }, [isVendor]);
 
-  // ── Live location streaming + WebSocket position updates ─────────────────
+
+  useEffect(() => {
+    if (initialVendor) setVendorLoc(initialVendor);
+  }, [initialVendor?.lat, initialVendor?.lng]);
+
+  useEffect(() => {
+    if (initialClient) setClientLoc(initialClient);
+  }, [initialClient?.lat, initialClient?.lng]);
+
   useEffect(() => {
     if (!socket || !isPending || !txnId || !userData) return;
 
@@ -109,7 +118,7 @@ export default function TransactionMap({
       transaction?.client?.id
     );
 
-    fetchAndUpdateUserCurrentLocation(
+    const cleanupWatch = fetchAndUpdateUserCurrentLocation(
       updateUserPosition,
       () => {},
       { ...userData, transaction },
@@ -150,13 +159,12 @@ export default function TransactionMap({
       socket.removeEventListener('message', handleMessage);
       socket.removeEventListener('open', doFetchLocations);
       clearInterval(pollInterval);
+      cleanupWatch?.();
     };
   }, [socket, isPending, txnId, userData, transaction?.vendor?.id]);
 
-  // ── Derived map points ────────────────────────────────────────────────────
   const myLoc = toLatLng(isVendor ? vendorLoc : clientLoc);
 
-  // ── Pan to own location once on first fix ────────────────────────────────
   useEffect(() => {
     if (!myLoc || !mapRef.current || didInitialPan.current) return;
     mapRef.current.panTo(myLoc);
@@ -234,10 +242,19 @@ export default function TransactionMap({
       <div className="h-96 relative">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
-          center={{ lat: 9.082, lng: 8.6753 }}
+          center={NIGERIA_CENTER}
           zoom={6}
           options={mapOptions}
-          onLoad={(map) => { mapRef.current = map; }}
+          onLoad={(map) => {
+            mapRef.current = map;
+            // myLoc may have already resolved before the map instance was ready
+            // (localStorage seeding races ahead of SDK load). Pan here as a catch-all.
+            if (myLoc && !didInitialPan.current) {
+              map.panTo(myLoc);
+              map.setZoom(15);
+              didInitialPan.current = true;
+            }
+          }}
         >
 
           {/* ── Focus buttons overlay ── */}
