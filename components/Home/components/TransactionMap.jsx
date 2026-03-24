@@ -78,6 +78,8 @@ export default function TransactionMap({
   const [clientLoc, setClientLoc] = useState(null);
   const [directions, setDirections] = useState(null);
   const routeTimer = useRef(null);
+  const mapRef     = useRef(null);
+  const didInitialPan = useRef(false);
 
   const isPending  = ['INITIATED', 'IN_PROGRESS'].includes(status);
   const isVendor   = userData?.userType === 'VENDOR';
@@ -99,7 +101,13 @@ export default function TransactionMap({
 
   // ── Live location streaming + WebSocket position updates ─────────────────
   useEffect(() => {
-    if (!socket || socket.readyState !== 1 || !isPending || !txnId || !userData) return;
+    if (!socket || !isPending || !txnId || !userData) return;
+
+    const doFetchLocations = () => fetchUserLatestLocation(
+      userData, socket, txnId,
+      transaction?.vendor?.id,
+      transaction?.client?.id
+    );
 
     fetchAndUpdateUserCurrentLocation(
       updateUserPosition,
@@ -108,11 +116,14 @@ export default function TransactionMap({
       socket
     );
 
-    fetchUserLatestLocation(
-      userData, socket, txnId,
-      transaction?.vendor?.id,
-      transaction?.client?.id
-    );
+    // Initial fetch — fetchUserLatestLocation handles CONNECTING internally
+    doFetchLocations();
+
+    // Re-fetch immediately if socket was still connecting when this ran
+    socket.addEventListener('open', doFetchLocations);
+
+    // Periodic fallback — every 10 s in case ack-based updates stall
+    const pollInterval = setInterval(doFetchLocations, 10000);
 
     const handleMessage = (event) => {
       try {
@@ -128,21 +139,36 @@ export default function TransactionMap({
             break;
           case 'vendor_location_update_ack':
           case 'client_location_update_ack':
-            fetchUserLatestLocation(
-              userData, socket, txnId,
-              transaction?.vendor?.id, transaction?.client?.id
-            );
+            doFetchLocations();
             break;
         }
       } catch {}
     };
 
     socket.addEventListener('message', handleMessage);
-    return () => socket.removeEventListener('message', handleMessage);
+    return () => {
+      socket.removeEventListener('message', handleMessage);
+      socket.removeEventListener('open', doFetchLocations);
+      clearInterval(pollInterval);
+    };
   }, [socket, isPending, txnId, userData, transaction?.vendor?.id]);
 
   // ── Derived map points ────────────────────────────────────────────────────
   const myLoc = toLatLng(isVendor ? vendorLoc : clientLoc);
+
+  // ── Pan to own location once on first fix ────────────────────────────────
+  useEffect(() => {
+    if (!myLoc || !mapRef.current || didInitialPan.current) return;
+    mapRef.current.panTo(myLoc);
+    mapRef.current.setZoom(15);
+    didInitialPan.current = true;
+  }, [myLoc?.lat, myLoc?.lng]);
+
+  const focusOn = (loc) => {
+    if (!loc || !mapRef.current) return;
+    mapRef.current.panTo(loc);
+    mapRef.current.setZoom(16);
+  };
 
   let otherRaw = isVendor ? clientLoc : vendorLoc;
   if (!isVendor && collectionMode === 'STORE_WALK_IN')
@@ -208,10 +234,35 @@ export default function TransactionMap({
       <div className="h-96 relative">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
-          center={myLoc}
-          zoom={15}
+          center={{ lat: 9.082, lng: 8.6753 }}
+          zoom={6}
           options={mapOptions}
+          onLoad={(map) => { mapRef.current = map; }}
         >
+
+          {/* ── Focus buttons overlay ── */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {myLoc && (
+              <button
+                onClick={() => focusOn(myLoc)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95"
+                style={{ background: '#3B82F6', color: '#fff' }}
+              >
+                <MapPin size={12} />
+                You
+              </button>
+            )}
+            {otherLoc && (
+              <button
+                onClick={() => focusOn(otherLoc)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95"
+                style={{ background: isVendor ? '#10B981' : '#F59E0B', color: '#fff' }}
+              >
+                <MapPin size={12} />
+                {otherTitle}
+              </button>
+            )}
+          </div>
           {/* Current user pin — blue person icon; "You" shown on hover */}
           <Marker
             position={myLoc}

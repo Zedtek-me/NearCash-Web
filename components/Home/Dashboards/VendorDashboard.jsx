@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ArrowRight, Plus, MapPin, ArrowLeft, SwitchCamera, Pencil,
 } from "lucide-react";
@@ -48,6 +48,25 @@ const Dashboard = () => {
     }
   }, [selectedBusiness]);
 
+  const [pendingTransferTxnIds, setPendingTransferTxnIds] = useState(new Set());
+
+  const handleOpportunityAccepted = useCallback((txnId, transferMode) => {
+    if (transferMode === "BANK_TRANSFER") {
+      setPendingTransferTxnIds((prev) => new Set([...prev, String(txnId)]));
+    }
+    refetch();
+  }, []);
+
+  const handleTransferConfirmed = useCallback((txnInfo) => {
+    const txnId = String(txnInfo?.txn_id);
+    setPendingTransferTxnIds((prev) => {
+      const next = new Set(prev);
+      next.delete(txnId);
+      return next;
+    });
+    refetch();
+  }, []);
+
   const handleSwitchBusiness = (id) => {
     localStorage.setItem("selected_business", id);
     dispatch({ type: "UPDATE_SELECTED_BUSINESS", value: id });
@@ -87,7 +106,11 @@ const Dashboard = () => {
     fetchPolicy: "network-only",
   });
 
-  const subBusinessList = subBizData?.businesses || [];
+  const subBusinessList = [...(subBizData?.businesses || [])].sort((a, b) => {
+    if (a.id === vendorBusinessId) return -1;
+    if (b.id === vendorBusinessId) return 1;
+    return 0;
+  });
 
   // ── Analytics ─────────────────────────────────────────────────────────────
   const { data: analyticsData } = useQuery(GET_ANALYTICS, {
@@ -212,6 +235,7 @@ const Dashboard = () => {
                         refetch={refetch}
                         onViewDetails={() => navigate(`/transaction-details/${tx.id}`)}
                         isVendor
+                        isAwaitingTransfer={pendingTransferTxnIds.has(String(tx.id))}
                       />
                     ))}
                   </div>
@@ -256,7 +280,14 @@ const Dashboard = () => {
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-800 truncate">{store.name}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-800 truncate">{store.name}</span>
+                                {store.id === vendorBusinessId && (
+                                  <span className="flex-shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center text-sm text-gray-500 mt-1">
                                 <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
                                 <span className="truncate">{store.address}</span>
@@ -273,13 +304,15 @@ const Dashboard = () => {
                               <span>Edit</span>
                             </button>
 
-                            <button
-                              className="border mt-2 px-4 py-2 flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
-                              onClick={() => handleSwitchBusiness(store?.id)}
-                            >
-                              Switch Business
-                              <SwitchCamera className="w-4 h-4 my-1" />
-                            </button>
+                            {store.id !== vendorBusinessId && (
+                              <button
+                                className="border mt-2 px-4 py-2 flex gap-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all duration-200 group-hover:scale-110"
+                                onClick={() => handleSwitchBusiness(store?.id)}
+                              >
+                                Switch Business
+                                <SwitchCamera className="w-4 h-4 my-1" />
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))
@@ -294,12 +327,13 @@ const Dashboard = () => {
       </div>
 
       {/* Single NotificationSocket instance; passes onOpportunity to vendor flow */}
-      <NotificationSocket onOpportunity={opportunity.open} onNewInterest={refetch} />
+      <NotificationSocket onOpportunity={opportunity.open} onNewInterest={refetch} onTransferConfirmed={handleTransferConfirmed} />
 
       <TransactionOpportunityModal
         isOpen={opportunity.isOpen}
         opportunityData={opportunity.opportunityData}
         onClose={opportunity.close}
+        onAccepted={handleOpportunityAccepted}
       />
     </>
   );

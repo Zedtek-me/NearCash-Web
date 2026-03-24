@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check, Contact, X, ChevronDown, Plus } from 'lucide-react';
 import AnimatedLoader from '../../utils/components/spinner';
 import { UPDATE_BUSINESS, UpdateUserMutation } from './mutations/userMutations';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { useMutation } from '@apollo/client';
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
@@ -42,12 +42,12 @@ export default function AccountTypePage() {
     
   
    const rangeOptions = [
-    { label: '1000-5000', value: '1000-5000:200', charge: '200' },
-    { label: '5001-10000', value: '5001-10000:300', charge: '300' },
-    { label: '10001-20000', value: '10001-20000:400', charge: '400' },
+    { label: '1000-5000', value: '1000-5000:200', charge: '100' },
+    { label: '5001-10000', value: '5001-10000:300', charge: '200' },
+    { label: '10001-20000', value: '10001-20000:400', charge: '300' },
     { label: '20001-50000', value: '20001-50000:500', charge: '500' },
-    { label: '50001-100000', value: '50001-100000:600', charge: '600' },
-    { label: '100001+', value: '100001+:700', charge: '700' }
+    { label: '50001-100000', value: '50001-100000:600', charge: '1000' },
+    { label: '100001+', value: '100001+:700', charge: '2000' }
   ];
 
    const handleCustomRangeSubmit = () => {
@@ -175,7 +175,7 @@ const handleAddressSelect = (suggestion) => {
     })
       .then(({ data }) => {
         const { message, user } = data?.updateUser || {};
-        navigate(`/dashboard/${user?.userType || 'client'}`);
+        navigate('/kyc', { state: { userType: 'CLIENT' } });
         toast.success(message);
       })
       .catch((err) => {
@@ -217,16 +217,14 @@ const handleAddressSelect = (suggestion) => {
                     },
                     financialAssets: financialAssets
                 }
-            }).then(({ data: bizData }) => {
-               navigate(`/dashboard/${user?.userType || 'vendor'}`);
+            }).then(() => {
+              navigate('/kyc', { state: { userType: 'VENDOR' } });
               toast.success(message);
             })
            
         })
         .catch((err) => {
-          console.log(err);
-          
-            toast.error(err?.message);
+          toast.error(err?.message);
         })
     }
     

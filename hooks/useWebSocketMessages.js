@@ -5,6 +5,7 @@ const TXN_STATUS_MESSAGES = [
   "Transaction Declined!",
   "Vendor Response Delayed",
   "No Available Vendors",
+  "Transfer Confirmed!",
 ];
 
 /**

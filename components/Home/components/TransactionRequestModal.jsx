@@ -1,8 +1,23 @@
 import React, { useEffect } from "react";
-import { X, Loader2, Store, MapPin, Check } from "lucide-react";
+import { X, Loader2, Store, MapPin, Check, CreditCard, Landmark } from "lucide-react";
 import { formatRange } from "../../../utils/transactionHelpers";
 
 const COMBINED_MODE = "MEET_UP_AND_STORE_WALK_IN";
+
+const TRANSFER_MODE_OPTIONS = [
+  {
+    value: "CARD",
+    label: "Card Payment",
+    description: "Pay by card when collecting cash from the vendor.",
+    Icon: CreditCard,
+  },
+  {
+    value: "BANK_TRANSFER",
+    label: "Bank Transfer",
+    description: "Transfer funds to a secure virtual account before collection.",
+    Icon: Landmark,
+  },
+];
 
 const MODE_OPTIONS = [
   {
@@ -32,6 +47,8 @@ export default function TransactionRequestModal({
   onAmountChange,
   selectedPolicy,
   onSelectPolicy,
+  transferMode,
+  onTransferModeChange,
   policiesData,
   policiesLoading,
   onSubmit,
@@ -135,9 +152,40 @@ export default function TransactionRequestModal({
           )}
         </div>
 
+        {/* Payment method */}
+        <div className="mb-5">
+          <p className="text-sm mb-2 text-gray-400">Payment method</p>
+          <div className="grid grid-cols-2 gap-3">
+            {TRANSFER_MODE_OPTIONS.map(({ value, label, description, Icon }) => {
+              const active = transferMode === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onTransferModeChange(value)}
+                  className={`flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all duration-200 ${
+                    active
+                      ? "border-white bg-gray-800"
+                      : "border-gray-600 bg-gray-900 hover:border-gray-400"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <Icon size={18} className={active ? "text-white" : "text-gray-500"} />
+                    {active && <Check size={14} className="text-white" />}
+                  </div>
+                  <span className={`text-sm font-medium ${active ? "text-white" : "text-gray-400"}`}>
+                    {label}
+                  </span>
+                  <span className="text-xs text-gray-500 leading-snug">{description}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <button
           onClick={onSubmit}
-          disabled={submitting || !selectedPolicy}
+          disabled={submitting || !selectedPolicy || !transferMode}
           className="w-full py-2 bg-white text-black rounded-lg font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting && <Loader2 className="animate-spin mr-2" size={16} />}

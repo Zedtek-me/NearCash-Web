@@ -89,6 +89,8 @@ export const GET_TRANSACTIONS = gql`
     $search: String
     $clientId: String
     $vendorId: String
+    $dateFrom: Date
+    $dateTo: Date
     $pageCount: Int
     $pageNumber: Int
   ) {
@@ -99,6 +101,8 @@ export const GET_TRANSACTIONS = gql`
       search: $search
       clientId: $clientId
       vendorId: $vendorId
+      dateFrom: $dateFrom
+      dateTo: $dateTo
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {
@@ -107,8 +111,8 @@ export const GET_TRANSACTIONS = gql`
       status
       amount
       dateCreated
-      amount
       charge
+      transferMode
       vendor {
         firstName
         lastName
@@ -120,9 +124,10 @@ export const GET_TRANSACTIONS = gql`
         lastName
         fullName
       }
-        business{
+      business {
         id
-        }
+        name
+      }
     }
   }
 `;
@@ -250,6 +255,8 @@ query Transactiion(
             firstName
             lastName
             email
+            phoneNumber
+            profilePicture
         }
     }
 }

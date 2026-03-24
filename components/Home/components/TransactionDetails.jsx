@@ -52,7 +52,6 @@ const STEPS = [
   { key: 'FULFILLED',   label: 'Fulfilled'    },
 ];
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function InfoRow({ icon: Icon, label, value, highlight = false, mono = false }) {
   return (

@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle } from "lucide-react";
+import { useMutation } from "@apollo/client";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
-import useAuth from "../../../hooks/useAuth";
+import { ACCEPT_TRANSACTION_OPPORTUNITY } from "../../Auths/mutations/userMutations";
 
 
 export default function TransactionOpportunityModal({
   isOpen,
   opportunityData,
   onClose,
+  onAccepted,
 }) {
   const socket = useWebSocket();
-  const { userData } = useAuth();
+  const [acceptOpportunity] = useMutation(ACCEPT_TRANSACTION_OPPORTUNITY);
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [failedMessage, setFailedMessage] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const timeoutRef = useRef(null);
 
+  // Countdown after confirmed acceptance
   useEffect(() => {
     if (!accepted) return;
     setCountdown(3);
@@ -32,10 +38,13 @@ export default function TransactionOpportunityModal({
     return () => clearInterval(id);
   }, [accepted, onClose]);
 
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setAccepted(false);
       setAccepting(false);
+      setFailed(false);
+      setFailedMessage(null);
       setCountdown(null);
 
       const businesses = opportunityData?.txn_info?.businesses ?? [];
@@ -47,37 +56,103 @@ export default function TransactionOpportunityModal({
     }
   }, [isOpen, opportunityData]);
 
-  if (!isOpen || !opportunityData) return null;
+  // Listen for server response while acceptance is in-flight
+  useEffect(() => {
+    if (!accepting || !socket) return;
 
-  const { txn_id, txn_ref, amount, client_name, businesses: buss_info } = opportunityData.txn_info;
-  const businesses = buss_info ?? [];
+    const handleMessage = (event) => {
+      let data;
+      try { data = JSON.parse(event.data); } catch { return; }
+      const { message_type } = (data && typeof data === "object" ? data : {});
 
-  const handleAccept = () => {
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.error("WebSocket not open — cannot accept transaction");
-      return;
-    }
-
-    if (!selectedBusiness) return;
-
-    setAccepting(true);
-
-    const message = {
-      message_type: "opportunity_accepted",
-      txn_id: String(txn_id),
-      txn_ref: txn_ref,
-      business_id: String(selectedBusiness.id),
+      if (message_type === "acceptance_ack") {
+        clearTimeout(timeoutRef.current);
+        setAccepting(false);
+        setAccepted(true);
+      } else if (message_type === "opportunity_lost") {
+        clearTimeout(timeoutRef.current);
+        setAccepting(false);
+        setFailed(true);
+      } else if (
+        message_type === "error" &&
+        (data?.message?.includes("couldn't find vendor with id:") ||
+          data?.message?.includes("couldn't find a transaction with id:"))
+      ) {
+        clearTimeout(timeoutRef.current);
+        setAccepting(false);
+        setFailedMessage(data.message);
+        setFailed(true);
+      }
     };
 
+    socket.addEventListener("message", handleMessage);
+
+    // 15-second safety timeout — server should always reply, but guard anyway
+    timeoutRef.current = setTimeout(() => {
+      setAccepting(false);
+      setFailed(true);
+    }, 15000);
+
+    return () => {
+      socket.removeEventListener("message", handleMessage);
+      clearTimeout(timeoutRef.current);
+    };
+  }, [accepting, socket]);
+
+  if (!isOpen || !opportunityData) return null;
+
+  const { txn_id, txn_ref, amount, client_name, businesses: buss_info, transfer_mode } = opportunityData.txn_info;
+  const businesses = buss_info ?? [];
+
+  // ── GraphQL mutation path (primary) ──────────────────────────────────────
+  const handleAccept = async () => {
+    if (!selectedBusiness) return;
+
+    setFailed(false);
+    setAccepting(true);
+
     try {
-      socket.send(JSON.stringify(message));
-      setAccepted(true);
+      const { data } = await acceptOpportunity({
+        variables: {
+          txnId: String(txn_id),
+          txnRef: txn_ref,
+          businessId: String(selectedBusiness.id),
+        },
+      });
+      const result = data?.acceptTransactionOpportunity?.message;
+      if (result === "opportunity_ack") {
+        setAccepted(true);
+        onAccepted?.(String(txn_id), transfer_mode);
+      } else {
+        setFailed(true);
+      }
     } catch (err) {
-      console.error("Failed to send acceptance:", err);
+      setFailedMessage(err?.graphQLErrors?.[0]?.message || err?.message || null);
+      setFailed(true);
     } finally {
       setAccepting(false);
     }
   };
+
+  /* WebSocket acceptance path (preserved for fallback / revert)
+  const handleAcceptViaWebSocket = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    if (!selectedBusiness) return;
+    setFailed(false);
+    setAccepting(true);
+    try {
+      socket.send(JSON.stringify({
+        message_type: "opportunity_accepted",
+        txn_id: String(txn_id),
+        txn_ref: txn_ref,
+        business_id: String(selectedBusiness.id),
+      }));
+    } catch (err) {
+      setAccepting(false);
+      setFailed(true);
+    }
+  };
+  */
 
   const handleIgnore = () => {
     onClose();
@@ -101,11 +176,13 @@ export default function TransactionOpportunityModal({
           style={{
             background: accepted
               ? "linear-gradient(90deg, #16a34a, #4ade80)"
+              : failed
+              ? "linear-gradient(90deg, #991b1b, #ef4444)"
               : "linear-gradient(90deg, #1d4ed8, #3b82f6, #6366f1)",
           }}
         />
 
-        {!accepted && (
+        {!accepted && !accepting && (
           <button
             onClick={handleIgnore}
             className="absolute top-4 right-4 z-10 p-1.5 rounded-lg transition-colors"
@@ -119,7 +196,8 @@ export default function TransactionOpportunityModal({
         )}
 
         <div className="p-7">
-          {!accepted && (
+          {/* PENDING / FORM STATE*/}
+          {!accepted && !failed && (
             <>
               <div className="flex items-center gap-3 mb-6">
                 <div
@@ -204,15 +282,15 @@ export default function TransactionOpportunityModal({
                         <button
                           key={biz.id}
                           onClick={() => setSelectedBusiness(biz)}
-                          disabled={businesses.length === 1}
+                          disabled={businesses.length === 1 || accepting}
                           className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all"
                           style={{
                             background: isSelected ? "#0d2044" : "#0d1829",
                             border: `0.5px solid ${isSelected ? "#3b82f6" : "#1e2d4a"}`,
-                            cursor: businesses.length === 1 ? "default" : "pointer",
+                            cursor: businesses.length === 1 || accepting ? "default" : "pointer",
                           }}
                           onMouseOver={e => {
-                            if (businesses.length > 1 && !isSelected) {
+                            if (businesses.length > 1 && !isSelected && !accepting) {
                               e.currentTarget.style.borderColor = "#2d4a7a";
                               e.currentTarget.style.background = "#0d1f38";
                             }
@@ -276,15 +354,18 @@ export default function TransactionOpportunityModal({
               <div className="flex gap-3">
                 <button
                   onClick={handleIgnore}
-                  className="flex-1 py-3 rounded-xl text-sm font-medium transition-colors"
+                  disabled={accepting}
+                  className="flex-1 py-3 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
                   style={{
                     background: "#0f172a",
                     color: "#64748b",
                     border: "0.5px solid #1e293b",
                   }}
                   onMouseOver={e => {
-                    e.currentTarget.style.background = "#1e293b";
-                    e.currentTarget.style.color = "#94a3b8";
+                    if (!accepting) {
+                      e.currentTarget.style.background = "#1e293b";
+                      e.currentTarget.style.color = "#94a3b8";
+                    }
                   }}
                   onMouseOut={e => {
                     e.currentTarget.style.background = "#0f172a";
@@ -302,7 +383,7 @@ export default function TransactionOpportunityModal({
                     background: !selectedBusiness ? "#0f172a" : "#1d4ed8",
                     color: !selectedBusiness ? "#475569" : "#eff6ff",
                     border: !selectedBusiness ? "0.5px solid #1e293b" : "none",
-                    cursor: !selectedBusiness ? "not-allowed" : "pointer",
+                    cursor: !selectedBusiness || accepting ? "not-allowed" : "pointer",
                   }}
                   onMouseOver={e => {
                     if (selectedBusiness && !accepting)
@@ -316,7 +397,7 @@ export default function TransactionOpportunityModal({
                   {accepting ? (
                     <>
                       <Loader2 size={15} className="animate-spin" />
-                      Accepting…
+                      Confirming…
                     </>
                   ) : (
                     <>
@@ -358,7 +439,9 @@ export default function TransactionOpportunityModal({
                   Transaction accepted!
                 </p>
                 <p className="text-sm" style={{ color: "#64748b" }}>
-                  The client has been notified. They will be heading to your location.
+                  {transfer_mode === "BANK_TRANSFER"
+                    ? "Awaiting the client's bank transfer. You'll be notified once funds are confirmed."
+                    : "The client has been notified. They will be heading to your location."}
                 </p>
               </div>
 
@@ -391,6 +474,41 @@ export default function TransactionOpportunityModal({
               <p className="text-xs" style={{ color: "#334155" }}>
                 Closing in {countdown}s…
               </p>
+            </div>
+          )}
+
+          {/* ── FAILED STATE ─────────────────────────────────────────── */}
+          {failed && (
+            <div className="flex flex-col items-center gap-5 py-4 text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "#1c0a0a", border: "0.5px solid #7f1d1d" }}
+              >
+                <AlertTriangle size={28} style={{ color: "#f87171" }} />
+              </div>
+
+              <div>
+                <p className="text-base font-semibold mb-1" style={{ color: "#f87171" }}>
+                  {failedMessage ? "Error processing acceptance" : "Opportunity no longer available"}
+                </p>
+                <p className="text-sm" style={{ color: "#64748b" }}>
+                  {failedMessage || "This transaction was already taken by another vendor or has expired."}
+                </p>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
+                style={{
+                  background: "#1c0a0a",
+                  color: "#f87171",
+                  border: "0.5px solid #7f1d1d",
+                }}
+                onMouseOver={e => e.currentTarget.style.background = "#2d1010"}
+                onMouseOut={e => e.currentTarget.style.background = "#1c0a0a"}
+              >
+                Close
+              </button>
             </div>
           )}
         </div>
