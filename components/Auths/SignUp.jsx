@@ -15,14 +15,14 @@ import { Subscriber } from "../../utils/subscriber.js";
 
 export default function SignUp(){
     const [data, setData] = useState({})
-const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { updateUser } = useAuth()
     const navigate = useNavigate()
      const [, dispatch] = Object.values(useStateValue());
 
     const [getAuthUrl, { loading: googleLoading }] = useMutation(SIGNUP, {
-  onCompleted: (data) => {
+    onCompleted: (data) => {
     const url = data?.signup?.data?.authUrl;
     
     if (url) {

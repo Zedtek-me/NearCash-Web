@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { useMutation } from "@apollo/client";
 import toast from "react-hot-toast";
 
-export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor }) {
+export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor, isAwaitingTransfer }) {
   const [open, setOpen] = useState(false);
    const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
     const navigate = useNavigate()
@@ -53,13 +53,19 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
         </div>
         <div>
-           <span
-          className={`font-bold text-gray-800`}
-        >
-          ₦{Number(transaction?.amount || 0).toLocaleString()}
-        </span>
+          <span className="font-bold text-gray-800">
+            ₦{Number(transaction?.amount || 0).toLocaleString()}
+          </span>
+          {transaction?.business?.name && (
+            <div className="text-xs text-gray-500 mt-0.5">{transaction.business.name}</div>
+          )}
+          {transaction?.transferMode && (
+            <div className="text-xs text-gray-400">
+              {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
+            </div>
+          )}
           <div className="font-medium text-gray-800">{transaction?.name}</div>
-          <div className="text-sm text-gray-500"> {new Date(transaction.dateCreated).toLocaleString('en-GB', {
+          <div className="text-sm text-gray-500">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -72,6 +78,11 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
       {/* Right side */}
       <div className="flex pt-5 md:pt-0 justify-between items-center space-x-2">
+        {isAwaitingTransfer && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200 whitespace-nowrap">
+            Awaiting Transfer
+          </span>
+        )}
         <span
           className={`font-medium ${
             transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"

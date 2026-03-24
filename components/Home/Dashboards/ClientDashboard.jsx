@@ -77,6 +77,7 @@ export default function ClientDashboard() {
   const [assetId, setAssetId]                = useState(null);
   const [amount, setAmount]                  = useState("");
   const [selectedPolicy, setSelectedPolicy]  = useState(null);
+  const [transferMode, setTransferMode]      = useState(null);
   const [selectedAssetRange, setSelectedAssetRange] = useState(null);
 
   const [fetchPolicies, { data: policiesData, loading: policiesLoading }] =
@@ -117,12 +118,26 @@ export default function ClientDashboard() {
         transactionInfo: {
           ...prev.transactionInfo,
           transactionId: txnId,
-          vendorName:    txn_info?.vendor_name || prev.transactionInfo.vendorName,
-          amount:        txn_info?.amount      || prev.transactionInfo.amount,
+          vendorName:    txn_info?.vendor_name   || prev.transactionInfo.vendorName,
+          amount:        txn_info?.amount        || prev.transactionInfo.amount,
+          transferMode:  txn_info?.transfer_mode || null,
+          accountInfo:   txn_info?.account_info  || null,
         },
       }));
       refetch();
-      setTimeout(() => navigate(`/transaction-details/${txnId}`), 5000);
+      if (txn_info?.transfer_mode !== "BANK_TRANSFER") {
+        setTimeout(() => navigate(`/transaction-details/${txnId}`), 5000);
+      }
+    }
+
+    if (message_type === "Transfer Confirmed!") {
+      const txnId = txn_info?.txn_id || activeTxId;
+      setTxStatusModal((prev) => ({ ...prev, status: "transferConfirmed" }));
+      refetch();
+      setTimeout(() => {
+        navigate(`/transaction-details/${txnId}`);
+        handleCloseStatusModal();
+      }, 2500);
     }
 
     if (message_type === "Transaction Declined!") {
@@ -142,8 +157,8 @@ export default function ClientDashboard() {
 
   // ── Submit transaction ────────────────────────────────────────────────────
   const handleSubmitTransaction = async () => {
-    if (!amount || !selectedPolicy) {
-      toast.error("Please enter an amount and select a policy");
+    if (!amount || !selectedPolicy || !transferMode) {
+      toast.error("Please enter an amount, select a collection mode, and choose a payment method");
       return;
     }
 
@@ -160,6 +175,7 @@ export default function ClientDashboard() {
             },
             collectionMode:     policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
             collectionLocation: "",
+            transferMode,
           },
         },
       });
@@ -169,6 +185,7 @@ export default function ClientDashboard() {
       setShowTransactionModal(false);
       setAmount("");
       setSelectedPolicy(null);
+      setTransferMode(null);
       setActiveTxId(txId);
       setTxStatusModal({
         isOpen: true,
@@ -234,7 +251,6 @@ export default function ClientDashboard() {
 
   const transactionHistory = transactionData?.transactions || [];
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
       <div className="max-w-7xl mx-auto mt-14">
@@ -410,11 +426,13 @@ export default function ClientDashboard() {
           onAmountChange={setAmount}
           selectedPolicy={selectedPolicy}
           onSelectPolicy={setSelectedPolicy}
+          transferMode={transferMode}
+          onTransferModeChange={setTransferMode}
           policiesData={policiesData}
           policiesLoading={policiesLoading}
           onSubmit={handleSubmitTransaction}
           assetRange={selectedAssetRange}
-          onClose={() => { setShowTransactionModal(false); setAmount(""); setSelectedPolicy(null); setSelectedAssetRange(null); }}
+          onClose={() => { setShowTransactionModal(false); setAmount(""); setSelectedPolicy(null); setTransferMode(null); setSelectedAssetRange(null); }}
           submitting={creating}
         />
       )}
@@ -453,6 +471,7 @@ export default function ClientDashboard() {
         onKeepWaiting={() => handleDelayResponse("WAIT")}
         onSelectVendor={() => handleDelayResponse("CANCEL")}
         onAutoAssign={() => handleDelayResponse("SYSTEM_SEARCH")}
+        onViewDetails={() => navigate(`/transaction-details/${activeTxId}`)}
       />
 
       {/* Single NotificationSocket instance per dashboard */}

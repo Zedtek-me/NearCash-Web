@@ -21,6 +21,7 @@ import CategoryManagementPage from "../components/Home/Vendor/Category.jsx";
 import TransactionDetails from "../components/Home/components/TransactionDetails.jsx";
 import ProfilePage from "../components/Home/components/Profile.jsx";
 import EditStorePage from "../components/Home/Dashboards/EditStorePage.jsx";
+import KYCPage from "../components/Auths/KYC.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -51,6 +52,7 @@ const App = () => {
                     <Route index element={<Home/>}/>
                 </Route>
                 <Route path="business-setup" element={<BusinessSetUpPage />}/>
+                <Route path="/kyc" element={<KYCPage />}/>
                 <Route path="*" element={<Navigate to="/" replace/>}/>
                 <Route path="/client" element={<ClientDashboard />}/>
                 <Route path="/vendor" element={<VendorDashboard />}/>

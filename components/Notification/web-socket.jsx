@@ -109,6 +109,7 @@ export const PUSH_NOTIF_MSG_TYPES = [
   "Transaction Declined!",
   "Transaction Cancelled!",
   "Vendor Response Delayed",
+  "Transfer Confirmed!",
 ];
 
 /**
@@ -143,7 +144,7 @@ const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
  *
  * NOT mounted at the app root — each dashboard mounts its own instance.
  */
-const NotificationSocket = ({ onOpportunity, onNewInterest }) => {
+const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed }) => {
   const socket    = useWebSocket();
   const { userData } = useAuth();
   const permissionRequested = useRef(false);
@@ -247,11 +248,19 @@ const NotificationSocket = ({ onOpportunity, onNewInterest }) => {
         const amountStr  = amount ? `₦${Number(amount).toLocaleString()}` : null;
 
         let label;
+        if (message_type === "Transfer Confirmed!") {
+          onTransferConfirmed?.(txnInfo);
+        }
+
         if (message_type === "New Transaction Interest") {
-          const clientName  = txnInfo?.client_name || "A client";
-          const bizName     = txnInfo?.vendor_name ? ` → ${txnInfo.vendor_name}` : "";
+          const clientName     = txnInfo?.client_name || "A client";
+          const bizName        = txnInfo?.vendor_name ? ` → ${txnInfo.vendor_name}` : "";
+          const rawMode        = txnInfo?.transfer_mode;
+          const transferLabel  = rawMode === "BANK_TRANSFER" ? " · Bank Transfer"
+                               : rawMode === "CARD"          ? " · Card"
+                               : "";
           label = amountStr
-            ? `${clientName} wants to withdraw ${amountStr}${bizName}`
+            ? `${clientName} wants to withdraw ${amountStr}${bizName}${transferLabel}`
             : `New transaction interest from ${clientName}${bizName}`;
           onNewInterest?.();
         } else {

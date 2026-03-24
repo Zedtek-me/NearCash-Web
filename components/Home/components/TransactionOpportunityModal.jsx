@@ -9,6 +9,7 @@ export default function TransactionOpportunityModal({
   isOpen,
   opportunityData,
   onClose,
+  onAccepted,
 }) {
   const socket = useWebSocket();
   const [acceptOpportunity] = useMutation(ACCEPT_TRANSACTION_OPPORTUNITY);
@@ -100,7 +101,7 @@ export default function TransactionOpportunityModal({
 
   if (!isOpen || !opportunityData) return null;
 
-  const { txn_id, txn_ref, amount, client_name, businesses: buss_info } = opportunityData.txn_info;
+  const { txn_id, txn_ref, amount, client_name, businesses: buss_info, transfer_mode } = opportunityData.txn_info;
   const businesses = buss_info ?? [];
 
   // ── GraphQL mutation path (primary) ──────────────────────────────────────
@@ -121,6 +122,7 @@ export default function TransactionOpportunityModal({
       const result = data?.acceptTransactionOpportunity?.message;
       if (result === "opportunity_ack") {
         setAccepted(true);
+        onAccepted?.(String(txn_id), transfer_mode);
       } else {
         setFailed(true);
       }
@@ -132,7 +134,7 @@ export default function TransactionOpportunityModal({
     }
   };
 
-  /* ── WebSocket acceptance path (preserved for fallback / revert) ──────────
+  /* WebSocket acceptance path (preserved for fallback / revert)
   const handleAcceptViaWebSocket = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     if (!selectedBusiness) return;
@@ -150,7 +152,7 @@ export default function TransactionOpportunityModal({
       setFailed(true);
     }
   };
-  ── end WebSocket path ─────────────────────────────────────────────────── */
+  */
 
   const handleIgnore = () => {
     onClose();
@@ -194,7 +196,7 @@ export default function TransactionOpportunityModal({
         )}
 
         <div className="p-7">
-          {/* ── PENDING / FORM STATE ─────────────────────────────────────── */}
+          {/* PENDING / FORM STATE*/}
           {!accepted && !failed && (
             <>
               <div className="flex items-center gap-3 mb-6">
@@ -437,7 +439,9 @@ export default function TransactionOpportunityModal({
                   Transaction accepted!
                 </p>
                 <p className="text-sm" style={{ color: "#64748b" }}>
-                  The client has been notified. They will be heading to your location.
+                  {transfer_mode === "BANK_TRANSFER"
+                    ? "Awaiting the client's bank transfer. You'll be notified once funds are confirmed."
+                    : "The client has been notified. They will be heading to your location."}
                 </p>
               </div>
 

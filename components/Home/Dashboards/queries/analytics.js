@@ -56,6 +56,7 @@ export const GET_TRANSACTION = gql`
                 lastName
                 email
                 meta
+                phoneNumber
             }
         }
     }
