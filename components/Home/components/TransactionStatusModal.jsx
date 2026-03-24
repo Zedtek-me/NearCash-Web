@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin } from "lucide-react";
+import toast from "react-hot-toast";
 
 const PROVIDER_CONFIG = {
   flutterwave: {
@@ -97,12 +98,48 @@ export default function TransactionStatusModal({
   delayActionLoading = null,
 }) {
   const [dots, setDots] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(null);
+  const expiredToastFired = useRef(false);
 
   useEffect(() => {
     if (status !== "loading") return;
     const id = setInterval(() => setDots((d) => (d + 1) % 4), 500);
     return () => clearInterval(id);
   }, [status]);
+
+  // ── Virtual account countdown ─────────────────────────────────────────────
+  useEffect(() => {
+    const expiry = transactionInfo.accountInfo?.account_expiration_datetime;
+    if (status !== "approved" || !expiry) {
+      setSecondsLeft(null);
+      expiredToastFired.current = false;
+      return;
+    }
+
+    const getSecsLeft = () =>
+      Math.max(0, Math.floor((new Date(expiry).getTime() - Date.now()) / 1000));
+
+    setSecondsLeft(getSecsLeft());
+    expiredToastFired.current = false;
+
+    const id = setInterval(() => {
+      const s = getSecsLeft();
+      setSecondsLeft(s);
+      if (s === 0) clearInterval(id);
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [status, transactionInfo.accountInfo?.account_expiration_datetime]);
+
+  // Fire a one-time toast when the account expires
+  useEffect(() => {
+    if (secondsLeft === 0 && !expiredToastFired.current) {
+      expiredToastFired.current = true;
+      toast.error("Your virtual account has expired. A new account will be issued shortly.", {
+        duration: 8000,
+      });
+    }
+  }, [secondsLeft]);
 
   if (!isOpen) return null;
 
@@ -222,10 +259,10 @@ export default function TransactionStatusModal({
               </div>
 
               <div className="text-center">
-                <p className="text-green-400 text-base font-medium mb-1">Transaction approved</p>
+                <p className="text-green-400 text-base font-medium mb-1">Transaction Accepted</p>
                 <p className="text-slate-500 text-sm">
                   {transactionInfo.transferMode === "BANK_TRANSFER"
-                    ? "Transfer funds to the virtual account below to complete your request"
+                    ? `Transfer exactly ₦${Number(transactionInfo.amount || 0).toLocaleString()} to the virtual account below to lock your request with the vendor`
                     : "Head to the vendor to collect your cash"}
                 </p>
               </div>
@@ -260,13 +297,50 @@ export default function TransactionStatusModal({
                       ["Bank", transactionInfo.accountInfo.account_bank_name],
                       ["Amount", `₦${Number(transactionInfo.accountInfo.amount || 0).toLocaleString()}`],
                       ["Reference", transactionInfo.accountInfo.reference],
-                      ["Expires", new Date(transactionInfo.accountInfo.account_expiration_datetime).toLocaleString()],
                     ].map(([label, value]) => (
                       <div key={label} className="flex justify-between items-center">
                         <span className="text-xs" style={{ color: "#93c5fd" }}>{label}</span>
                         <span className="text-xs font-medium" style={{ color: "#bfdbfe" }}>{value}</span>
                       </div>
                     ))}
+
+                    {/* Countdown row */}
+                    {secondsLeft !== null && (() => {
+                      const expired = secondsLeft === 0;
+                      const urgent  = secondsLeft > 0 && secondsLeft <= 300; // ≤ 5 min
+                      const m = Math.floor(secondsLeft / 60);
+                      const s = secondsLeft % 60;
+                      const label = expired
+                        ? "Expired"
+                        : m > 0
+                        ? `${m}m ${String(s).padStart(2, "0")}s`
+                        : `${s}s`;
+                      const color = expired ? "#f87171" : urgent ? "#fbbf24" : "#4ade80";
+                      return (
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs" style={{ color: "#93c5fd" }}>Expires in</span>
+                          <span
+                            className="text-xs font-semibold tabular-nums"
+                            style={{ color }}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Expired banner */}
+                    {secondsLeft === 0 && (
+                      <div
+                        className="flex items-start gap-2 mt-1 p-2.5 rounded-lg"
+                        style={{ background: "#1c0a0a", border: "0.5px solid #7f1d1d" }}
+                      >
+                        <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#f87171" }} />
+                        <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>
+                          This virtual account has expired. A new account will be issued — please wait.
+                        </p>
+                      </div>
+                    )}
                     {transactionInfo.accountInfo.note && (
                       <p className="text-xs text-center mt-2 leading-relaxed" style={{ color: "#60a5fa" }}>
                         {transactionInfo.accountInfo.note}
@@ -274,13 +348,19 @@ export default function TransactionStatusModal({
                     )}
 
                     <div
-                      className="flex items-start gap-2 mt-3 p-3 rounded-lg"
+                      className="mt-3 p-3 rounded-lg space-y-2.5"
                       style={{ background: "#0f1f38", border: "0.5px solid #1e3a5f" }}
                     >
-                      <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#60a5fa" }} />
-                      <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
-                        If the vendor declines or you cancel this transaction, a full refund will be returned to your account automatically.
-                      </p>
+                      {[
+                        "A release code is sent to you after transfer confirmation — share it with the vendor only once you have your cash in hand.",
+                        `Funds are held in escrow by ${transactionInfo.accountInfo.provider ?? "our payment partner"} and released to the vendor only on completion.`,
+                        "Full refund is issued automatically if the vendor declines or you cancel.",
+                      ].map((note, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#60a5fa" }} />
+                          <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>{note}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -377,14 +457,35 @@ export default function TransactionStatusModal({
               </div>
 
               <div className="w-full space-y-2">
-                {/* Keep waiting */}
+                {/* Auto-assign — primary action */}
                 <button
-                  onClick={onKeepWaiting}
+                  onClick={onAutoAssign}
                   disabled={!!delayActionLoading}
                   className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                   style={{ background: "#78350f", color: "#fde68a" }}
                   onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#92400e")}
                   onMouseOut={e => e.currentTarget.style.background = "#78350f"}
+                >
+                  {delayActionLoading === "autoAssign" ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <RefreshCw size={14} />
+                  )}
+                  Auto-assign nearest vendor
+                </button>
+
+                {/* Keep waiting */}
+                <button
+                  onClick={onKeepWaiting}
+                  disabled={!!delayActionLoading}
+                  className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  style={{
+                    background: "#1e293b",
+                    color: "#94a3b8",
+                    border: "0.5px solid #334155",
+                  }}
+                  onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
+                  onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
                 >
                   {delayActionLoading === "keepWaiting" ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -413,27 +514,6 @@ export default function TransactionStatusModal({
                     <MapPin size={14} />
                   )}
                   Select a different vendor
-                </button>
-
-                {/* Auto-assign */}
-                <button
-                  onClick={onAutoAssign}
-                  disabled={!!delayActionLoading}
-                  className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                  style={{
-                    background: "#1e293b",
-                    color: "#94a3b8",
-                    border: "0.5px solid #334155",
-                  }}
-                  onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
-                  onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
-                >
-                  {delayActionLoading === "autoAssign" ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <RefreshCw size={14} />
-                  )}
-                  Auto-assign nearest vendor
                 </button>
               </div>
 
