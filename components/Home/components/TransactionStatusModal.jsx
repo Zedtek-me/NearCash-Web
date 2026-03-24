@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin } from "lucide-react";
 import toast from "react-hot-toast";
+import { useMutation } from "@apollo/client";
+import { GENERATE_VIRTUAL_ACCOUNT } from "../../Auths/mutations/userMutations";
 
 const PROVIDER_CONFIG = {
   flutterwave: {
@@ -99,7 +101,46 @@ export default function TransactionStatusModal({
 }) {
   const [dots, setDots] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(null);
+  const [regenKey, setRegenKey] = useState(0);
   const expiredToastFired = useRef(false);
+
+  // Local copy of accountInfo — updated in-place when the client regenerates
+  const [localAccountInfo, setLocalAccountInfo] = useState(null);
+  const accountInfo = localAccountInfo ?? transactionInfo.accountInfo;
+
+  // Sync local copy whenever the parent provides fresh accountInfo
+  useEffect(() => {
+    setLocalAccountInfo(null);
+  }, [transactionInfo.accountInfo]);
+
+  const [generateVirtualAccount, { loading: regenerating }] = useMutation(GENERATE_VIRTUAL_ACCOUNT);
+
+  const handleRegenerate = async () => {
+    try {
+      const { data } = await generateVirtualAccount({
+        variables: { txnId: String(transactionInfo.transactionId) },
+      });
+      const info = data?.generateVirtualAccount?.accountInfo;
+      if (!info) throw new Error("No account info returned");
+      // Map camelCase GraphQL response back to snake_case used throughout the modal
+      setLocalAccountInfo({
+        account_number:               info.accountNumber,
+        account_bank_name:            info.accountBankName,
+        account_name:                 info.accountName,
+        amount:                       info.amount,
+        reference:                    info.reference,
+        account_expiration_datetime:  info.accountExpirationDatetime,
+        note:                         info.note,
+        provider:                     info.provider,
+        currency:                     info.currency,
+      });
+      setSecondsLeft(null);        // clear expired banner immediately
+      setRegenKey((k) => k + 1); // force countdown effect to re-run even if expiry string is unchanged
+      toast.success("New virtual account generated successfully.");
+    } catch (err) {
+      toast.error(err?.graphQLErrors?.[0]?.message || "Failed to generate a new account. Please try again.");
+    }
+  };
 
   useEffect(() => {
     if (status !== "loading") return;
@@ -109,7 +150,7 @@ export default function TransactionStatusModal({
 
   // ── Virtual account countdown ─────────────────────────────────────────────
   useEffect(() => {
-    const expiry = transactionInfo.accountInfo?.account_expiration_datetime;
+    const expiry = accountInfo?.account_expiration_datetime;
     if (status !== "approved" || !expiry) {
       setSecondsLeft(null);
       expiredToastFired.current = false;
@@ -129,13 +170,13 @@ export default function TransactionStatusModal({
     }, 1000);
 
     return () => clearInterval(id);
-  }, [status, transactionInfo.accountInfo?.account_expiration_datetime]);
+  }, [status, accountInfo?.account_expiration_datetime, regenKey]);
 
   // Fire a one-time toast when the account expires
   useEffect(() => {
     if (secondsLeft === 0 && !expiredToastFired.current) {
       expiredToastFired.current = true;
-      toast.error("Your virtual account has expired. A new account will be issued shortly.", {
+      toast.error("Your virtual account has expired. Please generate a new one to continue.", {
         duration: 8000,
       });
     }
@@ -285,7 +326,7 @@ export default function TransactionStatusModal({
               </div>
 
               {/* Virtual account — bank transfer only */}
-              {transactionInfo.transferMode === "BANK_TRANSFER" && transactionInfo.accountInfo && (
+              {transactionInfo.transferMode === "BANK_TRANSFER" && accountInfo && (
                 <div
                   className="w-full rounded-xl overflow-hidden"
                   style={{ background: "#0a1628", border: "0.5px solid #1d4ed8" }}
@@ -293,10 +334,10 @@ export default function TransactionStatusModal({
                   <div className="p-4 space-y-2">
                     <p className="text-blue-400 text-xs font-semibold mb-3">Transfer to this account</p>
                     {[
-                      ["Account Number", transactionInfo.accountInfo.account_number],
-                      ["Bank", transactionInfo.accountInfo.account_bank_name],
-                      ["Amount", `₦${Number(transactionInfo.accountInfo.amount || 0).toLocaleString()}`],
-                      ["Reference", transactionInfo.accountInfo.reference],
+                      ["Account Number", accountInfo.account_number],
+                      ["Bank", accountInfo.account_bank_name],
+                      ["Amount", `₦${Number(accountInfo.amount || 0).toLocaleString()}`],
+                      ["Reference", accountInfo.reference],
                     ].map(([label, value]) => (
                       <div key={label} className="flex justify-between items-center">
                         <span className="text-xs" style={{ color: "#93c5fd" }}>{label}</span>
@@ -329,21 +370,36 @@ export default function TransactionStatusModal({
                       );
                     })()}
 
-                    {/* Expired banner */}
+                    {/* Expired banner + regenerate */}
                     {secondsLeft === 0 && (
                       <div
-                        className="flex items-start gap-2 mt-1 p-2.5 rounded-lg"
+                        className="mt-1 p-2.5 rounded-lg space-y-2"
                         style={{ background: "#1c0a0a", border: "0.5px solid #7f1d1d" }}
                       >
-                        <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#f87171" }} />
-                        <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>
-                          This virtual account has expired. A new account will be issued — please wait.
-                        </p>
+                        <div className="flex items-start gap-2">
+                          <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#f87171" }} />
+                          <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>
+                            This virtual account has expired. Generate a new one to continue.
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleRegenerate}
+                          disabled={regenerating}
+                          className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                          style={{ background: "#7f1d1d", color: "#fecaca" }}
+                          onMouseOver={e => { if (!regenerating) e.currentTarget.style.background = "#991b1b"; }}
+                          onMouseOut={e => { e.currentTarget.style.background = "#7f1d1d"; }}
+                        >
+                          {regenerating
+                            ? <><Loader2 size={12} className="animate-spin" /> Generating…</>
+                            : <><RefreshCw size={12} /> Generate new account</>
+                          }
+                        </button>
                       </div>
                     )}
-                    {transactionInfo.accountInfo.note && (
+                    {accountInfo.note && (
                       <p className="text-xs text-center mt-2 leading-relaxed" style={{ color: "#60a5fa" }}>
-                        {transactionInfo.accountInfo.note}
+                        {accountInfo.note}
                       </p>
                     )}
 
@@ -353,7 +409,7 @@ export default function TransactionStatusModal({
                     >
                       {[
                         "A release code is sent to you after transfer confirmation — share it with the vendor only once you have your cash in hand.",
-                        `Funds are held in escrow by ${transactionInfo.accountInfo.provider ?? "our payment partner"} and released to the vendor only on completion.`,
+                        `Funds are held in escrow by ${accountInfo.provider ?? "our payment partner"} and released to the vendor only on completion.`,
                         "Full refund is issued automatically if the vendor declines or you cancel.",
                       ].map((note, i) => (
                         <div key={i} className="flex items-start gap-2">
@@ -364,8 +420,8 @@ export default function TransactionStatusModal({
                     </div>
                   </div>
 
-                  {transactionInfo.accountInfo.provider && (
-                    <ProviderFooter provider={transactionInfo.accountInfo.provider} />
+                  {accountInfo.provider && (
+                    <ProviderFooter provider={accountInfo.provider} />
                   )}
                 </div>
               )}
