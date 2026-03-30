@@ -109,7 +109,8 @@ export const PUSH_NOTIF_MSG_TYPES = [
   "Transaction Declined!",
   "Transaction Cancelled!",
   "Vendor Response Delayed",
-  "Transfer Confirmed!",
+  "Transfer Confirmed",
+  "Transfer Failed",
 ];
 
 /**
@@ -248,8 +249,14 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
         const amountStr  = amount ? `₦${Number(amount).toLocaleString()}` : null;
 
         let label;
-        if (message_type === "Transfer Confirmed!") {
+        if (message_type === "Transfer Confirmed") {
           onTransferConfirmed?.(txnInfo);
+        }
+
+        if (message_type === "Transfer Failed") {
+          const reason = data?.message || "Your transfer could not be verified.";
+          toast.error(reason, { duration: 8000 });
+          return;
         }
 
         if (message_type === "New Transaction Interest") {

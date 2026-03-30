@@ -579,6 +579,53 @@ export default function TransactionStatusModal({
             </>
           )}
 
+          {/* ── TRANSFER FAILED ─────────────────────────── */}
+          {status === "transferFailed" && (
+            <>
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "#1c0505", border: "2px solid #dc2626" }}
+              >
+                <XCircle size={30} className="text-red-400" />
+              </div>
+
+              <div className="text-center">
+                <p className="text-red-400 text-base font-medium mb-1">Transfer failed</p>
+                <p className="text-slate-500 text-sm">
+                  {transactionInfo.failReason || "We could not verify your transfer. Your transaction has been declined."}
+                </p>
+              </div>
+
+              <div
+                className="w-full rounded-xl p-4 space-y-2"
+                style={{ background: "#1c0505", border: "0.5px solid #7f1d1d" }}
+              >
+                {[
+                  "No funds have been moved — your money is safe.",
+                  "Common causes: incorrect amount, wrong reference, or bank rejection.",
+                  "Contact support if you believe this is an error.",
+                ].map((tip, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#f87171" }} />
+                    <p className="text-xs leading-relaxed" style={{ color: "#fca5a5" }}>{tip}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="w-full space-y-2">
+                <button
+                  onClick={onClose}
+                  className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{ background: "#991b1b", color: "#fecaca" }}
+                  onMouseOver={e => e.currentTarget.style.background = "#7f1d1d"}
+                  onMouseOut={e => e.currentTarget.style.background = "#991b1b"}
+                >
+                  Close
+                </button>
+              </div>
+            </>
+          )}
+
           {/* ── TRANSFER CONFIRMED ──────────────────────── */}
           {status === "transferConfirmed" && (
             <>

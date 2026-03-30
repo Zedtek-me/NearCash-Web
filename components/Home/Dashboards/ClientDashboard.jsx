@@ -130,7 +130,7 @@ export default function ClientDashboard() {
       }
     }
 
-    if (message_type === "Transfer Confirmed!") {
+    if (message_type === "Transfer Confirmed") {
       const txnId = txn_info?.txn_id || activeTxId;
       setTxStatusModal((prev) => ({ ...prev, status: "transferConfirmed" }));
       refetch();
@@ -138,6 +138,17 @@ export default function ClientDashboard() {
         navigate(`/transaction-details/${txnId}`);
         handleCloseStatusModal();
       }, 2500);
+    }
+
+    if (message_type === "Transfer Failed") {
+      setTxStatusModal((prev) => ({
+        ...prev,
+        status: "transferFailed",
+        transactionInfo: {
+          ...prev.transactionInfo,
+          failReason: data.message || null,
+        },
+      }));
     }
 
     if (message_type === "Transaction Declined!") {
