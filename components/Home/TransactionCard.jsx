@@ -83,6 +83,11 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
             {isVendor ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
           </span>
         )}
+        {!isAwaitingTransfer && transaction.status === "IN_PROGRESS" && transaction.transferMode === "BANK_TRANSFER" && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+            Transfer Confirmed
+          </span>
+        )}
         <div className="flex items-center space-x-2">
           <span
             className={`font-medium ${
