@@ -59,7 +59,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           {isVendor && transaction?.client?.fullName && (
             <div className="text-xs text-gray-500 mt-0.5">{transaction.client.fullName}</div>
           )}
-          {transaction?.client?.fullName && transaction?.business?.name && (
+          {isVendor && transaction?.client?.fullName && transaction?.business?.name && (
             <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
               <div>From {transaction.client.fullName}</div>
               <div>To {transaction.business.name}</div>
@@ -68,6 +68,14 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
                   {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
                 </div>
               )}
+            </div>
+          )}
+          {!isVendor && transaction?.business?.name && (
+            <div className="text-xs text-gray-500 mt-0.5">{transaction.business.name}</div>
+          )}
+          {!isVendor && transaction?.transferMode && (
+            <div className="text-xs text-gray-400">
+              {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
             </div>
           )}
           <div className="text-sm text-gray-500 mt-1">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
