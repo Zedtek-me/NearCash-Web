@@ -56,16 +56,26 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           <span className="font-bold text-gray-800">
             ₦{Number(transaction?.amount || 0).toLocaleString()}
           </span>
-          {transaction?.business?.name && (
+          {isVendor && transaction?.client?.fullName && transaction?.business?.name && (
+            <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
+              <div>From {transaction.client.fullName}</div>
+              <div>To {transaction.business.name}</div>
+              {transaction?.transferMode && (
+                <div>
+                  {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
+                </div>
+              )}
+            </div>
+          )}
+          {!isVendor && transaction?.business?.name && (
             <div className="text-xs text-gray-500 mt-0.5">{transaction.business.name}</div>
           )}
-          {transaction?.transferMode && (
+          {!isVendor && transaction?.transferMode && (
             <div className="text-xs text-gray-400">
               {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
             </div>
           )}
-          <div className="font-medium text-gray-800">{transaction?.name}</div>
-          <div className="text-sm text-gray-500">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
+          <div className="text-sm text-gray-500 mt-1">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -81,6 +91,11 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
         {isAwaitingTransfer && (
           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
             {isVendor ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
+          </span>
+        )}
+        {!isAwaitingTransfer && transaction.status === "IN_PROGRESS" && transaction.transferMode === "BANK_TRANSFER" && (
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+            Transfer Confirmed
           </span>
         )}
         <div className="flex items-center space-x-2">
