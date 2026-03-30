@@ -56,9 +56,6 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           <span className="font-bold text-gray-800">
             ₦{Number(transaction?.amount || 0).toLocaleString()}
           </span>
-          {isVendor && transaction?.client?.fullName && (
-            <div className="text-xs text-gray-500 mt-0.5">{transaction.client.fullName}</div>
-          )}
           {isVendor && transaction?.client?.fullName && transaction?.business?.name && (
             <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
               <div>From {transaction.client.fullName}</div>
