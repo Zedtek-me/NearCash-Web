@@ -42,7 +42,7 @@ const VendorFilter = ({ onFilter }) => {
             </div>
 
             {openFilter && (
-                <div className="absolute left-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute right-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
                     <h3
                         className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
                         onClick={(e) => handleFilterBy(e.target.textContent)}
@@ -53,7 +53,7 @@ const VendorFilter = ({ onFilter }) => {
             )}
 
             {filterBy === "vendor type" && (
-                <div className="absolute left-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute right-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
                     {VENDOR_TYPES.map(({ label, value }) => (
                         <div
                             key={label}
