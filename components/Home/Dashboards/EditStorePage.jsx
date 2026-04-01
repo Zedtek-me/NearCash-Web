@@ -30,7 +30,7 @@ const EditStorePage = () => {
 
   const [formData, setFormData] = useState({
     name: '', address: '', location: { latitude: '', longitude: '' },
-    range: [], description: '', country: '',
+    range: [], description: '', country: '', businessType: ''
   });
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -54,14 +54,11 @@ const EditStorePage = () => {
   useEffect(() => {
     if (!subBizData || initialized) return;
 
-    // Adjust the path below to match your actual GQL response shape
     const biz = subBizData?.businesses[0];
 
     if (!biz) return;
 
-    // Map the business's existing financial assets / ranges back to option shape
     const prefillRanges = (biz.assets || []).map(asset => {
-      // Try to match a predefined option first
       const match = rangeOptions.find(o => o.label === asset.range);
       if (match) return match;
       return {
@@ -76,6 +73,7 @@ const EditStorePage = () => {
       address:     biz.address       || '',
       description: biz.description   || '',
       country:     biz.country        || '',
+      businessType: biz.businessType,
       location: {
         latitude:  biz.location?.latitude  || '',
         longitude: biz.location?.longitude || '',
@@ -159,6 +157,7 @@ const EditStorePage = () => {
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.range.length)   newErrors.range   = 'At least one range must be selected';
     if (!formData.country.trim()) newErrors.country = 'Country is required';
+    if (!formData.businessType?.trim()) newErrors.businessType = "Business type must be selected"
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -171,6 +170,7 @@ const EditStorePage = () => {
       address:      formData.address,
       description:  formData.description,
       country:      formData.country,
+      businessType: formData.businessType
     };
 
     const financialAssets = formData.range.map(item => ({

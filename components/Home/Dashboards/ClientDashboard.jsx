@@ -26,6 +26,7 @@ import {
 
 import TransactionCard from "../TransactionCard";
 import TransactionFilter from "../TransactionFilter";
+import VendorFilter from "../VendorFilter";
 import EmptyTableState from "../components/EmptyTable";
 import TransactionStatusModal from "../components/TransactionStatusModal";
 import LocationModal from "../components/LocationModal";
@@ -42,9 +43,14 @@ export default function ClientDashboard() {
 
   // ── Vendor list & assets ──────────────────────────────────────────────────
   const [expandedCards, setExpandedCards] = useState(new Set());
+  const [vendorTypeFilter, setVendorTypeFilter] = useState(null);
 
   const { data: vendorsData } = useQuery(VENDOR_LIST, {
-    variables: { currentLat: userLocation?.lat || 0, currentLong: userLocation?.lng || 0 },
+    variables: {
+      currentLat: userLocation?.lat || 0,
+      currentLong: userLocation?.lng || 0,
+      ...(vendorTypeFilter && { vendorType: vendorTypeFilter }),
+    },
     skip: !userLocation,
   });
 
@@ -314,6 +320,7 @@ export default function ClientDashboard() {
           <div className="bg-white rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
+              <VendorFilter onFilter={setVendorTypeFilter} />
             </div>
 
             <div className="space-y-4">

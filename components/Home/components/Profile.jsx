@@ -7,8 +7,6 @@ import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 import { cloudinaryName, cloudinaryPreset } from '../../../configs/environs';
 
-// ── Reusable field ─────────────────────────────────────────────────────────────
-
 function Field({ label, name, value, isEditing, onChange, placeholder, type = 'text', icon, disabled = false }) {
   return (
     <div>

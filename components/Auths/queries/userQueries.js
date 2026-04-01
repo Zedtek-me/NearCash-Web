@@ -25,10 +25,10 @@ export const CURRENT_USER = gql`
 
 export const VENDOR_LIST = gql`
 query VendorsNearMe(
-    $currentLat: Float!, $currentLong: Float!
+    $currentLat: Float!, $currentLong: Float!, $vendorType: String
 ){
     businessesAroundMe(
-        currentLat: $currentLat, currentLong: $currentLong
+        currentLat: $currentLat, currentLong: $currentLong, vendorType: $vendorType
     ){
         id
         name
