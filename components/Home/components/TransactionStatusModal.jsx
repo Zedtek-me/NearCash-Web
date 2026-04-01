@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin } from "lucide-react";
+import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin, Copy, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { GENERATE_VIRTUAL_ACCOUNT } from "../../Auths/mutations/userMutations";
@@ -102,6 +102,7 @@ export default function TransactionStatusModal({
   const [dots, setDots] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [regenKey, setRegenKey] = useState(0);
+  const [copiedField, setCopiedField] = useState(null);
   const expiredToastFired = useRef(false);
 
   // Local copy of accountInfo — updated in-place when the client regenerates
@@ -341,7 +342,21 @@ export default function TransactionStatusModal({
                     ].map(([label, value]) => (
                       <div key={label} className="flex justify-between items-center">
                         <span className="text-xs" style={{ color: "#93c5fd" }}>{label}</span>
-                        <span className="text-xs font-medium" style={{ color: "#bfdbfe" }}>{value}</span>
+                        <button
+                          className="flex items-center gap-1.5 group"
+                          onClick={() => {
+                            navigator.clipboard.writeText(value);
+                            setCopiedField(label);
+                            setTimeout(() => setCopiedField(null), 2000);
+                          }}
+                          title={`Copy ${label}`}
+                        >
+                          <span className="text-xs font-medium" style={{ color: "#bfdbfe" }}>{value}</span>
+                          {copiedField === label
+                            ? <Check size={11} style={{ color: "#4ade80" }} />
+                            : <Copy size={11} className="opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: "#93c5fd" }} />
+                          }
+                        </button>
                       </div>
                     ))}
 
