@@ -69,6 +69,7 @@ mutation UpdateUser($data: UpdateUserInputType!){
                 country
                 address
                 currency
+                businessType
             }
         }
     }

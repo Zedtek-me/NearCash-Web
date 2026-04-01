@@ -111,7 +111,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
               transaction.status
             )}`}
           >
-            {transaction.status}
+            {transaction.status.replace(/_/g, ' ')}
           </span>
 
           {/* Dropdown Trigger */}

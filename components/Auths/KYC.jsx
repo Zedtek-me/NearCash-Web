@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, CreditCard, Hash, Building2, ArrowRight, Lock, Info, BadgeCheck, Phone } from 'lucide-react';
+import { ShieldCheck, CreditCard, Hash, Building2, ArrowRight, Lock, Info, BadgeCheck, Phone, Globe } from 'lucide-react';
 import { useMutation } from '@apollo/client';
 import { useNavigate, useLocation } from 'react-router';
 import toast from 'react-hot-toast';
@@ -18,6 +18,7 @@ export default function KYCPage() {
     phoneNumber: '',
     bvn: '',
     nin: '',
+    country: '',
     remittanceBankName: '',
     remittanceBankCode: '',
     remittanceAccountNumber: '',
@@ -32,7 +33,8 @@ export default function KYCPage() {
   const bvnValid = formData.bvn.length === 0 || formData.bvn.length === 11;
   const ninValid = formData.nin.length === 0 || formData.nin.length === 11;
   const atLeastOneId = formData.bvn.length === 11 || formData.nin.length === 11;
-  const identityValid = formData.phoneNumber.trim().length >= 10 && bvnValid && ninValid && atLeastOneId;
+  const identityValid = formData.phoneNumber.trim().length >= 10 && bvnValid && ninValid && atLeastOneId
+    && (!isVendor ? formData.country.trim().length > 0 : true);
   const bankValid = !isVendor || (
     formData.remittanceBankName.trim() &&
     formData.remittanceBankCode.trim() &&
@@ -47,6 +49,7 @@ export default function KYCPage() {
       phoneNumber: formData.phoneNumber,
       bvn: formData.bvn,
       nin: formData.nin,
+      ...(!isVendor && formData.country && { country: formData.country }),
       ...(isVendor && {
         remittanceBankName: formData.remittanceBankName,
         remittanceBankCode: formData.remittanceBankCode,
@@ -176,6 +179,22 @@ export default function KYCPage() {
                 <p className="text-xs text-red-400 mt-1.5 ml-1">NIN must be exactly 11 digits</p>
               )}
             </div>
+
+            {!isVendor && (
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2.5">
+                  <Globe className="w-3.5 h-3.5 text-gray-500" />
+                  Country
+                </label>
+                <input
+                  type="text"
+                  value={formData.country}
+                  onChange={(e) => handleInputChange('country', e.target.value)}
+                  className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm"
+                  placeholder="e.g. Nigeria"
+                />
+              </div>
+            )}
           </div>
         </div>
 
