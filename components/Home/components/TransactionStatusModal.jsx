@@ -54,7 +54,7 @@ function ProviderFooter({ provider }) {
 
   return (
     <div
-      className="flex items-center justify-center gap-2 px-4 py-2.5 border-t"
+      className="flex items-center justify-center gap-2 px-4 py-2.5 border-t rounded-b-xl"
       style={{
         background: config?.bg ?? "#0d1829",
         borderColor: config?.border ?? "#1e2d4a",
@@ -79,14 +79,16 @@ function ProviderFooter({ provider }) {
  * TransactionStatusModal
  *
  * Props:
- *  - isOpen          : boolean
- *  - status          : "loading" | "approved" | "declined" | "delayed"
- *  - transactionInfo : { amount, vendorName, transactionId }
- *  - onClose         : () => void   — only callable when status !== "loading"
- *  - onKeepWaiting   : () => void
- *  - onSelectVendor  : () => void   — opens vendor picker / closes modal so user can pick
- *  - onAutoAssign    : () => void   — calls BE mutation to auto-assign nearest vendor
- *  - delayActionLoading : "keepWaiting" | "selectVendor" | "autoAssign" | null
+ *  - isOpen                     : boolean
+ *  - status                     : "loading" | "approved" | "declined" | "delayed" | "awaitingConfirmation" | "transferConfirmed" | "transferFailed" | "noVendors"
+ *  - transactionInfo            : { amount, vendorName, transactionId }
+ *  - onClose                    : () => void   — only callable when status !== "loading"
+ *  - onKeepWaiting              : () => void
+ *  - onSelectVendor             : () => void   — opens vendor picker / closes modal so user can pick
+ *  - onAutoAssign               : () => void   — calls BE mutation to auto-assign nearest vendor
+ *  - onConfirmPaid              : () => void   — client signals they've made the bank transfer
+ *  - onCancelAwaitingConfirmation : () => void — cancels the awaiting-confirmation state (back to approved)
+ *  - delayActionLoading         : "keepWaiting" | "selectVendor" | "autoAssign" | null
  */
 export default function TransactionStatusModal({
   isOpen,
@@ -97,6 +99,8 @@ export default function TransactionStatusModal({
   onSelectVendor,
   onAutoAssign,
   onViewDetails,
+  onConfirmPaid,
+  onCancelAwaitingConfirmation,
   delayActionLoading = null,
 }) {
   const [dots, setDots] = useState(0);
@@ -185,7 +189,7 @@ export default function TransactionStatusModal({
 
   if (!isOpen) return null;
 
-  const canClose = status !== "loading" && status !== "transferConfirmed";
+  const canClose = status !== "loading" && status !== "transferConfirmed" && status !== "awaitingConfirmation";
   const dotStr = ".".repeat(dots).padEnd(3, "\u00a0");
 
   return (
@@ -194,7 +198,7 @@ export default function TransactionStatusModal({
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)" }}
     >
       <div
-        className="relative w-full max-w-md mx-4 rounded-2xl overflow-hidden"
+        className="relative w-full max-w-md mx-4 rounded-2xl flex flex-col max-h-[90vh]"
         style={{ background: "#0F172A", border: "0.5px solid #1E293B" }}
       >
         {/* Close — only visible once resolved */}
@@ -207,7 +211,7 @@ export default function TransactionStatusModal({
           </button>
         )}
 
-        <div className="p-8 flex flex-col items-center gap-5">
+        <div className="p-5 flex flex-col items-center gap-5 overflow-y-auto min-h-0 flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           {/* ── LOADING ─────────────────────────────────── */}
           {status === "loading" && (
             <>
@@ -329,7 +333,7 @@ export default function TransactionStatusModal({
               {/* Virtual account — bank transfer only */}
               {transactionInfo.transferMode === "BANK_TRANSFER" && accountInfo && (
                 <div
-                  className="w-full rounded-xl overflow-hidden"
+                  className="w-full rounded-xl"
                   style={{ background: "#0a1628", border: "0.5px solid #1d4ed8" }}
                 >
                   <div className="p-4 space-y-2">
@@ -441,10 +445,22 @@ export default function TransactionStatusModal({
                 </div>
               )}
 
+              {transactionInfo.transferMode === "BANK_TRANSFER" && accountInfo && (
+                <button
+                  onClick={onConfirmPaid}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-colors"
+                  style={{ background: "#1d4ed8" }}
+                  onMouseOver={e => e.currentTarget.style.background = "#1e40af"}
+                  onMouseOut={e => e.currentTarget.style.background = "#1d4ed8"}
+                >
+                  I have paid
+                </button>
+              )}
+
               <button
                 onClick={onClose}
-                className="w-full py-2.5 rounded-xl text-sm font-medium text-white transition-colors"
-                style={{ background: "#16a34a" }}
+                className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+                style={{ background: "#16a34a", color: "#fff" }}
                 onMouseOver={e => e.currentTarget.style.background = "#15803d"}
                 onMouseOut={e => e.currentTarget.style.background = "#16a34a"}
               >
@@ -638,6 +654,44 @@ export default function TransactionStatusModal({
                   Close
                 </button>
               </div>
+            </>
+          )}
+
+          {/* ── AWAITING CONFIRMATION ───────────────────── */}
+          {status === "awaitingConfirmation" && (
+            <>
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-25" />
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#0a1628", border: "2px solid #1d4ed8" }}
+                >
+                  <Loader2 size={28} className="text-blue-400 animate-spin" />
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-blue-400 text-base font-medium mb-1">Confirming your transfer…</p>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Your payment is being verified. Please keep this screen open — this usually takes just a moment.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                <p className="text-slate-400 text-xs">Waiting for transfer confirmation</p>
+              </div>
+
+              <button
+                onClick={onCancelAwaitingConfirmation}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs transition-colors"
+                style={{ color: "#94a3b8", border: "0.5px solid #334155", background: "#1e293b" }}
+                onMouseOver={e => e.currentTarget.style.background = "#263244"}
+                onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
+              >
+                <X size={12} />
+                Cancel — I haven't paid yet
+              </button>
             </>
           )}
 
