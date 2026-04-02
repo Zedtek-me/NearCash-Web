@@ -113,6 +113,14 @@ export default function ClientDashboard() {
     setActiveTxId(null);
   };
 
+  const handleConfirmPaid = () => {
+    setTxStatusModal((prev) => ({ ...prev, status: "awaitingConfirmation" }));
+  };
+
+  const handleCancelAwaitingConfirmation = () => {
+    setTxStatusModal((prev) => ({ ...prev, status: "approved" }));
+  };
+
   // useTxnStatusMessages drives the modal state; NotificationSocket handles toasting
   const onTxnStatusMessage = useCallback((message_type, data) => {
     const { txn_info } = data;
@@ -491,6 +499,8 @@ export default function ClientDashboard() {
         onSelectVendor={() => handleDelayResponse("CANCEL")}
         onAutoAssign={() => handleDelayResponse("SYSTEM_SEARCH")}
         onViewDetails={() => navigate(`/transaction-details/${activeTxId}`)}
+        onConfirmPaid={handleConfirmPaid}
+        onCancelAwaitingConfirmation={handleCancelAwaitingConfirmation}
       />
 
       {/* Single NotificationSocket instance per dashboard */}
