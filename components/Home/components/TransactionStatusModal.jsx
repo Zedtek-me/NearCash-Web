@@ -211,7 +211,7 @@ export default function TransactionStatusModal({
           </button>
         )}
 
-        <div className="p-8 flex flex-col items-center gap-5 overflow-y-auto min-h-0">
+        <div className="p-8 flex flex-col items-center gap-5 overflow-y-auto min-h-0 flex-1">
           {/* ── LOADING ─────────────────────────────────── */}
           {status === "loading" && (
             <>
