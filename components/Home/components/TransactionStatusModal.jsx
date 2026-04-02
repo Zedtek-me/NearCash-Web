@@ -198,7 +198,7 @@ export default function TransactionStatusModal({
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)" }}
     >
       <div
-        className="relative w-full max-w-md mx-4 rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-md mx-4 rounded-2xl flex flex-col max-h-[90vh]"
         style={{ background: "#0F172A", border: "0.5px solid #1E293B" }}
       >
         {/* Close — only visible once resolved */}
@@ -211,7 +211,7 @@ export default function TransactionStatusModal({
           </button>
         )}
 
-        <div className="p-8 flex flex-col items-center gap-5 overflow-y-auto">
+        <div className="p-8 flex flex-col items-center gap-5 overflow-y-auto min-h-0">
           {/* ── LOADING ─────────────────────────────────── */}
           {status === "loading" && (
             <>
