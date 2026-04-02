@@ -134,8 +134,16 @@ export default function TransactionMap({
       transaction?.client?.id
     );
 
+    const updateWithLocalFirst = (coordinates, ud, sock) => {
+      // Feed coordinates straight into the map before the backend round-trip
+      const loc = { latitude: coordinates.latitude, longitude: coordinates.longitude };
+      if (isVendor) setVendorLoc(loc);
+      else setClientLoc(loc);
+      updateUserPosition(coordinates, ud, sock);
+    };
+
     const cleanupWatch = fetchAndUpdateUserCurrentLocation(
-      updateUserPosition,
+      updateWithLocalFirst,
       () => {},
       { ...userData, transaction },
       socket
