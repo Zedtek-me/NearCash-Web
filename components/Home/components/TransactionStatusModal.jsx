@@ -54,7 +54,7 @@ function ProviderFooter({ provider }) {
 
   return (
     <div
-      className="flex items-center justify-center gap-2 px-4 py-2.5 border-t"
+      className="flex items-center justify-center gap-2 px-4 py-2.5 border-t rounded-b-xl"
       style={{
         background: config?.bg ?? "#0d1829",
         borderColor: config?.border ?? "#1e2d4a",
@@ -211,7 +211,7 @@ export default function TransactionStatusModal({
           </button>
         )}
 
-        <div className="p-8 flex flex-col items-center gap-5 overflow-y-auto min-h-0 flex-1">
+        <div className="p-5 flex flex-col items-center gap-5 overflow-y-auto min-h-0 flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           {/* ── LOADING ─────────────────────────────────── */}
           {status === "loading" && (
             <>
@@ -333,7 +333,7 @@ export default function TransactionStatusModal({
               {/* Virtual account — bank transfer only */}
               {transactionInfo.transferMode === "BANK_TRANSFER" && accountInfo && (
                 <div
-                  className="w-full rounded-xl overflow-hidden"
+                  className="w-full rounded-xl"
                   style={{ background: "#0a1628", border: "0.5px solid #1d4ed8" }}
                 >
                   <div className="p-4 space-y-2">
