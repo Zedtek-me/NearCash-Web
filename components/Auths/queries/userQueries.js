@@ -38,6 +38,9 @@ query VendorsNearMe(
         distance
         nearest
         isOnline
+        businessPolicyForCurrentUser {
+            cashCollectionMode
+        }
     }
 }`;
 

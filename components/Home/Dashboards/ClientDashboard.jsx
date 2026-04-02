@@ -1,8 +1,8 @@
-import React, { useState, useCallback,useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   ArrowUpRight, ChevronDown, ChevronUp, ArrowLeft, ArrowRight,
 } from "lucide-react";
-import { useLazyQuery, useMutation, useQuery, useApolloClient } from "@apollo/client";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 
@@ -42,9 +42,7 @@ export default function ClientDashboard() {
   const { userLocation, isLoadingLocation, requestLocationPermission } = useGeolocation();
 
   // ── Vendor list & assets ──────────────────────────────────────────────────
-  const apolloClient = useApolloClient();
   const [expandedCards, setExpandedCards] = useState(new Set());
-  const [vendorCollectionModes, setVendorCollectionModes] = useState({});
   const [vendorTypeFilter, setVendorTypeFilter] = useState(null);
 
   const { data: vendorsData } = useQuery(VENDOR_LIST, {
@@ -57,23 +55,6 @@ export default function ClientDashboard() {
   });
 
   const [fetchAsset, { data: assetData }] = useLazyQuery(GET_ASSETS);
-
-  useEffect(() => {
-    const vendors = vendorsData?.businessesAroundMe;
-    if (!vendors?.length) return;
-    vendors.forEach((store) => {
-      if (store.id in vendorCollectionModes) return;
-      apolloClient
-        .query({ query: GET_VENDOR_POLICY_FOR_USER, variables: { businessId: String(store.id) } })
-        .then(({ data }) => {
-          const mode = data?.businessTransactionPolicyForUser?.cashCollectionMode ?? null;
-          setVendorCollectionModes((prev) => ({ ...prev, [store.id]: mode }));
-        })
-        .catch(() => {
-          setVendorCollectionModes((prev) => ({ ...prev, [store.id]: null }));
-        });
-    });
-  }, [vendorsData]);
 
   const toggleExpanded = (storeId) => {
     setExpandedCards((prev) => {
@@ -382,9 +363,9 @@ export default function ClientDashboard() {
                           {store?.distance} km away
                           {store?.nearest && " (Nearest)"}
                         </div>
-                        {getCollectionModeLabel(vendorCollectionModes[store.id]) && (
+                        {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode) && (
                           <div className="text-xs text-emerald-600 mt-0.5">
-                            {getCollectionModeLabel(vendorCollectionModes[store.id])}
+                            {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode)}
                           </div>
                         )}
                       </div>
