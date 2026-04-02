@@ -25,10 +25,12 @@ export const CURRENT_USER = gql`
 
 export const VENDOR_LIST = gql`
 query VendorsNearMe(
-    $currentLat: Float!, $currentLong: Float!, $vendorType: String
+    $currentLat: Float!, $currentLong: Float!, $vendorType: String,
+    $collectionMode: String, $pageCount: Int, $pageNumber: Int
 ){
     businessesAroundMe(
-        currentLat: $currentLat, currentLong: $currentLong, vendorType: $vendorType
+        currentLat: $currentLat, currentLong: $currentLong, vendorType: $vendorType,
+        collectionMode: $collectionMode, pageCount: $pageCount, pageNumber: $pageNumber
     ){
         id
         name
@@ -41,6 +43,10 @@ query VendorsNearMe(
         businessPolicyForCurrentUser {
             cashCollectionMode
         }
+    }
+    pagination {
+        totalPages
+        currentPage
     }
 }`;
 
@@ -132,6 +138,10 @@ export const GET_TRANSACTIONS = gql`
         id
         name
       }
+    }
+    pagination {
+      totalPages
+      currentPage
     }
   }
 `;
@@ -310,10 +320,12 @@ export const GET_CATEGORIES = gql`
 
 export const GET_VENDORS = gql`
  query Vendors(
-  $vendorId: String, $search: String
+  $vendorId: String, $search: String,
+  $pageCount: Int, $pageNumber: Int
 ){
   vendors(
-    vendorId: $vendorId, search: $search
+    vendorId: $vendorId, search: $search,
+    pageCount: $pageCount, pageNumber: $pageNumber
   ){
     id
     name
@@ -325,21 +337,29 @@ export const GET_VENDORS = gql`
       userType
     }
   }
+  pagination {
+    totalPages
+    currentPage
+  }
 }
 `
 
 export const GET_CLIENTS = gql`
   query Clients(
     $vendorId: String!, $search: String, $clientId: String,
-    $businessId: String!
+    $businessId: String!, $pageCount: Int, $pageNumber: Int
 ){
     clients(
       vendorId: $vendorId, search: $search, clientId: $clientId,
-      businessId: $businessId
+      businessId: $businessId, pageCount: $pageCount, pageNumber: $pageNumber
     ){
       id
       fullName
       email
+    }
+    pagination {
+      totalPages
+      currentPage
     }
   }
 `
