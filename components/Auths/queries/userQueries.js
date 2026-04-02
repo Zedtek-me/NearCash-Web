@@ -41,7 +41,7 @@ query VendorsNearMe(
     }
 }`;
 
-export const GET_VENDOR_POLICIES = gql`
+export const GET_VENDOR_POLICY_FOR_USER = gql`
 query businessTransactionPolicyForUser(
     $businessId: String!, 
 ){
