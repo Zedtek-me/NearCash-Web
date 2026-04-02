@@ -14,7 +14,7 @@ import NotificationSocket from "../../Notification/web-socket";
 
 import {
   VENDOR_LIST,
-  GET_VENDOR_POLICIES,
+  GET_VENDOR_POLICY_FOR_USER,
   GET_ASSETS,
   GET_TRANSACTIONS,
 } from "../../Auths/queries/userQueries";
@@ -87,7 +87,7 @@ export default function ClientDashboard() {
   const [selectedAssetRange, setSelectedAssetRange] = useState(null);
 
   const [fetchPolicies, { data: policiesData, loading: policiesLoading }] =
-    useLazyQuery(GET_VENDOR_POLICIES);
+    useLazyQuery(GET_VENDOR_POLICY_FOR_USER);
 
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
 
@@ -276,6 +276,15 @@ export default function ClientDashboard() {
 
   const transactionHistory = transactionData?.transactions || [];
 
+  const getCollectionModeLabel = (mode) => {
+    switch (mode) {
+      case "STORE_WALK_IN":            return "Supports store walk-in only";
+      case "MEET_UP":                  return "Supports cash delivery only";
+      case "MEET_UP_AND_STORE_WALK_IN": return "Supports store walk-in & cash delivery";
+      default:                         return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
       <div className="max-w-7xl mx-auto mt-14">
@@ -354,6 +363,11 @@ export default function ClientDashboard() {
                           {store?.distance} km away
                           {store?.nearest && " (Nearest)"}
                         </div>
+                        {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode) && (
+                          <div className="text-xs text-emerald-600 mt-0.5">
+                            {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode)}
+                          </div>
+                        )}
                       </div>
                     </div>
 

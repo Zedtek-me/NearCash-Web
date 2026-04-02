@@ -38,10 +38,13 @@ query VendorsNearMe(
         distance
         nearest
         isOnline
+        businessPolicyForCurrentUser {
+            cashCollectionMode
+        }
     }
 }`;
 
-export const GET_VENDOR_POLICIES = gql`
+export const GET_VENDOR_POLICY_FOR_USER = gql`
 query businessTransactionPolicyForUser(
     $businessId: String!, 
 ){
