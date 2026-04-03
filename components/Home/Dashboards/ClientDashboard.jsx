@@ -282,7 +282,7 @@ export default function ClientDashboard() {
     variables: { userType: userData?.userType?.toLowerCase() },
   });
 
-  const transactionHistory = transactionData?.transactions || [];
+  const transactionHistory = transactionData?.transactions?.transactions || [];
 
   const getCollectionModeLabel = (mode) => {
     switch (mode) {
@@ -349,14 +349,14 @@ export default function ClientDashboard() {
             </div>
 
             <div className="space-y-4">
-              {!vendorsData?.businessesAroundMe?.length && (
+              {!vendorsData?.businessesAroundMe?.businesses?.length && (
                 <EmptyTableState
                   title="No nearby vendor within your current location."
                   description="Vendors within 15 km from you will appear here."
                 />
               )}
 
-              {vendorsData?.businessesAroundMe?.map((store, index) => (
+              {vendorsData?.businessesAroundMe?.businesses?.map((store, index) => (
                 <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 transition-all duration-300">
                     <div className="flex items-center">
@@ -424,8 +424,7 @@ export default function ClientDashboard() {
               ))}
             </div>
 
-            {/* Vendor pagination */}
-            {(vendorsData?.vendorPagination?.totalPages ?? 0) > 0 && (
+            {vendorsData?.businessesAroundMe && (
               <div className="flex items-center justify-end mt-4 gap-2">
                 <button
                   onClick={() => setVendorPage((p) => Math.max(1, p - 1))}
@@ -435,11 +434,11 @@ export default function ClientDashboard() {
                   <ArrowLeft size={16} />
                 </button>
                 <span className="text-sm text-gray-500 px-1">
-                  {vendorPage} of {vendorsData?.vendorPagination?.totalPages ?? 1}
+                  {vendorPage} of {vendorsData.businessesAroundMe.pagination?.totalPages ?? 1}
                 </span>
                 <button
                   onClick={() => setVendorPage((p) => p + 1)}
-                  disabled={vendorPage >= (vendorsData?.vendorPagination?.totalPages ?? 1)}
+                  disabled={vendorPage >= (vendorsData.businessesAroundMe.pagination?.totalPages ?? 1)}
                   className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                 >
                   <ArrowRight size={16} />
@@ -463,11 +462,11 @@ export default function ClientDashboard() {
                     <ArrowLeft size={16} />
                   </button>
                   <span className="text-sm text-gray-500 px-1">
-                    {pageNumber} of {transactionData?.transactionPagination?.totalPages ?? 1}
+                    {pageNumber} of {transactionData?.transactions?.pagination?.totalPages ?? 1}
                   </span>
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
-                    disabled={pageNumber >= (transactionData?.transactionPagination?.totalPages ?? 1)}
+                    disabled={pageNumber >= (transactionData?.transactions?.pagination?.totalPages ?? 1)}
                     className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                   >
                     <ArrowRight size={16} />

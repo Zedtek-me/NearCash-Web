@@ -32,21 +32,23 @@ query VendorsNearMe(
         currentLat: $currentLat, currentLong: $currentLong, vendorType: $vendorType,
         collectionMode: $collectionMode, pageCount: $pageCount, pageNumber: $pageNumber
     ){
-        id
-        name
-        description
-        address
-        location
-        distance
-        nearest
-        isOnline
-        businessPolicyForCurrentUser {
-            cashCollectionMode
+        businesses {
+            id
+            name
+            description
+            address
+            location
+            distance
+            nearest
+            isOnline
+            businessPolicyForCurrentUser {
+                cashCollectionMode
+            }
         }
-    }
-    vendorPagination: pagination {
-        totalPages
-        currentPage
+        pagination {
+            totalPages
+            currentPage
+        }
     }
 }`;
 
@@ -115,33 +117,35 @@ export const GET_TRANSACTIONS = gql`
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {
-      id
-      description
-      status
-      amount
-      dateCreated
-      charge
-      transferMode
-      awaitingTransfer
-      vendor {
-        firstName
-        lastName
-        fullName
-        email
-      }
-      client {
-        firstName
-        lastName
-        fullName
-      }
-      business {
+      transactions {
         id
-        name
+        description
+        status
+        amount
+        dateCreated
+        charge
+        transferMode
+        awaitingTransfer
+        vendor {
+          firstName
+          lastName
+          fullName
+          email
+        }
+        client {
+          firstName
+          lastName
+          fullName
+        }
+        business {
+          id
+          name
+        }
       }
-    }
-    transactionPagination: pagination {
-      totalPages
-      currentPage
+      pagination {
+        totalPages
+        currentPage
+      }
     }
   }
 `;
@@ -164,18 +168,24 @@ export const GET_SUB_BUSINESSES = gql`
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {
-      id
-      name
-      address
-      location
-      isPrimary
-      assets {
-      range
-      chargeRate
-      id
+      businesses {
+        id
+        name
+        address
+        location
+        isPrimary
+        assets {
+          range
+          chargeRate
+          id
+        }
+        description
+        country
       }
-      description
-      country
+      pagination {
+        totalPages
+        currentPage
+      }
     }
   }
 `;

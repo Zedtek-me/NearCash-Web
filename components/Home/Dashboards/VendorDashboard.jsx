@@ -106,7 +106,7 @@ const Dashboard = () => {
     }
   };
 
-  const transactionHistory = data?.transactions || [];
+  const transactionHistory = data?.transactions?.transactions || [];
 
   // ── Sub-businesses ────────────────────────────────────────────────────────
   const [subBizPage, setSubBizPage] = useState(1);
@@ -116,7 +116,7 @@ const Dashboard = () => {
     fetchPolicy: "network-only",
   });
 
-  const subBusinessList = [...(subBizData?.businesses || [])].sort((a, b) => {
+  const subBusinessList = [...(subBizData?.businesses?.businesses || [])].sort((a, b) => {
     if (a.id === vendorBusinessId) return -1;
     if (b.id === vendorBusinessId) return 1;
     return 0;
@@ -215,7 +215,7 @@ const Dashboard = () => {
                         user={userData}
                         businessId={vendorBusinessId}
                       />
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                           disabled={pageNumber === 1}
@@ -223,9 +223,13 @@ const Dashboard = () => {
                         >
                           <ArrowLeft />
                         </button>
+                        <span className="text-sm text-gray-500 px-1">
+                          {pageNumber} of {data?.transactions?.pagination?.totalPages ?? 1}
+                        </span>
                         <button
                           onClick={() => setPageNumber((p) => p + 1)}
-                          className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
+                          disabled={pageNumber >= (data?.transactions?.pagination?.totalPages ?? 1)}
+                          className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                         >
                           <ArrowRight />
                         </button>
@@ -263,9 +267,13 @@ const Dashboard = () => {
                       >
                         <ArrowLeft />
                       </button>
+                      <span className="text-sm text-gray-500 px-2">
+                        {subBizPage} of {subBizData?.businesses?.pagination?.totalPages ?? 1}
+                      </span>
                       <button
                         onClick={() => setSubBizPage((p) => p + 1)}
-                        className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
+                        disabled={subBizPage >= (subBizData?.businesses?.pagination?.totalPages ?? 1)}
+                        className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                       >
                         <ArrowRight />
                       </button>
