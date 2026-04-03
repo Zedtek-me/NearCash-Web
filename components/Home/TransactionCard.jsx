@@ -12,13 +12,13 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
 
   const getAvatarColor = (index) => {
-    const colors = ['bg-blue-400', 'bg-gray-400', 'bg-teal-400', 'bg-amber-400', 'bg-orange-400'];
+    const colors = ['bg-blue-400', 'bg-gray-400', 'bg-indigo-400', 'bg-amber-400', 'bg-orange-400'];
     return colors[index % colors.length];
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'FULFILLED': return 'bg-green-100 text-green-600';
+      case 'FULFILLED': return 'bg-indigo-100 text-indigo-600';
       case 'INITIATED': return 'bg-yellow-100 text-yellow-600';
       case 'CANCELLED' || 'DECLINED': return 'bg-red-100 text-red-600';
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-600';
@@ -94,14 +94,14 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           </span>
         )}
         {!isAwaitingTransfer && transaction.status === "IN_PROGRESS" && transaction.transferMode === "BANK_TRANSFER" && (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 border border-indigo-200">
             Transfer Confirmed
           </span>
         )}
         <div className="flex items-center space-x-2">
           <span
             className={`font-medium ${
-              transaction?.amount?.toString()?.startsWith("+") ? "text-green-600" : "text-red-600"
+              transaction?.amount?.toString()?.startsWith("+") ? "text-indigo-600" : "text-red-600"
             }`}
           >
             {transaction?.charge}

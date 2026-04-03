@@ -299,7 +299,7 @@ export default function ClientDashboard() {
         <div className="mb-8">
           <h1 className="text-xl md:text-2xl font-semibold mb-1">
             <span className="text-gray-900">Welcome,</span>{' '}
-            <span className="text-emerald-500">{userData?.fullName ?? userData?.email}</span>
+            <span className="text-indigo-500">{userData?.fullName ?? userData?.email}</span>
           </h1>
         </div>
 
@@ -326,7 +326,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
+            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Current Month Transactions Value</h2>
                 <ArrowUpRight className="w-5 h-5 text-white/80" />
@@ -372,7 +372,7 @@ export default function ClientDashboard() {
                           {store?.nearest && " (Nearest)"}
                         </div>
                         {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode) && (
-                          <div className="text-xs text-emerald-600 mt-0.5">
+                          <div className="text-xs text-indigo-600 mt-0.5">
                             {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode)}
                           </div>
                         )}
@@ -407,10 +407,10 @@ export default function ClientDashboard() {
                               className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
                             >
                               <span className="text-sm text-gray-600">Range: {formatRange(asset.range)}</span>
-                              <span className="font-medium text-green-600">₦{formatAmount(asset.chargeRate)}</span>
+                              <span className="font-medium text-indigo-600">₦{formatAmount(asset.chargeRate)}</span>
                               <button
                                 onClick={() => handleInitiateTransaction(store, asset.id, asset.range)}
-                                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
                               >
                                 Request Cash
                               </button>
@@ -429,7 +429,7 @@ export default function ClientDashboard() {
                 <button
                   onClick={() => setVendorPage((p) => Math.max(1, p - 1))}
                   disabled={vendorPage === 1}
-                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                 >
                   <ArrowLeft size={16} />
                 </button>
@@ -439,7 +439,7 @@ export default function ClientDashboard() {
                 <button
                   onClick={() => setVendorPage((p) => p + 1)}
                   disabled={vendorPage >= (vendorsData.businessesAroundMe.pagination?.totalPages ?? 1)}
-                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                 >
                   <ArrowRight size={16} />
                 </button>
@@ -457,7 +457,7 @@ export default function ClientDashboard() {
                   <button
                     onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                     disabled={pageNumber === 1}
-                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                    className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                   >
                     <ArrowLeft size={16} />
                   </button>
@@ -467,7 +467,7 @@ export default function ClientDashboard() {
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
                     disabled={pageNumber >= (transactionData?.transactions?.pagination?.totalPages ?? 1)}
-                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                    className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                   >
                     <ArrowRight size={16} />
                   </button>

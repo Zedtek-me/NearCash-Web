@@ -20,8 +20,8 @@ const MODE_LABELS = {
 };
 
 const MODE_COLORS = {
-  STORE_WALK_IN:            'bg-teal-50 text-teal-700 border-teal-100',
-  MEET_UP_AND_STORE_WALK_IN:'bg-emerald-50 text-emerald-700 border-emerald-100',
+  STORE_WALK_IN:            'bg-slate-50 text-slate-700 border-slate-200',
+  MEET_UP_AND_STORE_WALK_IN:'bg-indigo-50 text-indigo-700 border-indigo-100',
   MEET_UP:                  'bg-sky-50 text-sky-700 border-sky-100',
 };
 
@@ -156,7 +156,7 @@ const TransactionPolicyPage = () => {
             </div>
             <button
               onClick={showForm ? closeForm : openCreate}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-indigo-50 transition-colors shadow-sm"
             >
               {showForm ? <ChevronUp size={16} /> : <Plus size={16} />}
               {showForm ? 'Hide Form' : 'Create Policy'}
@@ -187,14 +187,14 @@ const TransactionPolicyPage = () => {
                   <input
                     type="text" name="name" value={formData.name} onChange={handleInputChange}
                     placeholder="e.g. Standard Walk-in Policy"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                   />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500 mb-1.5 block">Cash Collection Mode</label>
                   <select
                     name="cashCollectionMode" value={formData.cashCollectionMode} onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all bg-white"
                   >
                     <option value="STORE_WALK_IN">Store Walk-in</option>
                     <option value="MEET_UP_AND_STORE_WALK_IN">Meet-up &amp; Store Walk-in</option>
@@ -209,7 +209,7 @@ const TransactionPolicyPage = () => {
                 <textarea
                   name="description" value={formData.description} onChange={handleInputChange}
                   rows={3} placeholder="Describe the policy details…"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all resize-none"
                 />
               </div>
 
@@ -223,7 +223,7 @@ const TransactionPolicyPage = () => {
                       <input
                         type="number" name="meetUpCharge" value={formData.meetUpCharge}
                         onChange={handleInputChange} min="0" step="0.01" placeholder="0.00"
-                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -234,7 +234,7 @@ const TransactionPolicyPage = () => {
                       <input
                         type="number" name="maxDeliveryAmount" value={formData.maxDeliveryAmount}
                         onChange={handleInputChange} min="0" step="1" placeholder="e.g. 50000"
-                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                        className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -245,7 +245,7 @@ const TransactionPolicyPage = () => {
                       <input
                         type="number" name="maxDeliveryDistance" value={formData.maxDeliveryDistance}
                         onChange={handleInputChange} min="0" step="0.1" placeholder="e.g. 5"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -255,7 +255,7 @@ const TransactionPolicyPage = () => {
               <div className="flex gap-3 pt-1">
                 <button
                   type="button" onClick={handleSubmit} disabled={submitting}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
                     <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {editingPolicy ? 'Saving…' : 'Creating…'}</>
@@ -283,19 +283,19 @@ const TransactionPolicyPage = () => {
 
           {loading ? (
             <div className="flex items-center gap-2 text-sm text-gray-400 py-8 justify-center">
-              <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
               Loading policies…
             </div>
           ) : policies.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-              <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText size={24} className="text-emerald-400" />
+              <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText size={24} className="text-indigo-400" />
               </div>
               <h3 className="text-sm font-semibold text-gray-900 mb-1">No policies yet</h3>
               <p className="text-xs text-gray-400 mb-5">Create your first transaction policy to get started</p>
               <button
                 onClick={openCreate}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 <Plus size={15} /> Create First Policy
               </button>
@@ -311,14 +311,14 @@ const TransactionPolicyPage = () => {
                     key={policy.id}
                     className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+                    <div className="h-1 bg-gradient-to-r from-indigo-500 to-indigo-600" />
 
                     <div className="p-5">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 flex-shrink-0 bg-emerald-50 rounded-lg flex items-center justify-center">
-                            <FileText size={16} className="text-emerald-500" />
+                          <div className="w-9 h-9 flex-shrink-0 bg-indigo-50 rounded-lg flex items-center justify-center">
+                            <FileText size={16} className="text-indigo-500" />
                           </div>
                           <div className="min-w-0">
                             <h3 className="text-sm font-semibold text-gray-900 truncate">{policy.name}</h3>
@@ -327,7 +327,7 @@ const TransactionPolicyPage = () => {
                         </div>
                         <button
                           onClick={() => openEdit(policy)}
-                          className="p-1.5 text-gray-300 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex-shrink-0"
+                          className="p-1.5 text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex-shrink-0"
                           title="Edit policy"
                         >
                           <Pencil size={14} />

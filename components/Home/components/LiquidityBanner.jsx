@@ -60,7 +60,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
               {mode === "prompt" ? (
                 <p className="text-xs text-slate-300 mt-0.5">
                   {hasLiquidity
-                    ? <>Your available liquidity is currently <span className="font-bold text-emerald-400">₦{Number(business.availableLiquidity).toLocaleString()}</span>. Does this match your physical cash?</>
+                    ? <>Your available liquidity is currently <span className="font-bold text-indigo-400">₦{Number(business.availableLiquidity).toLocaleString()}</span>. Does this match your physical cash?</>
                     : "You haven't set your available liquidity yet. Set it so the system can rank you accurately for nearby clients."}
                 </p>
               ) : (
@@ -74,14 +74,14 @@ const LiquidityBanner = ({ business, onDismiss }) => {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Enter amount"
-                      className="pl-7 pr-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm w-48 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="pl-7 pr-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm w-48 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       autoFocus
                     />
                   </div>
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
                   >
                     {saving
                       ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
@@ -103,7 +103,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={handleConfirm}
-                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition-colors"
               >
                 <CheckCircle size={13} />
                 {hasLiquidity ? "Confirmed" : "Set Later"}

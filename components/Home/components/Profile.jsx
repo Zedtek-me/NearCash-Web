@@ -21,7 +21,7 @@ function Field({ label, name, value, isEditing, onChange, placeholder, type = 't
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white text-gray-900 text-sm transition-all outline-none"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white text-gray-900 text-sm transition-all outline-none"
         />
       ) : (
         <div className={`px-4 py-3 rounded-xl border text-sm ${
@@ -178,7 +178,7 @@ export default function ProfilePage() {
 
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-700 text-white text-2xl sm:text-3xl font-bold flex items-center justify-center overflow-hidden ring-4 ring-white/20">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-indigo-700 text-white text-2xl sm:text-3xl font-bold flex items-center justify-center overflow-hidden ring-4 ring-white/20">
                 {profileImage
                   ? <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                   : getInitials()
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                   />
                   <label
                     htmlFor="profile-image"
-                    className={`absolute bottom-0 right-0 w-8 h-8 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full flex items-center justify-center cursor-pointer border-2 border-slate-900 shadow-lg transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`absolute bottom-0 right-0 w-8 h-8 bg-indigo-500 hover:bg-indigo-400 text-white rounded-full flex items-center justify-center cursor-pointer border-2 border-slate-900 shadow-lg transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Camera size={14} />
                   </label>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                   {userData?.userType}
                 </span>
                 {selectedFile && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                  <span className="inline-flex items-center gap-1 text-xs text-indigo-400">
                     <CheckCircle size={12} /> New image selected
                   </span>
                 )}
@@ -225,7 +225,7 @@ export default function ProfilePage() {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-indigo-50 transition-colors shadow-sm"
                 >
                   <Edit2 size={15} /> Edit Profile
                 </button>
@@ -241,11 +241,11 @@ export default function ProfilePage() {
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-indigo-50 transition-colors disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                         {isUploading ? 'Uploading…' : 'Saving…'}
                       </>
                     ) : (

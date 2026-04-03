@@ -299,13 +299,13 @@ export default function TransactionStatusModal({
             <>
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: "#052e16", border: "2px solid #16a34a" }}
+                style={{ background: "#1e1b4b", border: "2px solid #4f46e5" }}
               >
-                <CheckCircle2 size={30} className="text-green-400" />
+                <CheckCircle2 size={30} className="text-indigo-400" />
               </div>
 
               <div className="text-center">
-                <p className="text-green-400 text-base font-medium mb-1">Transaction Accepted</p>
+                <p className="text-indigo-400 text-base font-medium mb-1">Transaction Accepted</p>
                 <p className="text-slate-500 text-sm">
                   {transactionInfo.transferMode === "BANK_TRANSFER"
                     ? `Transfer exactly ₦${Number(transactionInfo.amount || 0).toLocaleString()} to the virtual account below to lock your request with the vendor`
@@ -316,7 +316,7 @@ export default function TransactionStatusModal({
               {/* Details card */}
               <div
                 className="w-full rounded-xl p-4 space-y-2"
-                style={{ background: "#0D1F12", border: "0.5px solid #166534" }}
+                style={{ background: "#1e1b4b", border: "0.5px solid #3730a3" }}
               >
                 {[
                   ["Amount", `₦${Number(transactionInfo.amount || 0).toLocaleString()}`],
@@ -324,8 +324,8 @@ export default function TransactionStatusModal({
                   ["Transaction ID", transactionInfo.transactionId ? `#${transactionInfo.transactionId}` : "—"],
                 ].map(([label, value]) => (
                   <div key={label} className="flex justify-between items-center">
-                    <span className="text-green-800 text-xs" style={{ color: "#86efac" }}>{label}</span>
-                    <span className="text-xs font-medium" style={{ color: "#bbf7d0" }}>{value}</span>
+                    <span className="text-xs" style={{ color: "#a5b4fc" }}>{label}</span>
+                    <span className="text-xs font-medium" style={{ color: "#c7d2fe" }}>{value}</span>
                   </div>
                 ))}
               </div>
@@ -700,19 +700,19 @@ export default function TransactionStatusModal({
             <>
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: "#052e16", border: "2px solid #16a34a" }}
+                style={{ background: "#1e1b4b", border: "2px solid #4f46e5" }}
               >
-                <CheckCircle2 size={30} className="text-green-400" />
+                <CheckCircle2 size={30} className="text-indigo-400" />
               </div>
 
               <div className="text-center">
-                <p className="text-green-400 text-base font-medium mb-1">Transfer confirmed!</p>
+                <p className="text-indigo-400 text-base font-medium mb-1">Transfer confirmed!</p>
                 <p className="text-slate-500 text-sm">Redirecting to your transaction details…</p>
               </div>
 
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "#052e16" }}>
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                <p className="text-green-700 text-xs">Funds received by escrow</p>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "#1e1b4b" }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                <p className="text-indigo-300 text-xs">Funds received by escrow</p>
               </div>
             </>
           )}
