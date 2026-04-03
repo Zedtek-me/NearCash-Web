@@ -210,6 +210,18 @@ export const CREATE_TRANSACTION_POLICY = gql`
   }
 `;
 
+export const UPDATE_LIQUIDITY = gql`
+  mutation UpdateBusinessLiquidity($businessId: String!, $availableLiquidity: Float!) {
+    updateBusiness(businessId: $businessId, updateData: { availableLiquidity: $availableLiquidity }) {
+      message
+      business {
+        id
+        availableLiquidity
+      }
+    }
+  }
+`;
+
 export const UPDATE_TRANSACTION_POLICY = gql`
   mutation UpdateTransactionPolicy($policyId: String!, $data: CreateTransactionPolicyInputType!) {
     updateTransactionPolicy(policyId: $policyId, data: $data) {

@@ -174,6 +174,7 @@ export const GET_SUB_BUSINESSES = gql`
         address
         location
         isPrimary
+        availableLiquidity
         assets {
           range
           chargeRate

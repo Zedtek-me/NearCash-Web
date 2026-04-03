@@ -24,6 +24,7 @@ import TransactionCard from "../TransactionCard";
 import TransactionFilter from "../TransactionFilter";
 import EmptyTableState from "../components/EmptyTable";
 import TransactionOpportunityModal from "../components/TransactionOpportunityModal";
+import LiquidityBanner from "../components/LiquidityBanner";
 import { getAvatarColor, STATUS_MAP } from "../../../utils/transactionHelpers";
 
 
@@ -122,6 +123,17 @@ const Dashboard = () => {
     return 0;
   });
 
+  // ── Liquidity banner ──────────────────────────────────────────────────────
+  const [showLiquidityBanner, setShowLiquidityBanner] = useState(false);
+
+  useEffect(() => {
+    if (!vendorBusinessId || !subBizData) return;
+    const alreadyAcked = sessionStorage.getItem(`liquidity_ack_${vendorBusinessId}`);
+    if (!alreadyAcked) setShowLiquidityBanner(true);
+  }, [vendorBusinessId, subBizData]);
+
+  const currentBusiness = subBusinessList.find((b) => b.id === vendorBusinessId) ?? null;
+
   // ── Analytics ─────────────────────────────────────────────────────────────
   const { data: analyticsData } = useQuery(GET_ANALYTICS, {
     variables: { businessId: vendorBusinessId, userType: userData?.userType?.toLowerCase() },
@@ -131,6 +143,13 @@ const Dashboard = () => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
+      {showLiquidityBanner && currentBusiness && (
+        <LiquidityBanner
+          business={currentBusiness}
+          onDismiss={() => setShowLiquidityBanner(false)}
+        />
+      )}
+
       <div className="min-h-screen bg-gray-50 p-4 sm:p-3">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>
