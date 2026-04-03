@@ -306,12 +306,12 @@ export default function ClientDashboard() {
         {/* ── Analytics cards ─────────────────────────────────────────── */}
         <div className="mb-8">
           <div className="lg:flex gap-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm md:w-[300px]">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 shadow-sm md:w-[300px]">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Total Transactions Count</h2>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
+                <h2 className="text-lg font-semibold text-white">Total Transactions Count</h2>
+                <ArrowUpRight className="w-5 h-5 text-white/60" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-white">
                 {analyticsData?.analytics?.totalTransactions || 0}
               </div>
             </div>

@@ -173,20 +173,20 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-gray-600">Total Profit (plus extra charges)</span>
-                    <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
+                    <span className="text-sm opacity-80">Total Profit (plus extra charges)</span>
+                    <ArrowRight className="w-4 h-4 text-slate-900 bg-white/80 rounded-full p-0.5" />
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-emerald-600 text-lg">₦</span>
+                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mr-3 border border-white/20">
+                      <span className="text-white text-lg">₦</span>
                     </div>
                   </div>
-                  <div className="text-xl font-bold text-gray-800">
+                  <div className="text-xl font-bold">
                     ₦{Number(analyticsData?.analytics?.totalChargesPlusExtra || 0).toLocaleString()}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-slate-400 mt-1">
                     {analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% from last month
                   </div>
                 </div>
