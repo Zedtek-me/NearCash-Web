@@ -107,7 +107,7 @@ const Navbar = ({ currentPage = 'home' }) => {
     { name: 'Logout', href: 'logout', icon: LogOut },
   ];
 
-  const notifPagination = notifData?.pagination
+  const notifPagination = notifData?.notificationPagination
   const notificationCount =  (
     notifPagination?.totalUnreadItems || 0
   );

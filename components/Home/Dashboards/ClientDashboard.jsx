@@ -425,7 +425,7 @@ export default function ClientDashboard() {
             </div>
 
             {/* Vendor pagination */}
-            {(vendorsData?.pagination?.totalPages ?? 0) > 0 && (
+            {(vendorsData?.vendorPagination?.totalPages ?? 0) > 0 && (
               <div className="flex items-center justify-end mt-4 gap-2">
                 <button
                   onClick={() => setVendorPage((p) => Math.max(1, p - 1))}
@@ -435,11 +435,11 @@ export default function ClientDashboard() {
                   <ArrowLeft size={16} />
                 </button>
                 <span className="text-sm text-gray-500 px-1">
-                  {vendorPage} of {vendorsData?.pagination?.totalPages ?? 1}
+                  {vendorPage} of {vendorsData?.vendorPagination?.totalPages ?? 1}
                 </span>
                 <button
                   onClick={() => setVendorPage((p) => p + 1)}
-                  disabled={vendorPage >= (vendorsData?.pagination?.totalPages ?? 1)}
+                  disabled={vendorPage >= (vendorsData?.vendorPagination?.totalPages ?? 1)}
                   className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                 >
                   <ArrowRight size={16} />
@@ -463,11 +463,11 @@ export default function ClientDashboard() {
                     <ArrowLeft size={16} />
                   </button>
                   <span className="text-sm text-gray-500 px-1">
-                    {pageNumber} of {transactionData?.pagination?.totalPages ?? 1}
+                    {pageNumber} of {transactionData?.transactionPagination?.totalPages ?? 1}
                   </span>
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
-                    disabled={pageNumber >= (transactionData?.pagination?.totalPages ?? 1)}
+                    disabled={pageNumber >= (transactionData?.transactionPagination?.totalPages ?? 1)}
                     className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                   >
                     <ArrowRight size={16} />

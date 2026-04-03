@@ -44,7 +44,7 @@ query VendorsNearMe(
             cashCollectionMode
         }
     }
-    pagination {
+    vendorPagination: pagination {
         totalPages
         currentPage
     }
@@ -139,7 +139,7 @@ export const GET_TRANSACTIONS = gql`
         name
       }
     }
-    pagination {
+    transactionPagination: pagination {
       totalPages
       currentPage
     }
@@ -308,7 +308,7 @@ export const GET_CATEGORIES = gql`
       dateCreated
       lastUpdated
     }
-    pagination {
+    categoryPagination: pagination {
         totalItems
         totalUnreadItems
         totalReadItems
@@ -337,7 +337,7 @@ export const GET_VENDORS = gql`
       userType
     }
   }
-  pagination {
+  vendorsPagination: pagination {
     totalPages
     currentPage
   }
@@ -357,7 +357,7 @@ export const GET_CLIENTS = gql`
       fullName
       email
     }
-    pagination {
+    clientsPagination: pagination {
       totalPages
       currentPage
     }
@@ -380,7 +380,7 @@ query Notifications(
         meta
         dateCreated
     }
-    pagination {
+    notificationPagination: pagination {
         totalItems
         totalUnreadItems
         totalReadItems

@@ -33,14 +33,14 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                 }
             }).then((result) => {
                 setClients(result?.data?.clients || []);
-                setTotalUserPages(result?.data?.pagination?.totalPages ?? 1);
+                setTotalUserPages(result?.data?.clientsPagination?.totalPages ?? 1);
             }).catch(() => {});
         } else {
             fetchVendors({
                 variables: { pageCount: PAGE_SIZE, pageNumber: userPage }
             }).then((result) => {
                 setVendors(result?.data?.vendors || []);
-                setTotalUserPages(result?.data?.pagination?.totalPages ?? 1);
+                setTotalUserPages(result?.data?.vendorsPagination?.totalPages ?? 1);
             }).catch(() => {});
         }
     }, [userType, userPage]);
