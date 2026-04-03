@@ -211,7 +211,7 @@ const Dashboard = () => {
 
                 <div className="flex justify-end px-6 py-2">
                   <button
-                    className="flex items-center h-12 gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 transition-all duration-200 rounded-2xl text-sm font-medium"
+                    className="flex items-center h-12 gap-2 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-all duration-200 rounded-2xl text-sm font-medium"
                     onClick={() => navigate("/create-store")}
                   >
                     <Plus size={16} />
