@@ -44,12 +44,20 @@ export default function ClientDashboard() {
   // ── Vendor list & assets ──────────────────────────────────────────────────
   const [expandedCards, setExpandedCards] = useState(new Set());
   const [vendorTypeFilter, setVendorTypeFilter] = useState(null);
+  const [collectionModeFilter, setCollectionModeFilter] = useState(null);
+  const [vendorPage, setVendorPage] = useState(1);
+
+  const handleVendorTypeFilter = (value) => { setVendorTypeFilter(value); setVendorPage(1); };
+  const handleCollectionModeFilter = (value) => { setCollectionModeFilter(value); setVendorPage(1); };
 
   const { data: vendorsData } = useQuery(VENDOR_LIST, {
     variables: {
       currentLat: userLocation?.lat || 0,
       currentLong: userLocation?.lng || 0,
+      pageCount: 5,
+      pageNumber: vendorPage,
       ...(vendorTypeFilter && { vendorType: vendorTypeFilter }),
+      ...(collectionModeFilter && { collectionMode: collectionModeFilter }),
     },
     skip: !userLocation,
   });
@@ -337,7 +345,7 @@ export default function ClientDashboard() {
           <div className="bg-white rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
-              <VendorFilter onFilter={setVendorTypeFilter} />
+              <VendorFilter onFilter={handleVendorTypeFilter} onCollectionModeFilter={handleCollectionModeFilter} />
             </div>
 
             <div className="space-y-4">
@@ -415,6 +423,29 @@ export default function ClientDashboard() {
                 </div>
               ))}
             </div>
+
+            {/* Vendor pagination */}
+            {(vendorsData?.vendorPagination?.totalPages ?? 0) > 0 && (
+              <div className="flex items-center justify-end mt-4 gap-2">
+                <button
+                  onClick={() => setVendorPage((p) => Math.max(1, p - 1))}
+                  disabled={vendorPage === 1}
+                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <span className="text-sm text-gray-500 px-1">
+                  {vendorPage} of {vendorsData?.vendorPagination?.totalPages ?? 1}
+                </span>
+                <button
+                  onClick={() => setVendorPage((p) => p + 1)}
+                  disabled={vendorPage >= (vendorsData?.vendorPagination?.totalPages ?? 1)}
+                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Transaction history */}
@@ -423,19 +454,23 @@ export default function ClientDashboard() {
               <h2 className="text-lg font-semibold text-gray-800">Transaction History</h2>
               <div className="flex items-center gap-10 pt-5 md:pt-0">
                 <TransactionFilter statusMap={STATUS_MAP} refetch={refetch} user={userData} />
-                <div className="flex items-center">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                     disabled={pageNumber === 1}
                     className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                   >
-                    <ArrowLeft />
+                    <ArrowLeft size={16} />
                   </button>
+                  <span className="text-sm text-gray-500 px-1">
+                    {pageNumber} of {transactionData?.transactionPagination?.totalPages ?? 1}
+                  </span>
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
-                    className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
+                    disabled={pageNumber >= (transactionData?.transactionPagination?.totalPages ?? 1)}
+                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
                   >
-                    <ArrowRight />
+                    <ArrowRight size={16} />
                   </button>
                 </div>
               </div>
