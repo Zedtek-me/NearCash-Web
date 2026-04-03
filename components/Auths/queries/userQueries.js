@@ -211,6 +211,8 @@ export const FETCH_TRANSACTION_POLICIES = gql`
       description
       cashCollectionMode
       meetUpCharge
+      maxDeliveryAmount
+      maxDeliveryDistance
       dateCreated
       lastUpdated
       business {
