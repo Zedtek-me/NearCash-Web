@@ -14,7 +14,7 @@ function Avatar({ name, size = 'sm' }) {
   const initials = name?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
   const dim = size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-9 text-sm';
   return (
-    <div className={`${dim} rounded-full bg-emerald-100 text-emerald-700 font-semibold flex items-center justify-center flex-shrink-0`}>
+    <div className={`${dim} rounded-full bg-indigo-100 text-indigo-700 font-semibold flex items-center justify-center flex-shrink-0`}>
       {initials}
     </div>
   );
@@ -178,7 +178,7 @@ const CategoryManagementPage = () => {
             </div>
             <button
               onClick={() => { setShowCategoryForm(v => !v); setShowClientForm(false); }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 rounded-xl text-sm font-semibold hover:bg-indigo-50 transition-colors shadow-sm"
             >
               {showCategoryForm ? <ChevronUp size={16} /> : <Plus size={16} />}
               {showCategoryForm ? 'Hide Form' : 'Create Category'}
@@ -202,7 +202,7 @@ const CategoryManagementPage = () => {
                   <input
                     type="text" name="name" value={categoryFormData.name}
                     onChange={handleCategoryInputChange} placeholder="e.g. Premium Clients"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                   />
                 </div>
                 <div>
@@ -210,7 +210,7 @@ const CategoryManagementPage = () => {
                   <select
                     name="transactionPolicyId" value={categoryFormData.transactionPolicyId}
                     onChange={handleCategoryInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all bg-white"
                   >
                     <option value="">Select a policy</option>
                     {transactionPolicies.map(p => (
@@ -225,13 +225,13 @@ const CategoryManagementPage = () => {
                   name="description" value={categoryFormData.description}
                   onChange={handleCategoryInputChange} rows={3}
                   placeholder="Describe this category…"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all resize-none"
                 />
               </div>
               <div className="flex gap-3 pt-1">
                 <button
                   onClick={handleCreateCategory} disabled={creatingCategory}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
                 >
                   {creatingCategory ? (
                     <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating…</>
@@ -256,7 +256,7 @@ const CategoryManagementPage = () => {
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">
-                  Add Clients to <span className="text-emerald-600">"{selectedCategory?.name}"</span>
+                  Add Clients to <span className="text-indigo-600">"{selectedCategory?.name}"</span>
                 </h2>
               </div>
               <button
@@ -274,7 +274,7 @@ const CategoryManagementPage = () => {
                   type="text" value={clientSearchTerm}
                   onChange={(e) => setClientSearchTerm(e.target.value)}
                   placeholder="Search by name or email…"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                 />
               </div>
 
@@ -288,29 +288,29 @@ const CategoryManagementPage = () => {
                     <label
                       key={client.id}
                       className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                        checked ? 'border-emerald-200 bg-emerald-50' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                        checked ? 'border-indigo-200 bg-indigo-50' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                       }`}
                     >
                       <input
                         type="checkbox" checked={checked}
                         onChange={() => toggleClientSelection(client.id)}
-                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <Avatar name={client.name} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{client.name}</p>
                         <p className="text-xs text-gray-400 truncate">{client.email}</p>
                       </div>
-                      {checked && <CheckCircle size={15} className="text-emerald-500 flex-shrink-0" />}
+                      {checked && <CheckCircle size={15} className="text-indigo-500 flex-shrink-0" />}
                     </label>
                   );
                 })}
               </div>
 
               {clientFormData.clientIds.length > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100">
-                  <Users size={14} className="text-emerald-500" />
-                  <span className="text-xs text-emerald-700 font-medium">
+                <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-100">
+                  <Users size={14} className="text-indigo-500" />
+                  <span className="text-xs text-indigo-700 font-medium">
                     {clientFormData.clientIds.length} client{clientFormData.clientIds.length !== 1 ? 's' : ''} selected
                   </span>
                 </div>
@@ -319,7 +319,7 @@ const CategoryManagementPage = () => {
               <button
                 onClick={handleAddClients}
                 disabled={addingClients || clientFormData.clientIds.length === 0}
-                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {addingClients ? (
                   <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Adding…</>
@@ -342,14 +342,14 @@ const CategoryManagementPage = () => {
 
           {categories.length === 0 ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-              <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Tag size={24} className="text-emerald-400" />
+              <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Tag size={24} className="text-indigo-400" />
               </div>
               <h3 className="text-sm font-semibold text-gray-900 mb-1">No categories yet</h3>
               <p className="text-xs text-gray-400 mb-5">Create your first category to organise your clients</p>
               <button
                 onClick={() => setShowCategoryForm(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-colors"
               >
                 <Plus size={15} /> Create First Category
               </button>
@@ -365,14 +365,14 @@ const CategoryManagementPage = () => {
                     className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
                   >
                     {/* Top accent */}
-                    <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+                    <div className="h-1 bg-gradient-to-r from-indigo-500 to-indigo-600" />
 
                     <div className="p-5">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 flex-shrink-0 bg-emerald-50 rounded-lg flex items-center justify-center">
-                            <Tag size={16} className="text-emerald-500" />
+                          <div className="w-9 h-9 flex-shrink-0 bg-indigo-50 rounded-lg flex items-center justify-center">
+                            <Tag size={16} className="text-indigo-500" />
                           </div>
                           <div className="min-w-0">
                             <h3 className="text-sm font-semibold text-gray-900 truncate">{category.name}</h3>
@@ -394,7 +394,7 @@ const CategoryManagementPage = () => {
 
                       {/* Meta pills */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg text-xs font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-xs font-medium">
                           <CheckCircle size={11} />
                           {getPolicyName(category.txnPolicy?.id)}
                         </span>
@@ -446,7 +446,7 @@ const CategoryManagementPage = () => {
                         </p>
                         <button
                           onClick={() => openAddClientsForm(category)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition-colors"
                         >
                           <UserPlus size={12} /> Add Clients
                         </button>

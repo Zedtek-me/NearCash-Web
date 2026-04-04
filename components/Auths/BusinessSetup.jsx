@@ -138,8 +138,7 @@ export default function AccountTypePage() {
     formData.businessName &&
     formData.description &&
     formData.address &&
-    formData.country &&
-    businessType;
+    formData.country;
 
   const handleSubmit = async () => {
     if (selectedType === 'vendor' && !isFormValid) return;

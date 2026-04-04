@@ -54,7 +54,7 @@ const EditStorePage = () => {
   useEffect(() => {
     if (!subBizData || initialized) return;
 
-    const biz = subBizData?.businesses[0];
+    const biz = subBizData?.businesses?.businesses[0];
 
     if (!biz) return;
 
@@ -157,7 +157,6 @@ const EditStorePage = () => {
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.range.length)   newErrors.range   = 'At least one range must be selected';
     if (!formData.country.trim()) newErrors.country = 'Country is required';
-    if (!formData.businessType?.trim()) newErrors.businessType = "Business type must be selected"
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

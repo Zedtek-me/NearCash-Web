@@ -6,7 +6,7 @@
 export const AVATAR_COLORS = [
   "bg-blue-400",
   "bg-gray-400",
-  "bg-teal-400",
+  "bg-indigo-400",
   "bg-amber-400",
   "bg-orange-400",
 ];
@@ -16,7 +16,7 @@ export const getAvatarColor = (index) =>
 
 export const getStatusColor = (status) => {
   switch (status) {
-    case "FULFILLED":   return "bg-green-100 text-green-600";
+    case "FULFILLED":   return "bg-indigo-100 text-indigo-600";
     case "INITIATED":   return "bg-yellow-100 text-yellow-600";
     case "DECLINED":    return "bg-red-100 text-red-600";
     case "CANCELLED":   return "bg-red-100 text-red-600";

@@ -24,6 +24,7 @@ import TransactionCard from "../TransactionCard";
 import TransactionFilter from "../TransactionFilter";
 import EmptyTableState from "../components/EmptyTable";
 import TransactionOpportunityModal from "../components/TransactionOpportunityModal";
+import LiquidityBanner from "../components/LiquidityBanner";
 import { getAvatarColor, STATUS_MAP } from "../../../utils/transactionHelpers";
 
 
@@ -106,7 +107,7 @@ const Dashboard = () => {
     }
   };
 
-  const transactionHistory = data?.transactions || [];
+  const transactionHistory = data?.transactions?.transactions || [];
 
   // ── Sub-businesses ────────────────────────────────────────────────────────
   const [subBizPage, setSubBizPage] = useState(1);
@@ -116,11 +117,22 @@ const Dashboard = () => {
     fetchPolicy: "network-only",
   });
 
-  const subBusinessList = [...(subBizData?.businesses || [])].sort((a, b) => {
+  const subBusinessList = [...(subBizData?.businesses?.businesses || [])].sort((a, b) => {
     if (a.id === vendorBusinessId) return -1;
     if (b.id === vendorBusinessId) return 1;
     return 0;
   });
+
+  // ── Liquidity banner ──────────────────────────────────────────────────────
+  const [showLiquidityBanner, setShowLiquidityBanner] = useState(false);
+
+  useEffect(() => {
+    if (!vendorBusinessId || !subBizData) return;
+    const alreadyAcked = sessionStorage.getItem(`liquidity_ack_${vendorBusinessId}`);
+    if (!alreadyAcked) setShowLiquidityBanner(true);
+  }, [vendorBusinessId, subBizData]);
+
+  const currentBusiness = subBusinessList.find((b) => b.id === vendorBusinessId) ?? null;
 
   // ── Analytics ─────────────────────────────────────────────────────────────
   const { data: analyticsData } = useQuery(GET_ANALYTICS, {
@@ -131,6 +143,13 @@ const Dashboard = () => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
+      {showLiquidityBanner && currentBusiness && (
+        <LiquidityBanner
+          business={currentBusiness}
+          onDismiss={() => setShowLiquidityBanner(false)}
+        />
+      )}
+
       <div className="min-h-screen bg-gray-50 p-4 sm:p-3">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>
@@ -140,7 +159,7 @@ const Dashboard = () => {
 
               {/* ── Analytics cards ───────────────────────────────────── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm opacity-90">Total Transactions</span>
                   </div>
@@ -154,20 +173,20 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100">
+                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-gray-600">Total Profit (plus extra charges)</span>
-                    <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
+                    <span className="text-sm opacity-80">Total Profit (plus extra charges)</span>
+                    <ArrowRight className="w-4 h-4 text-slate-900 bg-white/80 rounded-full p-0.5" />
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-emerald-600 text-lg">₦</span>
+                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mr-3 border border-white/20">
+                      <span className="text-white text-lg">₦</span>
                     </div>
                   </div>
-                  <div className="text-xl font-bold text-gray-800">
+                  <div className="text-xl font-bold">
                     ₦{Number(analyticsData?.analytics?.totalChargesPlusExtra || 0).toLocaleString()}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-slate-400 mt-1">
                     {analyticsData?.analytics?.percentageReductionFromPastMonth || 0}% from last month
                   </div>
                 </div>
@@ -178,8 +197,8 @@ const Dashboard = () => {
                     <ArrowRight className="w-4 h-4 text-white bg-black rounded-full p-0.5" />
                   </div>
                   <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-teal-600 text-lg">₦</span>
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-indigo-600 text-lg">₦</span>
                     </div>
                   </div>
                   <div className="text-xl font-bold text-gray-800">
@@ -192,7 +211,7 @@ const Dashboard = () => {
 
                 <div className="flex justify-end px-6 py-2">
                   <button
-                    className="flex items-center h-12 gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 transition-all duration-200 rounded-2xl text-sm font-medium"
+                    className="flex items-center h-12 gap-2 px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-all duration-200 rounded-2xl text-sm font-medium"
                     onClick={() => navigate("/create-store")}
                   >
                     <Plus size={16} />
@@ -215,17 +234,21 @@ const Dashboard = () => {
                         user={userData}
                         businessId={vendorBusinessId}
                       />
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                           disabled={pageNumber === 1}
-                          className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                          className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                         >
                           <ArrowLeft />
                         </button>
+                        <span className="text-sm text-gray-500 px-1">
+                          {pageNumber} of {data?.transactions?.pagination?.totalPages ?? 1}
+                        </span>
                         <button
                           onClick={() => setPageNumber((p) => p + 1)}
-                          className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
+                          disabled={pageNumber >= (data?.transactions?.pagination?.totalPages ?? 1)}
+                          className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                         >
                           <ArrowRight />
                         </button>
@@ -259,13 +282,17 @@ const Dashboard = () => {
                       <button
                         onClick={() => setSubBizPage((p) => Math.max(1, p - 1))}
                         disabled={subBizPage === 1}
-                        className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                        className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                       >
                         <ArrowLeft />
                       </button>
+                      <span className="text-sm text-gray-500 px-2">
+                        {subBizPage} of {subBizData?.businesses?.pagination?.totalPages ?? 1}
+                      </span>
                       <button
                         onClick={() => setSubBizPage((p) => p + 1)}
-                        className="ml-3 p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100"
+                        disabled={subBizPage >= (subBizData?.businesses?.pagination?.totalPages ?? 1)}
+                        className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                       >
                         <ArrowRight />
                       </button>
@@ -293,7 +320,7 @@ const Dashboard = () => {
                               <div className="flex items-center gap-2">
                                 <span className="font-medium text-gray-800 truncate">{store.name}</span>
                                 {store.id === vendorBusinessId && (
-                                  <span className="flex-shrink-0 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                                  <span className="flex-shrink-0 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full px-2 py-0.5">
                                     Current
                                   </span>
                                 )}
@@ -307,7 +334,7 @@ const Dashboard = () => {
 
                           <div className="mt-4 lg:mt-0 grid items-center gap-2 ml-2 max-w-full md:max-w-[35%]">
                             <button
-                              className="relative border px-4 py-2 justify-center flex gap-2 items-center text-emerald-600 border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 rounded-full transition-all duration-300 group-hover:scale-110 font-medium text-sm"
+                              className="relative border px-4 py-2 justify-center flex gap-2 items-center text-indigo-600 border-indigo-200 hover:bg-indigo-500 hover:text-white hover:border-indigo-500 rounded-full transition-all duration-300 group-hover:scale-110 font-medium text-sm"
                               onClick={() => navigate(`/edit-business/${store?.id}`)}
                             >
                               <Pencil className="w-3.5 h-3.5" />

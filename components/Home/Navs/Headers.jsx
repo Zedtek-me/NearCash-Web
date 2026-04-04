@@ -163,7 +163,7 @@ const Navbar = ({ currentPage = 'home' }) => {
         `}
       >
         {isUnread && (
-          <span className="mt-1 w-2 h-2 bg-emerald-500 rounded-full shrink-0" />
+          <span className="mt-1 w-2 h-2 bg-indigo-500 rounded-full shrink-0" />
         )}
 
         <div className="flex-1">
@@ -184,7 +184,7 @@ const Navbar = ({ currentPage = 'home' }) => {
   })}
 </div>
       <div className="p-3 text-center border-t border-gray-100">
-        <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+        <button className="text-sm text-slate-700 hover:text-slate-900 font-medium">
           View All Notifications
         </button>
       </div>
@@ -235,7 +235,7 @@ const Navbar = ({ currentPage = 'home' }) => {
       <nav className={`
         fixed top-0 left-0 right-0 z-40 transition-all duration-300
         ${isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-emerald-100/50'
+          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-slate-200/50'
           : 'bg-white shadow-sm'
         }
       `}>
@@ -244,10 +244,10 @@ const Navbar = ({ currentPage = 'home' }) => {
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate("/")}>
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">NearCash</span>
+                <span className="ml-2 text-xl font-bold text-slate-900">NearCash</span>
               </div>
             </div>
 
@@ -279,7 +279,7 @@ const Navbar = ({ currentPage = 'home' }) => {
                   }}
                   className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-8 h-8 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden">
                     {profilePicture
                       ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                       : <User size={16} className="text-white" />
@@ -340,7 +340,7 @@ const Navbar = ({ currentPage = 'home' }) => {
               {/* User Info Section */}
               <div className="pb-4 border-b border-gray-200">
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                     {profilePicture
                       ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                       : <User size={24} className="text-white" />

@@ -26,7 +26,7 @@ import TransactionMap from './TransactionMap';
 // ── Status config ─────────────────────────────────────────────────────────────
 
 const STATUS_CFG = {
-  FULFILLED:   { label: 'Fulfilled',   pill: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  FULFILLED:   { label: 'Fulfilled',   pill: 'bg-indigo-100 text-indigo-700',       dot: 'bg-indigo-500'   },
   INITIATED:   { label: 'Initiated',   pill: 'bg-amber-100  text-amber-700',    dot: 'bg-amber-500'   },
   IN_PROGRESS: { label: 'In Progress', pill: 'bg-blue-100   text-blue-700',     dot: 'bg-blue-500'    },
   DECLINED:    { label: 'Declined',    pill: 'bg-red-100    text-red-700',       dot: 'bg-red-500'     },
@@ -240,7 +240,7 @@ export default function TransactionDetails() {
                 Transaction Amount
               </p>
               <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight ${
-                isPositive ? 'text-emerald-400' : 'text-rose-400'
+                isPositive ? 'text-indigo-400' : 'text-rose-400'
               }`}>
                 ₦ {amountDisplay}
               </p>
@@ -274,14 +274,14 @@ export default function TransactionDetails() {
                     <div key={step.key} className="flex flex-col items-center gap-2 z-10">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all ${
                         done
-                          ? 'bg-emerald-500 border-emerald-500'
+                          ? 'bg-indigo-500 border-indigo-500'
                           : active
                           ? 'bg-white border-white'
                           : 'bg-slate-800 border-slate-700'
                       }`}>
                         {done
                           ? <Check size={12} className="text-white" />
-                          : <span className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-600'}`} />
+                          : <span className={`w-2 h-2 rounded-full ${active ? 'bg-indigo-500' : 'bg-slate-600'}`} />
                         }
                       </div>
                       <span className={`text-[10px] sm:text-xs font-medium whitespace-nowrap ${
@@ -337,7 +337,7 @@ export default function TransactionDetails() {
             {transaction.status === 'INITIATED' && userData?.userType === 'VENDOR' && (
               <button
                 onClick={() => handleUpdateStatus(transaction.id, 'IN_PROGRESS')}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-sm"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all shadow-sm"
               >
                 <Check size={17} />
                 Approve Transaction

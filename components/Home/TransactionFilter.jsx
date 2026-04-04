@@ -110,7 +110,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                         name="date_from"
                         value={dateFilter.dateFrom}
                         onChange={(e) => handleDateStateChange(e.target.value, "dateFrom")}
-                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                     />
                 </div>
                 <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center w-full sm:w-auto gap-2">
@@ -120,7 +120,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                         name="date_to"
                         value={dateFilter.dateTo}
                         onChange={(e) => handleDateStateChange(e.target.value, "dateTo")}
-                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        className="rounded-lg w-full sm:w-36 px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                     />
                 </div>
             </div>

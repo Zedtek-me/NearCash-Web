@@ -282,7 +282,7 @@ export default function ClientDashboard() {
     variables: { userType: userData?.userType?.toLowerCase() },
   });
 
-  const transactionHistory = transactionData?.transactions || [];
+  const transactionHistory = transactionData?.transactions?.transactions || [];
 
   const getCollectionModeLabel = (mode) => {
     switch (mode) {
@@ -299,19 +299,19 @@ export default function ClientDashboard() {
         <div className="mb-8">
           <h1 className="text-xl md:text-2xl font-semibold mb-1">
             <span className="text-gray-900">Welcome,</span>{' '}
-            <span className="text-emerald-500">{userData?.fullName ?? userData?.email}</span>
+            <span className="text-indigo-500">{userData?.fullName ?? userData?.email}</span>
           </h1>
         </div>
 
         {/* ── Analytics cards ─────────────────────────────────────────── */}
         <div className="mb-8">
           <div className="lg:flex gap-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm md:w-[300px]">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 shadow-sm md:w-[300px]">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Total Transactions Count</h2>
-                <ArrowUpRight className="w-5 h-5 text-gray-400" />
+                <h2 className="text-lg font-semibold text-white">Total Transactions Count</h2>
+                <ArrowUpRight className="w-5 h-5 text-white/60" />
               </div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-white">
                 {analyticsData?.analytics?.totalTransactions || 0}
               </div>
             </div>
@@ -326,7 +326,7 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
+            <div className="mt-5 lg:mt-0 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-sm md:w-[300px]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Current Month Transactions Value</h2>
                 <ArrowUpRight className="w-5 h-5 text-white/80" />
@@ -349,14 +349,14 @@ export default function ClientDashboard() {
             </div>
 
             <div className="space-y-4">
-              {!vendorsData?.businessesAroundMe?.length && (
+              {!vendorsData?.businessesAroundMe?.businesses?.length && (
                 <EmptyTableState
                   title="No nearby vendor within your current location."
                   description="Vendors within 15 km from you will appear here."
                 />
               )}
 
-              {vendorsData?.businessesAroundMe?.map((store, index) => (
+              {vendorsData?.businessesAroundMe?.businesses?.map((store, index) => (
                 <div key={store.id} className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                   <div className="flex items-center hover:scale-105 justify-between px-3 py-5 hover:bg-gray-50 transition-all duration-300">
                     <div className="flex items-center">
@@ -372,7 +372,7 @@ export default function ClientDashboard() {
                           {store?.nearest && " (Nearest)"}
                         </div>
                         {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode) && (
-                          <div className="text-xs text-emerald-600 mt-0.5">
+                          <div className="text-xs text-indigo-600 mt-0.5">
                             {getCollectionModeLabel(store.businessPolicyForCurrentUser?.cashCollectionMode)}
                           </div>
                         )}
@@ -407,10 +407,10 @@ export default function ClientDashboard() {
                               className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
                             >
                               <span className="text-sm text-gray-600">Range: {formatRange(asset.range)}</span>
-                              <span className="font-medium text-green-600">₦{formatAmount(asset.chargeRate)}</span>
+                              <span className="font-medium text-indigo-600">₦{formatAmount(asset.chargeRate)}</span>
                               <button
                                 onClick={() => handleInitiateTransaction(store, asset.id, asset.range)}
-                                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
                               >
                                 Request Cash
                               </button>
@@ -424,23 +424,22 @@ export default function ClientDashboard() {
               ))}
             </div>
 
-            {/* Vendor pagination */}
-            {(vendorsData?.vendorPagination?.totalPages ?? 0) > 0 && (
+            {vendorsData?.businessesAroundMe && (
               <div className="flex items-center justify-end mt-4 gap-2">
                 <button
                   onClick={() => setVendorPage((p) => Math.max(1, p - 1))}
                   disabled={vendorPage === 1}
-                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                 >
                   <ArrowLeft size={16} />
                 </button>
                 <span className="text-sm text-gray-500 px-1">
-                  {vendorPage} of {vendorsData?.vendorPagination?.totalPages ?? 1}
+                  {vendorPage} of {vendorsData.businessesAroundMe.pagination?.totalPages ?? 1}
                 </span>
                 <button
                   onClick={() => setVendorPage((p) => p + 1)}
-                  disabled={vendorPage >= (vendorsData?.vendorPagination?.totalPages ?? 1)}
-                  className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                  disabled={vendorPage >= (vendorsData.businessesAroundMe.pagination?.totalPages ?? 1)}
+                  className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                 >
                   <ArrowRight size={16} />
                 </button>
@@ -458,17 +457,17 @@ export default function ClientDashboard() {
                   <button
                     onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
                     disabled={pageNumber === 1}
-                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                    className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                   >
                     <ArrowLeft size={16} />
                   </button>
                   <span className="text-sm text-gray-500 px-1">
-                    {pageNumber} of {transactionData?.transactionPagination?.totalPages ?? 1}
+                    {pageNumber} of {transactionData?.transactions?.pagination?.totalPages ?? 1}
                   </span>
                   <button
                     onClick={() => setPageNumber((p) => p + 1)}
-                    disabled={pageNumber >= (transactionData?.transactionPagination?.totalPages ?? 1)}
-                    className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 disabled:opacity-40"
+                    disabled={pageNumber >= (transactionData?.transactions?.pagination?.totalPages ?? 1)}
+                    className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 disabled:opacity-40"
                   >
                     <ArrowRight size={16} />
                   </button>
