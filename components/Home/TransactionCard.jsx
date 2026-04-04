@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical } from "lucide-react";
 import { UPDATE_TRANSACTION_STATUS } from "../Auths/mutations/userMutations";
 import { useNavigate } from "react-router";
@@ -7,6 +7,30 @@ import toast from "react-hot-toast";
 
 export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor, isAwaitingTransfer }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (!open) return;
+      if (menuRef.current && menuRef.current.contains(e.target)) return;
+      if (triggerRef.current && triggerRef.current.contains(e.target)) return;
+      setOpen(false);
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
    const [updateStatus] = useMutation(UPDATE_TRANSACTION_STATUS);
     const navigate = useNavigate()
 
@@ -116,8 +140,11 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
           {/* Dropdown Trigger */}
           <button
+            ref={triggerRef}
             onClick={() => setOpen((prev) => !prev)}
             className="ml-2 p-2 rounded-full hover:bg-gray-100 transition"
+            aria-expanded={open}
+            aria-haspopup="menu"
           >
             <MoreVertical className="w-5 h-5 text-gray-600" />
           </button>
@@ -125,7 +152,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
         {/* Dropdown Menu */}
         {open && (
-          <div className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
+          <div ref={menuRef} className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
             {isVendor && (
               <>
                <button

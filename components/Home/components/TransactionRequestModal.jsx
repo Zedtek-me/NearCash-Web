@@ -55,6 +55,8 @@ export default function TransactionRequestModal({
   onClose,
   submitting,
   assetRange,
+  transactionType = 'request',
+  hidePaymentMethod = false,
 }) {
   const rawMode = policiesData?.businessTransactionPolicyForUser?.cashCollectionMode;
   const isCombined = rawMode === COMBINED_MODE;
@@ -75,7 +77,7 @@ export default function TransactionRequestModal({
         </button>
 
         <h2 className="text-xl font-bold mb-4 text-gray-400">
-          Withdraw from {vendor?.name}
+          {transactionType === 'deposit' ? `Deposit to ${vendor?.name}` : `Withdraw from ${vendor?.name}`}
         </h2>
 
         {/* Amount */}
@@ -153,43 +155,45 @@ export default function TransactionRequestModal({
         </div>
 
         {/* Payment method */}
-        <div className="mb-5">
-          <p className="text-sm mb-2 text-gray-400">Payment method</p>
-          <div className="grid grid-cols-2 gap-3">
-            {TRANSFER_MODE_OPTIONS.map(({ value, label, description, Icon }) => {
-              const active = transferMode === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onTransferModeChange(value)}
-                  className={`flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all duration-200 ${
-                    active
-                      ? "border-white bg-gray-800"
-                      : "border-gray-600 bg-gray-900 hover:border-gray-400"
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <Icon size={18} className={active ? "text-white" : "text-gray-500"} />
-                    {active && <Check size={14} className="text-white" />}
-                  </div>
-                  <span className={`text-sm font-medium ${active ? "text-white" : "text-gray-400"}`}>
-                    {label}
-                  </span>
-                  <span className="text-xs text-gray-500 leading-snug">{description}</span>
-                </button>
-              );
-            })}
+        {!hidePaymentMethod && (
+          <div className="mb-5">
+            <p className="text-sm mb-2 text-gray-400">Payment method</p>
+            <div className="grid grid-cols-2 gap-3">
+              {TRANSFER_MODE_OPTIONS.map(({ value, label, description, Icon }) => {
+                const active = transferMode === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onTransferModeChange(value)}
+                    className={`flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all duration-200 ${
+                      active
+                        ? "border-white bg-gray-800"
+                        : "border-gray-600 bg-gray-900 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <Icon size={18} className={active ? "text-white" : "text-gray-500"} />
+                      {active && <Check size={14} className="text-white" />}
+                    </div>
+                    <span className={`text-sm font-medium ${active ? "text-white" : "text-gray-400"}`}>
+                      {label}
+                    </span>
+                    <span className="text-xs text-gray-500 leading-snug">{description}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           onClick={onSubmit}
-          disabled={submitting || !selectedPolicy || !transferMode}
+          disabled={submitting || !selectedPolicy || (!hidePaymentMethod && !transferMode)}
           className="w-full py-2 bg-white text-black rounded-lg font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {submitting && <Loader2 className="animate-spin mr-2" size={16} />}
-          Create Transaction
+          {transactionType === 'deposit' ? 'Create Deposit' : 'Create Transaction'}
         </button>
       </div>
     </div>

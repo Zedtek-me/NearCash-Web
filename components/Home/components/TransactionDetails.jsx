@@ -330,7 +330,7 @@ export default function TransactionDetails() {
 
         {/* ── Action buttons ── */}
         {isPending && (
-          <div className={`mt-6 flex flex-col sm:flex-row gap-3 ${
+          <div className={`mt-6 flex flex-col lg:flex-row gap-3 ${
             userType === 'VENDOR' ? '' : 'max-w-2xl mx-auto'
           }`}>
             {/* Vendor: Approve */}
@@ -364,6 +364,18 @@ export default function TransactionDetails() {
                 <X size={17} />
                 Cancel Transaction
               </button>
+            )}
+
+            {userData?.userType !== 'VENDOR' && trxnVendor?.phoneNumber && (
+              (transaction?.status === 'INITIATED' || transaction?.status === 'IN_PROGRESS') && (
+                <a
+                  href={`tel:${trxnVendor?.phoneNumber}`}
+                  className="w-full lg:w-auto flex items-center justify-center gap-2 px-10 py-3.5 bg-white bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-all duration-200 rounded-xl font-semibold transition-all shadow-sm"
+                >
+                  <Phone size={17} />
+                  Call Vendor
+                </a>
+              )
             )}
           </div>
         )}

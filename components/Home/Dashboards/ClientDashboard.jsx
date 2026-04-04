@@ -93,16 +93,18 @@ export default function ClientDashboard() {
   const [selectedPolicy, setSelectedPolicy]  = useState(null);
   const [transferMode, setTransferMode]      = useState(null);
   const [selectedAssetRange, setSelectedAssetRange] = useState(null);
+  const [transactionType, setTransactionType] = useState('request');
 
   const [fetchPolicies, { data: policiesData, loading: policiesLoading }] =
     useLazyQuery(GET_VENDOR_POLICY_FOR_USER);
 
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
 
-  const handleInitiateTransaction = (vendor, rangeAssetId, assetRange) => {
+  const handleInitiateTransaction = (vendor, rangeAssetId, assetRange, type = 'request') => {
     setSelectedVendor(vendor);
     setAssetId(rangeAssetId);
     setSelectedAssetRange(assetRange ?? null);
+    setTransactionType(type);
     setShowTransactionModal(true);
     fetchPolicies({ variables: { businessId: String(vendor.id) } });
   };
@@ -190,26 +192,35 @@ export default function ClientDashboard() {
 
   // ── Submit transaction ────────────────────────────────────────────────────
   const handleSubmitTransaction = async () => {
-    if (!amount || !selectedPolicy || !transferMode) {
-      toast.error("Please enter an amount, select a collection mode, and choose a payment method");
+    const isDeposit = transactionType === 'deposit';
+    if (!amount || !selectedPolicy || (!transferMode && !isDeposit)) {
+      if (isDeposit) {
+        toast.error("Please enter an amount and select a collection mode");
+      } else {
+        toast.error("Please enter an amount, select a collection mode, and choose a payment method");
+      }
       return;
     }
 
     try {
+      const payload = {
+        assetId,
+        vendorId: selectedVendor.id.toString(),
+        amountToWithdraw: parseFloat(amount),
+        clientCurrentCoordinates: {
+          latitude:  userLocation.lat,
+          longitude: userLocation.lng,
+        },
+        collectionMode: policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
+        collectionLocation: "",
+      };
+
+      if (!isDeposit) payload.transferMode = transferMode;
+      if (isDeposit) payload.type = 'deposit';
+
       const result = await createTransaction({
         variables: {
-          transactionData: {
-            assetId,
-            vendorId:                  selectedVendor.id.toString(),
-            amountToWithdraw:          parseFloat(amount),
-            clientCurrentCoordinates: {
-              latitude:  userLocation.lat,
-              longitude: userLocation.lng,
-            },
-            collectionMode:     policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
-            collectionLocation: "",
-            transferMode,
-          },
+          transactionData: payload,
         },
       });
 
@@ -236,10 +247,11 @@ export default function ClientDashboard() {
         next.delete(selectedVendor.id);
         return next;
       });
-      toast.success("Transaction request sent! Awaiting vendor response.");
+      toast.success(isDeposit ? "Deposit request sent! Awaiting vendor response." : "Transaction request sent! Awaiting vendor response.");
 
       refetch();
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to create transaction");
     }
   };
@@ -366,7 +378,18 @@ export default function ClientDashboard() {
                         </span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-800">{store?.name}</div>
+                        <div className="font-medium text-gray-800 flex items-center gap-2">
+                          {store?.name}
+                          <div className="relative flex items-center justify-center ml-1">
+                            {store?.isOnline && (
+                              <span className="absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75 animate-ping" />
+                            )}
+                            <div
+                              className={`online-status w-3 h-3 rounded-full ${store?.isOnline ? "bg-green-500" : "bg-slate-300"}`}
+                              title={store?.isOnline ? "Online" : "Offline"}
+                            />
+                          </div>
+                          </div>
                         <div className="text-sm text-gray-500">
                           {store?.distance} km away
                           {store?.nearest && " (Nearest)"}
@@ -379,10 +402,7 @@ export default function ClientDashboard() {
                       </div>
                     </div>
 
-                    <div
-                      className={`online-status w-3 h-3 rounded-full ${store?.isOnline ? "bg-green-500" : "bg-slate-300"}`}
-                      title={store?.isOnline ? "Online" : "Offline"}
-                    />
+                    
 
                     <button
                       onClick={() => toggleExpanded(store.id)}
@@ -404,16 +424,26 @@ export default function ClientDashboard() {
                           {assetData?.businessAssets?.map((asset) => (
                             <div
                               key={asset.id}
-                              className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
+                              className="flex flex-wrap justify-between items-center py-2 px-3 bg-gray-50 rounded-lg"
                             >
                               <span className="text-sm text-gray-600">Range: {formatRange(asset.range)}</span>
                               <span className="font-medium text-indigo-600">₦{formatAmount(asset.chargeRate)}</span>
-                              <button
-                                onClick={() => handleInitiateTransaction(store, asset.id, asset.range)}
-                                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
-                              >
-                                Request Cash
-                              </button>
+                              <div className="flex w-full sm:w-auto flex-col sm:flex-row items-center gap-2 mt-2 sm:mt-0">
+                                <button
+                                  onClick={() => handleInitiateTransaction(store, asset.id, asset.range, 'request')}
+                                  className="w-full sm:w-auto px-4 py-2 bg-indigo-500 text-sm text-white rounded-lg hover:bg-indigo-600 transition"
+                                >
+                                  Request Cash
+                                </button>
+
+                                <button
+                                  onClick={() => handleInitiateTransaction(store, asset.id, asset.range, 'deposit')}
+                                  className="w-full sm:w-auto px-4 py-2 bg-green-500 text-sm text-white rounded-lg hover:bg-green-600 transition"
+                                  title="Deposit"
+                                >
+                                  Deposit
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -506,6 +536,8 @@ export default function ClientDashboard() {
           policiesData={policiesData}
           policiesLoading={policiesLoading}
           onSubmit={handleSubmitTransaction}
+          transactionType={transactionType}
+          hidePaymentMethod={transactionType === 'deposit'}
           assetRange={selectedAssetRange}
           onClose={() => { setShowTransactionModal(false); setAmount(""); setSelectedPolicy(null); setTransferMode(null); setSelectedAssetRange(null); }}
           submitting={creating}
