@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../Navs/Headers';
 import { CREATE_TRANSACTION_POLICY, UPDATE_TRANSACTION_POLICY } from '../../Auths/mutations/userMutations';
+import { formatAmountInput } from '../../../utils/transactionHelpers';
 import useAuth from '../../../hooks/useAuth';
 import { useMutation, useQuery } from '@apollo/client';
 import { FETCH_TRANSACTION_POLICIES } from '../../Auths/queries/userQueries';
@@ -56,9 +57,12 @@ const TransactionPolicyPage = () => {
   const [{ businessStates: { selectedBusiness } }] = Object.values(useStateValue());
   vendorBusinessId = selectedBusiness || vendorBusinessId;
 
+  const AMOUNT_FIELDS = new Set(['meetUpCharge', 'maxDeliveryAmount']);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const formatted = AMOUNT_FIELDS.has(name) ? formatAmountInput(value) : value;
+    setFormData(prev => ({ ...prev, [name]: formatted }));
   };
 
   const openCreate = () => {
@@ -73,8 +77,8 @@ const TransactionPolicyPage = () => {
       name:                policy.name || '',
       description:         policy.description || '',
       cashCollectionMode:  policy.cashCollectionMode || 'STORE_WALK_IN',
-      meetUpCharge:        policy.meetUpCharge != null ? String(policy.meetUpCharge) : '',
-      maxDeliveryAmount:   policy.maxDeliveryAmount != null ? String(policy.maxDeliveryAmount) : '',
+      meetUpCharge:        policy.meetUpCharge != null ? Number(policy.meetUpCharge).toLocaleString('en') : '',
+      maxDeliveryAmount:   policy.maxDeliveryAmount != null ? Number(policy.maxDeliveryAmount).toLocaleString('en') : '',
       maxDeliveryDistance: policy.maxDeliveryDistance != null ? String(policy.maxDeliveryDistance) : '',
     });
     setShowForm(true);
@@ -100,9 +104,9 @@ const TransactionPolicyPage = () => {
     name:               formData.name,
     description:        formData.description,
     cashCollectionMode: formData.cashCollectionMode,
-    meetUpCharge:       formData.meetUpCharge ? parseFloat(formData.meetUpCharge) : 0,
+    meetUpCharge:       formData.meetUpCharge ? parseFloat(formData.meetUpCharge.replace(/,/g, '')) : 0,
     ...(isMeetUpMode(formData.cashCollectionMode) && {
-      maxDeliveryAmount:   formData.maxDeliveryAmount   ? parseFloat(formData.maxDeliveryAmount)   : null,
+      maxDeliveryAmount:   formData.maxDeliveryAmount   ? parseFloat(formData.maxDeliveryAmount.replace(/,/g, ''))   : null,
       maxDeliveryDistance: formData.maxDeliveryDistance ? parseFloat(formData.maxDeliveryDistance) : null,
     }),
   });
@@ -221,8 +225,8 @@ const TransactionPolicyPage = () => {
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₦</span>
                       <input
-                        type="number" name="meetUpCharge" value={formData.meetUpCharge}
-                        onChange={handleInputChange} min="0" step="0.01" placeholder="0.00"
+                        type="text" inputMode="numeric" name="meetUpCharge" value={formData.meetUpCharge}
+                        onChange={handleInputChange} placeholder="0.00"
                         className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                       />
                     </div>
@@ -232,8 +236,8 @@ const TransactionPolicyPage = () => {
                     <div className="relative">
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₦</span>
                       <input
-                        type="number" name="maxDeliveryAmount" value={formData.maxDeliveryAmount}
-                        onChange={handleInputChange} min="0" step="1" placeholder="e.g. 50000"
+                        type="text" inputMode="numeric" name="maxDeliveryAmount" value={formData.maxDeliveryAmount}
+                        onChange={handleInputChange} placeholder="e.g. 50,000"
                         className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm outline-none transition-all"
                       />
                     </div>

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { User, Store, Building2, MapPin, Globe, FileText, ArrowRight, Check, Contact, X, ChevronDown, Plus, Banknote, TrendingUp } from 'lucide-react';
 import { UPDATE_BUSINESS, UpdateUserMutation } from './mutations/userMutations';
+import { formatAmountInput } from '../../utils/transactionHelpers';
 import toast from 'react-hot-toast';
 import { useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router';
@@ -66,9 +67,11 @@ export default function AccountTypePage() {
 
   const handleCustomRangeSubmit = () => {
     if (customRange.min && customRange.max && customRange.charge) {
+      const rawMin = customRange.min.replace(/,/g, '');
+      const rawMax = customRange.max.replace(/,/g, '');
       const customOption = {
-        label: `${customRange.min}-${customRange.max}`,
-        value: `${customRange.min}-${customRange.max}:${customRange.charge}`,
+        label: `${rawMin}-${rawMax}`,
+        value: `${rawMin}-${rawMax}:${customRange.charge}`,
         charge: customRange.charge,
       };
       setFormData(prev => ({ ...prev, range: [...prev.range, customOption] }));
@@ -485,17 +488,19 @@ export default function AccountTypePage() {
                         <div className="p-3 bg-gray-50 space-y-2">
                           <div className="grid grid-cols-2 gap-2">
                             <input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
                               placeholder="Min"
                               value={customRange.min}
-                              onChange={e => setCustomRange(prev => ({ ...prev, min: e.target.value }))}
+                              onChange={e => setCustomRange(prev => ({ ...prev, min: formatAmountInput(e.target.value) }))}
                               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black text-gray-800"
                             />
                             <input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
                               placeholder="Max"
                               value={customRange.max}
-                              onChange={e => setCustomRange(prev => ({ ...prev, max: e.target.value }))}
+                              onChange={e => setCustomRange(prev => ({ ...prev, max: formatAmountInput(e.target.value) }))}
                               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black text-gray-800"
                             />
                           </div>

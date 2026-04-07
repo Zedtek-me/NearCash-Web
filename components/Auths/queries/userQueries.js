@@ -102,6 +102,7 @@ export const GET_TRANSACTIONS = gql`
     $vendorId: String
     $dateFrom: Date
     $dateTo: Date
+    $requestType: String
     $pageCount: Int
     $pageNumber: Int
   ) {
@@ -114,6 +115,7 @@ export const GET_TRANSACTIONS = gql`
       vendorId: $vendorId
       dateFrom: $dateFrom
       dateTo: $dateTo
+      requestType: $requestType
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {
@@ -133,6 +135,7 @@ export const GET_TRANSACTIONS = gql`
           email
         }
         client {
+          id
           firstName
           lastName
           fullName
@@ -175,6 +178,8 @@ export const GET_SUB_BUSINESSES = gql`
         location
         isPrimary
         availableLiquidity
+        currency
+        businessType
         assets {
           range
           chargeRate

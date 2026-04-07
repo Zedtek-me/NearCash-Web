@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { X, Loader2, Store, MapPin, Check, CreditCard, Landmark } from "lucide-react";
-import { formatRange } from "../../../utils/transactionHelpers";
+import { formatRange, formatAmountInput } from "../../../utils/transactionHelpers";
 
 const COMBINED_MODE = "MEET_UP_AND_STORE_WALK_IN";
 
@@ -84,9 +84,10 @@ export default function TransactionRequestModal({
         <div className="mb-4">
           <label className="block text-sm mb-1 text-gray-400">Amount to Withdraw</label>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={amount}
-            onChange={(e) => onAmountChange(e.target.value)}
+            onChange={(e) => onAmountChange(formatAmountInput(e.target.value))}
             className="w-full px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
             placeholder={assetRange ? `Range: ${formatRange(assetRange)}` : "Enter amount"}
           />
