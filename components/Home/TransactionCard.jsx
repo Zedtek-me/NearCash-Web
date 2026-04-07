@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { useMutation } from "@apollo/client";
 import toast from "react-hot-toast";
 
-export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor, isAwaitingTransfer }) {
+export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor, isOutgoing, isAwaitingTransfer }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
@@ -114,7 +114,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
       <div className="flex flex-col pt-5 md:pt-0 items-end gap-1">
         {isAwaitingTransfer && (
           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
-            {isVendor ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
+            {isVendor && !isOutgoing ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
           </span>
         )}
         {!isAwaitingTransfer && transaction.status === "IN_PROGRESS" && transaction.transferMode === "BANK_TRANSFER" && (
@@ -153,50 +153,38 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
         {/* Dropdown Menu */}
         {open && (
           <div ref={menuRef} className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
-            {isVendor && (
+            {/* Incoming vendor transactions: Approve + Reject */}
+            {isVendor && !isOutgoing && (
               <>
-               <button
-              onClick={() => {
-                handleUpdateStatus(transaction.id, 'IN_PROGRESS');
-                setOpen(false);
-              }}
-               disabled={transaction.status !== 'INITIATED'}
-              className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-            >
-               Approve
-            </button>
-            <button
-              onClick={() => {
-                handleUpdateStatus(transaction.id, 'DECLINED');
-                setOpen(false);
-                
-              }}
-               disabled={transaction.status !== 'INITIATED' && transaction.status !== 'IN_PROGRESS'}
-              className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
-            >
-              Reject
-            </button>
+                <button
+                  onClick={() => { handleUpdateStatus(transaction.id, 'IN_PROGRESS'); setOpen(false); }}
+                  disabled={transaction.status !== 'INITIATED'}
+                  className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 disabled:opacity-40"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => { handleUpdateStatus(transaction.id, 'DECLINED'); setOpen(false); }}
+                  disabled={transaction.status !== 'INITIATED' && transaction.status !== 'IN_PROGRESS'}
+                  className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 disabled:opacity-40"
+                >
+                  Reject
+                </button>
               </>
             )}
-             {!isVendor && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
-              <>
-            <button
-              onClick={() => {
-                handleUpdateStatus(transaction.id, 'CANCELLED');
-                setOpen(false);
-              }}
-              className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-              </>
+
+            {/* Outgoing (vendor-as-client) or regular client: Cancel */}
+            {(!isVendor || isOutgoing) && (transaction.status === 'INITIATED' || transaction.status === 'IN_PROGRESS') && (
+              <button
+                onClick={() => { handleUpdateStatus(transaction.id, 'CANCELLED'); setOpen(false); }}
+                className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
+              >
+                Cancel
+              </button>
             )}
-           
+
             <button
-              onClick={() => {
-                handleViewTransactionDetails(transaction.id);
-                setOpen(false);
-              }}
+              onClick={() => { handleViewTransactionDetails(transaction.id); setOpen(false); }}
               className="block w-full text-left px-4 py-3 text-sm hover:bg-gray-100"
             >
               View Details

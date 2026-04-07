@@ -268,6 +268,7 @@ const Dashboard = () => {
                         refetch={refetch}
                         onViewDetails={() => navigate(`/transaction-details/${tx.id}`)}
                         isVendor
+                        isOutgoing={tx.client?.id === userData?.id}
                         isAwaitingTransfer={tx.awaitingTransfer}
                       />
                     ))}

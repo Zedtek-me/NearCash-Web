@@ -130,6 +130,7 @@ export const EXCLUSIVE_MSGS = [
 ];
 
 const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
+const LIQUIDITY_REQUEST_MSG_TYPE = "Liquidity Request!";
 const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
 
 
@@ -223,6 +224,38 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
         toast(`New opportunity: ₦${amount} from ${clientName}`, {
           duration: 8000,
           icon: "💰",
+        });
+
+        return;
+      }
+
+      // ── Liquidity request from another vendor (supplier side) ────────────
+      if (message_type === LIQUIDITY_REQUEST_MSG_TYPE) {
+        playAlertTone();
+        triggerVibration();
+
+        if (onOpportunity) {
+          onOpportunity(data);
+        }
+
+        const amount     = Number(data?.txn_info?.amount || 0).toLocaleString();
+        const vendorName = data?.txn_info?.client_name || "a nearby vendor";
+
+        sendPushNotification(
+          "Liquidity Request",
+          `₦${amount} needed by ${vendorName}`,
+          () => {
+            localStorage.setItem(PENDING_OPPORTUNITY_KEY, JSON.stringify(data));
+            window.focus();
+            if (window.location.pathname !== "/dashboard/vendor") {
+              window.location.href = "/dashboard/vendor";
+            }
+          }
+        );
+
+        toast(`Liquidity request: ₦${amount} from ${vendorName}`, {
+          duration: 8000,
+          icon: "💵",
         });
 
         return;

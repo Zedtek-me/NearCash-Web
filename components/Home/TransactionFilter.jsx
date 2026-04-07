@@ -81,6 +81,11 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
         refetch(variables);
     };
 
+    const handleRequestTypeFilter = (requestType) => {
+        setFilterBy("");
+        refetch({ requestType });
+    };
+
     const handleFilterBy = (txt) => {
         setOpenFilter(false);
         if (txt?.length) setFilterBy(txt?.toLowerCase());
@@ -140,6 +145,20 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                     Clear
                 </button>
             </div>
+        </div>
+    );
+
+    const RequestTypeFilterComponent = () => (
+        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
+            {["incoming", "outgoing"].map((type) => (
+                <div
+                    key={type}
+                    className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors"
+                    onClick={() => handleRequestTypeFilter(type)}
+                >
+                    <p className="text-left capitalize">{type}</p>
+                </div>
+            ))}
         </div>
     );
 
@@ -231,12 +250,20 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                         Date
                     </h3>
                     {userType === "VENDOR" ? (
-                        <h3
-                            className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
-                            onClick={(e) => handleFilterBy(e.target.textContent)}
-                        >
-                            Client
-                        </h3>
+                        <>
+                            <h3
+                                className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
+                                onClick={(e) => handleFilterBy(e.target.textContent)}
+                            >
+                                Client
+                            </h3>
+                            <h3
+                                className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
+                                onClick={(e) => handleFilterBy(e.target.textContent)}
+                            >
+                                Request Type
+                            </h3>
+                        </>
                     ) : (
                         <h3
                             className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
@@ -250,6 +277,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
 
             {filterBy === "status" && <StatusFilterComponent />}
             {filterBy === "date" && <DateFilterComponent />}
+            {filterBy === "request type" && <RequestTypeFilterComponent />}
             {(filterBy.includes("client") || filterBy.includes("vendor")) && <UserFilterComponent />}
         </div>
     );

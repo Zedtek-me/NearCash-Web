@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
 import { google_key } from '../../../configs/environs';
 import { backArrowReturnFunc } from '../../../utils/auths';
+import { formatAmountInput } from '../../../utils/transactionHelpers';
 import { useLoadScript } from '@react-google-maps/api';
 
 const libraries = ['places'];
@@ -156,9 +157,11 @@ const handleAddressSelect = (suggestion) => {
 
   const handleCustomRangeSubmit = () => {
     if (customRange.min && customRange.max && customRange.charge) {
+      const rawMin = customRange.min.replace(/,/g, '');
+      const rawMax = customRange.max.replace(/,/g, '');
       const customOption = {
-        label: `${customRange.min}-${customRange.max}`,
-        value: `${customRange.min}-${customRange.max}:${customRange.charge}`,
+        label: `${rawMin}-${rawMax}`,
+        value: `${rawMin}-${rawMax}:${customRange.charge}`,
         charge: customRange.charge
       };
       
@@ -421,17 +424,19 @@ const handleAddressSelect = (suggestion) => {
                     <div className="p-4 bg-gray-50 space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           placeholder="Min"
                           value={customRange.min}
-                          onChange={(e) => setCustomRange(prev => ({ ...prev, min: e.target.value }))}
+                          onChange={(e) => setCustomRange(prev => ({ ...prev, min: formatAmountInput(e.target.value) }))}
                           className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
                         />
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           placeholder="Max"
                           value={customRange.max}
-                          onChange={(e) => setCustomRange(prev => ({ ...prev, max: e.target.value }))}
+                          onChange={(e) => setCustomRange(prev => ({ ...prev, max: formatAmountInput(e.target.value) }))}
                           className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
                         />
                       </div>

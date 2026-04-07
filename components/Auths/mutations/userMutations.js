@@ -431,3 +431,17 @@ export const ACCEPT_TRANSACTION_OPPORTUNITY = gql`
     }
   }
 `;
+
+export const INITIATE_VENDOR_TO_VENDOR_TRANSACTION = gql`
+  mutation InitiateVendorToVendorTransaction($data: InitiateVendorToVendorTransactionInputType!) {
+    initiateVendorToVendorTransaction(data: $data) {
+      message
+      txn {
+        id
+        status
+        amount
+        currency
+      }
+    }
+  }
+`;

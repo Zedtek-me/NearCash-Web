@@ -32,7 +32,7 @@ import TransactionStatusModal from "../components/TransactionStatusModal";
 import LocationModal from "../components/LocationModal";
 import MapModal from "../components/MapModal";
 import TransactionRequestModal from "../components/TransactionRequestModal";
-import { getAvatarColor, STATUS_MAP, formatAmount, formatRange } from "../../../utils/transactionHelpers";
+import { getAvatarColor, STATUS_MAP, formatAmount, formatRange, formatAmountInput, parseAmountInput } from "../../../utils/transactionHelpers";
 
 
 export default function ClientDashboard() {
@@ -206,7 +206,7 @@ export default function ClientDashboard() {
       const payload = {
         assetId,
         vendorId: selectedVendor.id.toString(),
-        amountToWithdraw: parseFloat(amount),
+        amountToWithdraw: parseAmountInput(amount),
         clientCurrentCoordinates: {
           latitude:  userLocation.lat,
           longitude: userLocation.lng,
@@ -235,7 +235,7 @@ export default function ClientDashboard() {
         isOpen: true,
         status: "loading",
         transactionInfo: {
-          amount:        parseFloat(amount),
+          amount:        parseAmountInput(amount),
           vendorName:    selectedVendor?.name,
           transactionId: txId,
         },

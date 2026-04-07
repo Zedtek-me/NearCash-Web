@@ -30,6 +30,27 @@ export const formatAmount = (value) =>
   Number(value || 0).toLocaleString();
 
 /**
+ * Formats a raw amount input string with thousands separators as the user types.
+ * Strips non-numeric characters (except one decimal point), then re-formats.
+ * Use as the onChange handler value transformer for monetary inputs.
+ * Pairs with parseAmountInput() at submit time.
+ */
+export const formatAmountInput = (value) => {
+  const raw = String(value).replace(/[^0-9.]/g, '');
+  if (!raw) return '';
+  const parts = raw.split('.');
+  parts[0] = parts[0] ? Number(parts[0]).toLocaleString('en') : '';
+  return parts.length > 1 ? `${parts[0]}.${parts[1]}` : parts[0];
+};
+
+/**
+ * Strips thousands separators and parses a formatted amount string to float.
+ * Use at form submission time to get the raw numeric value.
+ */
+export const parseAmountInput = (value) =>
+  parseFloat(String(value).replace(/,/g, '')) || 0;
+
+/**
  * Formats a range string like "1000-5000" into "1,000 - 5,000".
  * Each segment separated by "-" is treated as an independent figure.
  */

@@ -120,10 +120,20 @@ export default function TransactionDetails() {
     } catch {}
   }, [transaction]);
 
+  // ── Outgoing-vendor detection ────────────────────────────────────────────────
+  // A vendor who initiated a vendor-to-vendor sourcing request is stored as the
+  // transaction's client. For such transactions, render the client perspective.
+  const isOutgoingVendor =
+    userType === 'VENDOR' &&
+    transaction?.client?.id != null &&
+    String(transaction.client.id) === String(userData?.id);
+
+  const effectiveViewType = isOutgoingVendor ? 'CLIENT' : userType;
+
   // ── Amount formatting ───────────────────────────────────────────────────────
 
   const formatTrxnAmount = (amount) => {
-    switch (userType) {
+    switch (effectiveViewType) {
       case 'VENDOR':
         if (amount.includes('+')) return amount.replace('+', '-');
         return `-${amount}`;
@@ -181,7 +191,7 @@ export default function TransactionDetails() {
     };
   };
 
-  const trxnUserInfo = getTrxnUserInfo(userType);
+  const trxnUserInfo = getTrxnUserInfo(effectiveViewType);
 
   const handleUpdateStatus = async (id, status) => {
     try {
@@ -299,7 +309,7 @@ export default function TransactionDetails() {
 
         {/* ── Info cards ── */}
         <div className={
-          userType === 'VENDOR'
+          effectiveViewType === 'VENDOR'
             ? 'grid lg:grid-cols-2 gap-5'
             : 'max-w-2xl mx-auto'
         }>
@@ -314,16 +324,13 @@ export default function TransactionDetails() {
             <InfoRow icon={Building}    label="Vendor"           value={transaction?.business?.name} />
           </Card>
 
-          {/* Customer / vendor info — vendor view only */}
-          {userType === 'VENDOR' && (
-            <Card title={getSectionTitle(userType)}>
-              <InfoRow icon={User}     label={userType === 'VENDOR' ? 'Customer Name' : 'Vendor Name'} value={trxnUserInfo?.name} highlight />
-              <InfoRow icon={Mail}     label="Email Address"       value={trxnUserInfo?.email} />
-              <InfoRow icon={Phone}    label="Phone Number"        value={trxnUserInfo?.phoneNumber} />
-              {userType === 'CLIENT' && (
-                <InfoRow icon={MapPin} label="Business Address"    value={trxnUserInfo?.location} />
-              )}
-              <InfoRow icon={Building} label="City"               value={trxnUserInfo?.city} />
+          {/* Counter-party info card */}
+          {effectiveViewType === 'VENDOR' && (
+            <Card title={getSectionTitle(effectiveViewType)}>
+              <InfoRow icon={User}     label="Customer Name"  value={trxnUserInfo?.name}        highlight />
+              <InfoRow icon={Mail}     label="Email Address"  value={trxnUserInfo?.email} />
+              <InfoRow icon={Phone}    label="Phone Number"   value={trxnUserInfo?.phoneNumber} />
+              <InfoRow icon={Building} label="City"           value={trxnUserInfo?.city} />
             </Card>
           )}
         </div>
@@ -331,10 +338,10 @@ export default function TransactionDetails() {
         {/* ── Action buttons ── */}
         {isPending && (
           <div className={`mt-6 flex flex-col lg:flex-row gap-3 ${
-            userType === 'VENDOR' ? '' : 'max-w-2xl mx-auto'
+            effectiveViewType === 'VENDOR' ? '' : 'max-w-2xl mx-auto'
           }`}>
-            {/* Vendor: Approve */}
-            {transaction.status === 'INITIATED' && userData?.userType === 'VENDOR' && (
+            {/* Incoming vendor transactions: Approve */}
+            {transaction.status === 'INITIATED' && effectiveViewType === 'VENDOR' && (
               <button
                 onClick={() => handleUpdateStatus(transaction.id, 'IN_PROGRESS')}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-semibold transition-all shadow-sm"
@@ -344,8 +351,8 @@ export default function TransactionDetails() {
               </button>
             )}
 
-            {/* Vendor: Reject */}
-            {userData?.userType === 'VENDOR' && (
+            {/* Incoming vendor transactions: Reject */}
+            {effectiveViewType === 'VENDOR' && (
               <button
                 onClick={() => handleUpdateStatus(transaction.id, 'DECLINED')}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-xl font-semibold transition-all shadow-sm"
@@ -355,8 +362,8 @@ export default function TransactionDetails() {
               </button>
             )}
 
-            {/* Client: Cancel */}
-            {userData?.userType !== 'VENDOR' && (
+            {/* Client / outgoing vendor: Cancel */}
+            {effectiveViewType !== 'VENDOR' && (
               <button
                 onClick={() => handleUpdateStatus(transaction.id, 'CANCELLED')}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-red-200 hover:bg-red-50 text-red-600 rounded-xl font-semibold transition-all shadow-sm"
@@ -366,16 +373,15 @@ export default function TransactionDetails() {
               </button>
             )}
 
-            {userData?.userType !== 'VENDOR' && trxnVendor?.phoneNumber && (
-              (transaction?.status === 'INITIATED' || transaction?.status === 'IN_PROGRESS') && (
-                <a
-                  href={`tel:${trxnVendor?.phoneNumber}`}
-                  className="w-full lg:w-auto flex items-center justify-center gap-2 px-10 py-3.5 bg-white bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-all duration-200 rounded-xl font-semibold transition-all shadow-sm"
-                >
-                  <Phone size={17} />
-                  Call Vendor
-                </a>
-              )
+            {/* Client / outgoing vendor: Call the fulfilling vendor */}
+            {effectiveViewType !== 'VENDOR' && trxnVendor?.phoneNumber && (
+              <a
+                href={`tel:${trxnVendor?.phoneNumber}`}
+                className="w-full lg:w-auto flex items-center justify-center gap-2 px-10 py-3.5 bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-all duration-200 rounded-xl font-semibold shadow-sm"
+              >
+                <Phone size={17} />
+                Call Vendor
+              </a>
             )}
           </div>
         )}
