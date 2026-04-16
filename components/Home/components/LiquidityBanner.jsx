@@ -22,6 +22,8 @@ const LiquidityBanner = ({ business, onDismiss }) => {
   const [transferMode, setTransferMode] = useState("BANK_TRANSFER");
   const [pendingTxnId, setPendingTxnId] = useState(null);
   const [virtualAccount, setVirtualAccount] = useState(null);
+  const [proposals, setProposals] = useState([]);
+  const [now, setNow] = useState(() => Date.now());
 
   const socket   = useWebSocket();
   const navigate = useNavigate();
@@ -38,7 +40,12 @@ const LiquidityBanner = ({ business, onDismiss }) => {
       try { data = JSON.parse(event.data); } catch { return; }
       const { message_type } = (data && typeof data === "object" ? data : {});
 
-      if (message_type === "No Available Vendors") {
+      if (message_type === "Proposed Amount") {
+        const incoming = data?.txn_info?.proposed_amounts;
+        if (Array.isArray(incoming) && incoming.length > 0) {
+          setProposals(incoming);
+        }
+      } else if (message_type === "No Available Vendors") {
         setMode("unavailable");
       } else if (message_type === "Transaction Approved!") {
         const txnId       = data?.txn_info?.txn_id;
@@ -78,6 +85,17 @@ const LiquidityBanner = ({ business, onDismiss }) => {
     socket.addEventListener("message", onMessage);
     return () => socket.removeEventListener("message", onMessage);
   }, [mode, socket, business.id, pendingTxnId, onDismiss, navigate]);
+
+  // Tick every second while proposals are live; prune expired ones.
+  useEffect(() => {
+    if (proposals.length === 0) return;
+    const id = setInterval(() => {
+      const ts = Date.now();
+      setNow(ts);
+      setProposals((prev) => prev.filter((p) => new Date(p.expiry).getTime() > ts));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [proposals.length]);
 
   const handleConfirm = () => {
     sessionStorage.setItem(`liquidity_ack_${business.id}`, "1");
@@ -235,11 +253,72 @@ const LiquidityBanner = ({ business, onDismiss }) => {
               )}
 
               {mode === "initiated" && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                  <p className="text-xs text-slate-300">
-                    Searching for nearby vendors who can supply your liquidity…
-                  </p>
+                <div className="flex flex-col gap-2 mt-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                    <p className="text-xs text-slate-300">
+                      {proposals.length > 0
+                        ? "Vendors are proposing — select one to proceed."
+                        : "Searching for nearby vendors who can supply your liquidity…"}
+                    </p>
+                  </div>
+                  {proposals.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-0.5">
+                      {proposals.map((p, i) => {
+                        const expiryMs = new Date(p.expiry).getTime();
+                        const totalMs  = 60 * 1000;
+                        const timeLeft = Math.max(0, expiryMs - now);
+                        const pct      = Math.min(100, (timeLeft / totalMs) * 100);
+                        const secs     = Math.ceil(timeLeft / 1000);
+                        const barColor = pct > 50 ? "#22c55e" : pct > 20 ? "#f59e0b" : "#ef4444";
+
+                        return (
+                          <div
+                            key={p.vendor?.id ?? i}
+                            className="rounded-lg overflow-hidden"
+                            style={{ background: "rgba(51,65,85,0.5)", border: "1px solid rgba(71,85,105,0.4)" }}
+                          >
+                            {/* Main row */}
+                            <div className="flex items-center justify-between gap-4 px-3 py-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-xs font-semibold text-white truncate">
+                                  {p.vendor?.name ?? "Unknown Vendor"}
+                                </span>
+                                <span className="text-[10px] text-slate-400">proposes</span>
+                                <span className="text-xs font-bold text-green-400">
+                                  ₦{Number(p.amount ?? 0).toLocaleString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span
+                                  className="text-[10px] font-mono tabular-nums"
+                                  style={{ color: barColor }}
+                                >
+                                  {secs}s
+                                </span>
+                                {/* Accept button — mutation wired up later */}
+                                <button
+                                  disabled
+                                  className="px-3 py-1 text-xs font-semibold rounded-lg cursor-not-allowed"
+                                  style={{ background: "rgba(99,102,241,0.25)", color: "#a5b4fc" }}
+                                  title="Accept coming soon"
+                                >
+                                  Accept
+                                </button>
+                              </div>
+                            </div>
+                            {/* Countdown bar */}
+                            <div className="h-0.5 w-full" style={{ background: "rgba(71,85,105,0.4)" }}>
+                              <div
+                                className="h-full transition-all duration-1000 ease-linear"
+                                style={{ width: `${pct}%`, background: barColor }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
