@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle } from "lucide-react";
+import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle, ArrowLeftRight } from "lucide-react";
 import { useMutation } from "@apollo/client";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
 import { ACCEPT_TRANSACTION_OPPORTUNITY } from "../../Auths/mutations/userMutations";
+import { formatAmountInput, parseAmountInput } from "../../../utils/transactionHelpers";
 
 
 export default function TransactionOpportunityModal({
@@ -19,7 +20,10 @@ export default function TransactionOpportunityModal({
   const [failedMessage, setFailedMessage] = useState(null);
   const [countdown, setCountdown] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
+  const [proposedFee, setProposedFee] = useState("");
   const timeoutRef = useRef(null);
+
+  const isV2V = opportunityData?.message_type === "Liquidity Request!";
 
   // Countdown after confirmed acceptance
   useEffect(() => {
@@ -46,6 +50,7 @@ export default function TransactionOpportunityModal({
       setFailed(false);
       setFailedMessage(null);
       setCountdown(null);
+      setProposedFee("");
 
       const businesses = opportunityData?.txn_info?.businesses ?? [];
       if (businesses.length === 1) {
@@ -107,18 +112,30 @@ export default function TransactionOpportunityModal({
   // ── GraphQL mutation path (primary) ──────────────────────────────────────
   const handleAccept = async () => {
     if (!selectedBusiness) return;
+    if (isV2V) {
+      const fee = parseAmountInput(proposedFee);
+      if (isNaN(fee) || fee <= 0) {
+        setFailedMessage("Enter a valid fee amount to propose.");
+        setFailed(true);
+        return;
+      }
+    }
 
     setFailed(false);
+    setFailedMessage(null);
     setAccepting(true);
 
     try {
-      const { data } = await acceptOpportunity({
-        variables: {
-          txnId: String(txn_id),
-          txnRef: txn_ref,
-          businessId: String(selectedBusiness.id),
-        },
-      });
+      const variables = {
+        txnId: String(txn_id),
+        txnRef: txn_ref,
+        businessId: String(selectedBusiness.id),
+      };
+      if (isV2V) {
+        variables.proposedAmount = parseAmountInput(proposedFee);
+        variables.isVendorToVendor = true;
+      }
+      const { data } = await acceptOpportunity({ variables });
       const result = data?.acceptTransactionOpportunity?.message;
       if (result === "opportunity_ack") {
         setAccepted(true);
@@ -202,22 +219,27 @@ export default function TransactionOpportunityModal({
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "#0d2044", border: "0.5px solid #1e40af" }}
+                  style={{
+                    background: isV2V ? "#0d2a1a" : "#0d2044",
+                    border: `0.5px solid ${isV2V ? "#166534" : "#1e40af"}`,
+                  }}
                 >
-                  <Zap size={18} style={{ color: "#60a5fa" }} />
+                  {isV2V
+                    ? <ArrowLeftRight size={18} style={{ color: "#4ade80" }} />
+                    : <Zap size={18} style={{ color: "#60a5fa" }} />}
                 </div>
                 <div>
                   <p
                     className="text-xs font-medium uppercase tracking-widest mb-0.5"
-                    style={{ color: "#3b82f6" }}
+                    style={{ color: isV2V ? "#4ade80" : "#3b82f6" }}
                   >
-                    New opportunity
+                    {isV2V ? "Vendor liquidity request" : "New opportunity"}
                   </p>
                   <h2
                     className="text-base font-semibold"
                     style={{ color: "#e2e8f0" }}
                   >
-                    Cash withdrawal request
+                    {isV2V ? "A nearby vendor needs cash" : "Cash withdrawal request"}
                   </h2>
                 </div>
               </div>
@@ -242,7 +264,9 @@ export default function TransactionOpportunityModal({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <User size={14} style={{ color: "#64748b" }} />
-                    <span className="text-xs" style={{ color: "#64748b" }}>Client</span>
+                    <span className="text-xs" style={{ color: "#64748b" }}>
+                      {isV2V ? "Requesting vendor" : "Client"}
+                    </span>
                   </div>
                   <span className="text-sm font-medium" style={{ color: "#cbd5e1" }}>
                     {client_name || "—"}
@@ -335,18 +359,69 @@ export default function TransactionOpportunityModal({
                 </div>
               )}
 
+              {/* Propose fee input — V2V only */}
+              {isV2V && (
+                <div className="mb-5">
+                  <label
+                    className="block text-xs font-medium mb-2"
+                    style={{ color: "#64748b" }}
+                  >
+                    Your fee for this request
+                  </label>
+                  <div className="relative">
+                    <span
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium"
+                      style={{ color: "#64748b" }}
+                    >
+                      ₦
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={proposedFee}
+                      onChange={(e) => setProposedFee(formatAmountInput(e.target.value))}
+                      placeholder="e.g. 500"
+                      disabled={accepting}
+                      className="w-full pl-7 pr-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                      style={{
+                        background: "#0d1829",
+                        border: "0.5px solid #1e3a5f",
+                        color: "#e2e8f0",
+                        outline: "none",
+                      }}
+                      onFocus={e => e.currentTarget.style.borderColor = "#3b82f6"}
+                      onBlur={e => e.currentTarget.style.borderColor = "#1e3a5f"}
+                    />
+                  </div>
+                  <p className="text-[11px] mt-1.5" style={{ color: "#475569" }}>
+                    The requesting vendor will see this and decide whether to accept your proposal.
+                  </p>
+                </div>
+              )}
+
               <div
                 className="rounded-lg px-3 py-2.5 mb-5 flex items-start gap-2"
-                style={{ background: "#0d1829", border: "0.5px solid #1e3a5f" }}
+                style={{
+                  background: isV2V ? "#0d2a1a" : "#0d1829",
+                  border: `0.5px solid ${isV2V ? "#166534" : "#1e3a5f"}`,
+                }}
               >
                 <div
                   className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
-                  style={{ background: "#3b82f6" }}
+                  style={{ background: isV2V ? "#4ade80" : "#3b82f6" }}
                 />
                 <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
-                  Accepting this request means you agree to provide
-                  <span style={{ color: "#93c5fd" }}> ₦{Number(amount || 0).toLocaleString()} </span>
-                  cash to the client at your location. Ensure you have sufficient cash available.
+                  {isV2V
+                    ? <>
+                        Proposing a fee means you agree to supply
+                        <span style={{ color: "#86efac" }}> ₦{Number(amount || 0).toLocaleString()} </span>
+                        cash to the requesting vendor if they accept your proposal.
+                      </>
+                    : <>
+                        Accepting this request means you agree to provide
+                        <span style={{ color: "#93c5fd" }}> ₦{Number(amount || 0).toLocaleString()} </span>
+                        cash to the client at your location. Ensure you have sufficient cash available.
+                      </>}
                 </p>
               </div>
 
@@ -377,32 +452,36 @@ export default function TransactionOpportunityModal({
 
                 <button
                   onClick={handleAccept}
-                  disabled={accepting || !selectedBusiness}
+                  disabled={accepting || !selectedBusiness || (isV2V && !proposedFee)}
                   className="flex-[2] py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
                   style={{
-                    background: !selectedBusiness ? "#0f172a" : "#1d4ed8",
-                    color: !selectedBusiness ? "#475569" : "#eff6ff",
-                    border: !selectedBusiness ? "0.5px solid #1e293b" : "none",
-                    cursor: !selectedBusiness || accepting ? "not-allowed" : "pointer",
+                    background: (!selectedBusiness || (isV2V && !proposedFee)) ? "#0f172a" : isV2V ? "#166534" : "#1d4ed8",
+                    color: (!selectedBusiness || (isV2V && !proposedFee)) ? "#475569" : "#eff6ff",
+                    border: (!selectedBusiness || (isV2V && !proposedFee)) ? "0.5px solid #1e293b" : "none",
+                    cursor: !selectedBusiness || accepting || (isV2V && !proposedFee) ? "not-allowed" : "pointer",
                   }}
                   onMouseOver={e => {
-                    if (selectedBusiness && !accepting)
-                      e.currentTarget.style.background = "#1e40af";
+                    if (selectedBusiness && !accepting && !(isV2V && !proposedFee))
+                      e.currentTarget.style.background = isV2V ? "#14532d" : "#1e40af";
                   }}
                   onMouseOut={e => {
-                    if (selectedBusiness)
-                      e.currentTarget.style.background = "#1d4ed8";
+                    if (selectedBusiness && !(isV2V && !proposedFee))
+                      e.currentTarget.style.background = isV2V ? "#166534" : "#1d4ed8";
                   }}
                 >
                   {accepting ? (
                     <>
                       <Loader2 size={15} className="animate-spin" />
-                      Confirming…
+                      {isV2V ? "Submitting proposal…" : "Confirming…"}
                     </>
                   ) : (
                     <>
-                      <Zap size={15} />
-                      {!selectedBusiness ? "Select a business" : "Accept transaction"}
+                      {isV2V ? <ArrowLeftRight size={15} /> : <Zap size={15} />}
+                      {!selectedBusiness
+                        ? "Select a business"
+                        : isV2V
+                        ? "Propose fee"
+                        : "Accept transaction"}
                     </>
                   )}
                 </button>
@@ -436,10 +515,12 @@ export default function TransactionOpportunityModal({
 
               <div>
                 <p className="text-base font-semibold mb-1" style={{ color: "#4ade80" }}>
-                  Transaction accepted!
+                  {isV2V ? "Proposal submitted!" : "Transaction accepted!"}
                 </p>
                 <p className="text-sm" style={{ color: "#64748b" }}>
-                  {transfer_mode === "BANK_TRANSFER"
+                  {isV2V
+                    ? "Your fee proposal has been sent to the requesting vendor. You'll be notified if they accept."
+                    : transfer_mode === "BANK_TRANSFER"
                     ? "Awaiting the client's bank transfer. You'll be notified once funds are confirmed."
                     : "The client has been notified. They will be heading to your location."}
                 </p>
