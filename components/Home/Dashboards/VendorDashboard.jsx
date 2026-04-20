@@ -152,7 +152,7 @@ const Dashboard = () => {
 
       <div className="min-h-screen bg-gray-50 p-4 sm:p-3">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">Dashboard</h1>
+          <div className="h-8 mb-6 sm:mb-8" />
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
             <div className="xl:col-span-12 space-y-12">
