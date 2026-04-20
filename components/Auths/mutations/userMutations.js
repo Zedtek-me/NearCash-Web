@@ -453,3 +453,30 @@ export const INITIATE_VENDOR_TO_VENDOR_TRANSACTION = gql`
     }
   }
 `;
+
+
+export const ACCEPT_PROPOSAL = gql`
+  mutation AcceptProposal(
+    $txnId: String!,
+    $vendorBusinessId: String!,
+    $proposedAmount: Float!,
+  ) {
+    acceptProposedAmount(
+      txnId: $txnId,
+      proposedAmount: $proposedAmount,
+      vendorBusinessId: $vendorBusinessId
+    ){
+      message
+      txn{
+        id
+        status
+        amount
+        currency
+        business {
+          id
+          name
+        }
+      }
+    }
+  }
+  `
