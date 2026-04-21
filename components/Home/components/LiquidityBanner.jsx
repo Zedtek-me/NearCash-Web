@@ -42,9 +42,14 @@ const LiquidityBanner = ({ business, onDismiss }) => {
 
       if (message_type === "Proposed Amount") {
         const incoming = data?.txn_info?.proposed_amounts;
+        const txnTransfer = data?.txn_info?.transfer_mode;
         if (Array.isArray(incoming) && incoming.length > 0) {
           setProposals(incoming);
           setPendingTxnId(data?.txn_info?.txn_id ?? null);
+          if(txnTransfer && txnTransfer == "BANK_TRANSFER") {
+            const accountInfo = data?.txn_info?.account_info ?? null;
+            setVirtualAccount(accountInfo);
+          }
         }
       } else if (message_type === "No Available Vendors") {
         setMode("unavailable");
@@ -163,7 +168,11 @@ const LiquidityBanner = ({ business, onDismiss }) => {
     };
     toast.success("Proposal accepted!");
     sessionStorage.setItem(`liquidity_ack_${business.id}`, "1");
-    setTimeout(() => navigate(`/transaction-details/${txnId}`), 2000);
+    // only navigate immediately if it's not a bank transfer, otherwise wait for the "Transfer Confirmed" event to navigate
+    setMode(transferMode === "BANK_TRANSFER" ? "transfer_pending" : "initiated");
+    if((!virtualAccount || !virtualAccount?.account_number) && transferMode !== "BANK_TRANSFER"){
+      setTimeout(() => navigate(`/transaction-details/${txnId}`), 2000);
+    }
   }
 
   const hasLiquidity = business.availableLiquidity != null;
