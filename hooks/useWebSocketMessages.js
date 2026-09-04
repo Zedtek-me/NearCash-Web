@@ -7,6 +7,8 @@ const TXN_STATUS_MESSAGES = [
   "No Available Vendors",
   "Transfer Confirmed",
   "Transfer Failed",
+  "No Nearby FX Vendors",
+  "Proposed Rate",
 ];
 
 /**

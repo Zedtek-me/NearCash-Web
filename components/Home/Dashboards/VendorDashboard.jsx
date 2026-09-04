@@ -339,7 +339,7 @@ const Dashboard = () => {
                               onClick={() => navigate(`/edit-business/${store?.id}`)}
                             >
                               <Pencil className="w-3.5 h-3.5" />
-                              <span>Edit</span>
+                              <span>Manage</span>
                             </button>
 
                             {store.id !== vendorBusinessId && (

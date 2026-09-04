@@ -13,7 +13,7 @@ const COLLECTION_MODES = [
     { label: "Store Walk-In", value: "STORE_WALK_IN" },
 ];
 
-const VendorFilter = ({ onFilter, onCollectionModeFilter }) => {
+const VendorFilter = ({ onFilter, onCollectionModeFilter, onSelectFx }) => {
     const [openFilter, setOpenFilter] = useState(false);
     const [filterBy, setFilterBy] = useState("");
 
@@ -29,6 +29,11 @@ const VendorFilter = ({ onFilter, onCollectionModeFilter }) => {
 
     const handleSelectType = (value) => {
         setFilterBy("");
+        setOpenFilter(false);
+        if (value === "FX") {
+            onSelectFx?.();
+            return;
+        }
         onFilter(value);
     };
 

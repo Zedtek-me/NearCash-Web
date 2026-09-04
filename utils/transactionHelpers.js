@@ -67,6 +67,37 @@ export const formatRange = (range) => {
     .join(" - ");
 };
 
+/**
+ * Symbols for every currency the backend's COUNTRY_CURRENCY_MAP supports
+ * (see apps/core/constants.py). Falls back to the currency code itself for
+ * anything not listed here.
+ */
+export const CURRENCY_SYMBOLS = {
+  NGN: "₦",
+  GHS: "₵",
+  KES: "KSh",
+  ZAR: "R",
+  USD: "$",
+  GBP: "£",
+  CAD: "C$",
+  AUD: "A$",
+  EUR: "€",
+};
+
+export const getCurrencySymbol = (code) =>
+  CURRENCY_SYMBOLS[code] || (code ? `${code} ` : "");
+
+/**
+ * Formats a transaction's amount with its correct currency symbol.
+ * FX transactions are denominated in `transaction.currency` (the destination
+ * currency the client requested), not naira — everything else defaults to ₦.
+ */
+export const formatTxnAmount = (transaction) => {
+  const amount = Number(transaction?.amount || 0).toLocaleString();
+  const code = transaction?.txnType === "FX" ? (transaction?.currency || "USD") : "NGN";
+  return `${getCurrencySymbol(code)}${amount}`;
+};
+
 export const STATUS_MAP = [
   { name: "All" },
   { name: "Initiated" },

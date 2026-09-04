@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin, Copy, Check } from "lucide-react";
+import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin, Copy, Check, TrendingUp } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { GENERATE_VIRTUAL_ACCOUNT } from "../../Auths/mutations/userMutations";
+import { getCurrencySymbol } from "../../../utils/transactionHelpers";
 
 const PROVIDER_CONFIG = {
   flutterwave: {
@@ -84,11 +85,16 @@ function ProviderFooter({ provider }) {
  *  - transactionInfo            : { amount, vendorName, transactionId }
  *  - onClose                    : () => void   — only callable when status !== "loading"
  *  - onKeepWaiting              : () => void
- *  - onSelectVendor             : () => void   — opens vendor picker / closes modal so user can pick
- *  - onAutoAssign               : () => void   — calls BE mutation to auto-assign nearest vendor
+ *  - onCancel                   : () => void   — cancels the transaction (LOCAL: "pick a different vendor" framing; FX/V2V: outright cancel)
+ *  - onAutoAssign               : () => void   — calls BE mutation to auto-assign nearest vendor (LOCAL only)
  *  - onConfirmPaid              : () => void   — client signals they've made the bank transfer
  *  - onCancelAwaitingConfirmation : () => void — cancels the awaiting-confirmation state (back to approved)
- *  - delayActionLoading         : "keepWaiting" | "selectVendor" | "autoAssign" | null
+ *  - delayActionLoading         : "keepWaiting" | "cancel" | "autoAssign" | null
+ *
+ * `transactionInfo.txnType` ("LOCAL" | "FX") determines which delayed-response
+ * options are shown: LOCAL gets auto-assign/keep-waiting/select-a-different-vendor;
+ * FX (and V2V, once wired up) gets a simplified wait-or-cancel choice, since those
+ * requests are broadcast to many vendors rather than tied to one.
  */
 export default function TransactionStatusModal({
   isOpen,
@@ -96,7 +102,7 @@ export default function TransactionStatusModal({
   transactionInfo = {},
   onClose,
   onKeepWaiting,
-  onSelectVendor,
+  onCancel,
   onAutoAssign,
   onViewDetails,
   onConfirmPaid,
@@ -107,7 +113,16 @@ export default function TransactionStatusModal({
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [regenKey, setRegenKey] = useState(0);
   const [copiedField, setCopiedField] = useState(null);
+  const [nowTick, setNowTick] = useState(Date.now());
   const expiredToastFired = useRef(false);
+
+  // Ticks every second while FX rate proposals are showing, so each proposal's
+  // expiry countdown can be computed live without a timer per entry.
+  useEffect(() => {
+    if (status !== "fxRatesProposed") return;
+    const id = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [status]);
 
   // Local copy of accountInfo — updated in-place when the client regenerates
   const [localAccountInfo, setLocalAccountInfo] = useState(null);
@@ -191,6 +206,10 @@ export default function TransactionStatusModal({
 
   const canClose = status !== "loading" && status !== "transferConfirmed" && status !== "awaitingConfirmation";
   const dotStr = ".".repeat(dots).padEnd(3, "\u00a0");
+
+  // Non-NGN transactions (FX) show their own currency symbol instead of \u20a6.
+  const formatDealAmount = (amt) =>
+    `${getCurrencySymbol(transactionInfo.currency || "NGN")}${Number(amt || 0).toLocaleString()}`;
 
   return (
     <div
@@ -308,7 +327,7 @@ export default function TransactionStatusModal({
                 <p className="text-indigo-400 text-base font-medium mb-1">Transaction Accepted</p>
                 <p className="text-slate-500 text-sm">
                   {transactionInfo.transferMode === "BANK_TRANSFER"
-                    ? `Transfer exactly ₦${Number(transactionInfo.amount || 0).toLocaleString()} to the virtual account below to lock your request with the vendor`
+                    ? `Transfer exactly ₦${Number(accountInfo?.amount ?? transactionInfo.amount ?? 0).toLocaleString()} to the virtual account below to lock your request with the vendor`
                     : "Head to the vendor to collect your cash"}
                 </p>
               </div>
@@ -319,7 +338,7 @@ export default function TransactionStatusModal({
                 style={{ background: "#1e1b4b", border: "0.5px solid #3730a3" }}
               >
                 {[
-                  ["Amount", `₦${Number(transactionInfo.amount || 0).toLocaleString()}`],
+                  ["Amount", formatDealAmount(transactionInfo.amount)],
                   ["Vendor", transactionInfo.vendorName || "—"],
                   ["Transaction ID", transactionInfo.transactionId ? `#${transactionInfo.transactionId}` : "—"],
                 ].map(([label, value]) => (
@@ -529,86 +548,141 @@ export default function TransactionStatusModal({
           )}
 
           {/* ── DELAYED ─────────────────────────────────── */}
-          {status === "delayed" && (
-            <>
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: "#1c1205", border: "2px solid #d97706" }}
-              >
-                <Clock size={30} className="text-amber-400" />
-              </div>
+          {status === "delayed" && (() => {
+            // FX (and V2V, once wired here) requests are broadcast to many vendors
+            // rather than tied to one — so "auto-assign" / "pick a different vendor"
+            // don't apply; only waiting or cancelling outright make sense.
+            const isBroadcastTxn = ["FX", "V2V"].includes(transactionInfo.txnType);
 
-              <div className="text-center">
-                <p className="text-amber-400 text-base font-medium mb-1">Vendor is taking a while</p>
-                <p className="text-slate-500 text-sm">How would you like to proceed?</p>
-              </div>
-
-              <div className="w-full space-y-2">
-                {/* Auto-assign — primary action */}
-                <button
-                  onClick={onAutoAssign}
-                  disabled={!!delayActionLoading}
-                  className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                  style={{ background: "#78350f", color: "#fde68a" }}
-                  onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#92400e")}
-                  onMouseOut={e => e.currentTarget.style.background = "#78350f"}
+            return (
+              <>
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#1c1205", border: "2px solid #d97706" }}
                 >
-                  {delayActionLoading === "autoAssign" ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <RefreshCw size={14} />
-                  )}
-                  Auto-assign nearest vendor
-                </button>
+                  <Clock size={30} className="text-amber-400" />
+                </div>
 
-                {/* Keep waiting */}
-                <button
-                  onClick={onKeepWaiting}
-                  disabled={!!delayActionLoading}
-                  className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                  style={{
-                    background: "#1e293b",
-                    color: "#94a3b8",
-                    border: "0.5px solid #334155",
-                  }}
-                  onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
-                  onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
-                >
-                  {delayActionLoading === "keepWaiting" ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Clock size={14} />
-                  )}
-                  Keep waiting for this vendor
-                </button>
+                <div className="text-center">
+                  <p className="text-amber-400 text-base font-medium mb-1">
+                    {isBroadcastTxn ? "Still waiting on vendors" : "Vendor is taking a while"}
+                  </p>
+                  <p className="text-slate-500 text-sm">How would you like to proceed?</p>
+                </div>
 
-                {/* Select another vendor */}
-                <button
-                  onClick={onSelectVendor}
-                  disabled={!!delayActionLoading}
-                  className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                  style={{
-                    background: "#1e293b",
-                    color: "#94a3b8",
-                    border: "0.5px solid #334155",
-                  }}
-                  onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
-                  onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
-                >
-                  {delayActionLoading === "selectVendor" ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <MapPin size={14} />
-                  )}
-                  Select a different vendor
-                </button>
-              </div>
+                <div className="w-full space-y-2">
+                  {isBroadcastTxn ? (
+                    <>
+                      {/* Wait — primary action */}
+                      <button
+                        onClick={onKeepWaiting}
+                        disabled={!!delayActionLoading}
+                        className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                        style={{ background: "#78350f", color: "#fde68a" }}
+                        onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#92400e")}
+                        onMouseOut={e => e.currentTarget.style.background = "#78350f"}
+                      >
+                        {delayActionLoading === "keepWaiting" ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Clock size={14} />
+                        )}
+                        Wait till vendors are available
+                      </button>
 
-              <p className="text-slate-600 text-xs text-center">
-                Auto-assign will find and request the closest available vendor for you.
-              </p>
-            </>
-          )}
+                      {/* Cancel request */}
+                      <button
+                        onClick={onCancel}
+                        disabled={!!delayActionLoading}
+                        className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                        style={{
+                          background: "#1e293b",
+                          color: "#94a3b8",
+                          border: "0.5px solid #334155",
+                        }}
+                        onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
+                        onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
+                      >
+                        {delayActionLoading === "cancel" ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <X size={14} />
+                        )}
+                        Cancel request
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Auto-assign — primary action */}
+                      <button
+                        onClick={onAutoAssign}
+                        disabled={!!delayActionLoading}
+                        className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                        style={{ background: "#78350f", color: "#fde68a" }}
+                        onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#92400e")}
+                        onMouseOut={e => e.currentTarget.style.background = "#78350f"}
+                      >
+                        {delayActionLoading === "autoAssign" ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <RefreshCw size={14} />
+                        )}
+                        Auto-assign nearest vendor
+                      </button>
+
+                      {/* Keep waiting */}
+                      <button
+                        onClick={onKeepWaiting}
+                        disabled={!!delayActionLoading}
+                        className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                        style={{
+                          background: "#1e293b",
+                          color: "#94a3b8",
+                          border: "0.5px solid #334155",
+                        }}
+                        onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
+                        onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
+                      >
+                        {delayActionLoading === "keepWaiting" ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Clock size={14} />
+                        )}
+                        Keep waiting for this vendor
+                      </button>
+
+                      {/* Select another vendor */}
+                      <button
+                        onClick={onCancel}
+                        disabled={!!delayActionLoading}
+                        className="w-full py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                        style={{
+                          background: "#1e293b",
+                          color: "#94a3b8",
+                          border: "0.5px solid #334155",
+                        }}
+                        onMouseOver={e => !delayActionLoading && (e.currentTarget.style.background = "#263244")}
+                        onMouseOut={e => e.currentTarget.style.background = "#1e293b"}
+                      >
+                        {delayActionLoading === "cancel" ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <MapPin size={14} />
+                        )}
+                        Select a different vendor
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <p className="text-slate-600 text-xs text-center">
+                  {isBroadcastTxn
+                    ? "We'll keep notifying nearby vendors until one responds."
+                    : "Auto-assign will find and request the closest available vendor for you."}
+                </p>
+              </>
+            );
+          })()}
 
           {/* ── TRANSFER FAILED ─────────────────────────── */}
           {status === "transferFailed" && (
@@ -765,6 +839,110 @@ export default function TransactionStatusModal({
     </button>
   </>
           )}
+
+          {/* ── FX RATES PROPOSED ───────────────────────── */}
+          {status === "fxRatesProposed" && (() => {
+            const rates = [...(transactionInfo.proposedRates || [])].reverse();
+            const marketRate = transactionInfo.marketRate;
+
+            return (
+              <>
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#1a1033", border: "2px solid #6d28d9" }}
+                >
+                  <TrendingUp size={28} style={{ color: "#c4b5fd" }} />
+                </div>
+
+                <div className="text-center">
+                  <p className="text-base font-medium mb-1" style={{ color: "#c4b5fd" }}>
+                    {rates.length ? "Vendors have responded" : "Waiting for offers"}
+                  </p>
+                  <p className="text-slate-500 text-sm">
+                    {rates.length
+                      ? `${rates.length} vendor${rates.length === 1 ? "" : "s"} proposed a rate for your ${formatDealAmount(transactionInfo.amount)} request — pick the best one`
+                      : `Nearby FX vendors have been notified about your ${formatDealAmount(transactionInfo.amount)} request`}
+                  </p>
+                </div>
+
+                {rates.length > 0 && (
+                  <div className="w-full space-y-2">
+                    {rates.map((entry, i) => {
+                      const secsLeft = entry?.expiry
+                        ? Math.max(0, Math.floor((new Date(entry.expiry).getTime() - nowTick) / 1000))
+                        : null;
+                      const expired = secsLeft === 0;
+                      const m = secsLeft != null ? Math.floor(secsLeft / 60) : null;
+                      const s = secsLeft != null ? secsLeft % 60 : null;
+                      const countdownLabel = secsLeft == null
+                        ? null
+                        : expired ? "Expired" : m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s left`;
+
+                      return (
+                        <div
+                          key={`${entry?.vendor?.id ?? i}-${entry?.expiry ?? i}`}
+                          className="w-full rounded-xl p-3"
+                          style={{
+                            background: expired ? "#0f172a" : "#1e1b4b",
+                            border: `0.5px solid ${expired ? "#1e293b" : "#3730a3"}`,
+                            opacity: expired ? 0.55 : 1,
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium" style={{ color: expired ? "#64748b" : "#c7d2fe" }}>
+                              {entry?.vendor?.name || "A vendor"}
+                            </span>
+                            {countdownLabel && (
+                              <span
+                                className="text-[11px] font-medium tabular-nums"
+                                style={{ color: expired ? "#64748b" : secsLeft <= 15 ? "#fbbf24" : "#818cf8" }}
+                              >
+                                {countdownLabel}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px]" style={{ color: "#6b7280" }}>Vendor rate</p>
+                              <p className="text-base font-semibold" style={{ color: expired ? "#64748b" : "#f1f5f9" }}>
+                                {Number(entry?.proposed_rate || 0).toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px]" style={{ color: "#6b7280" }}>Market rate</p>
+                              <p className="text-base font-semibold" style={{ color: "#94a3b8" }}>
+                                {marketRate ? Number(marketRate).toLocaleString() : "—"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div
+                  className="rounded-lg px-3 py-2.5 flex items-start gap-2"
+                  style={{ background: "#13102b", border: "0.5px solid #3730a3" }}
+                >
+                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#a78bfa" }} />
+                  <p className="text-xs leading-relaxed" style={{ color: "#818cf8" }}>
+                    More vendors may still respond. Compare each vendor's rate against the market rate to pick the best offer.
+                  </p>
+                </div>
+
+                <button
+                  onClick={onClose}
+                  className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{ background: "#3730a3", color: "#e0e7ff" }}
+                  onMouseOver={e => e.currentTarget.style.background = "#4338ca"}
+                  onMouseOut={e => e.currentTarget.style.background = "#3730a3"}
+                >
+                  Close
+                </button>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>

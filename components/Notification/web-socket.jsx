@@ -7,6 +7,7 @@ import {
   fetchAndUpdateUserCurrentLocation,
   updateUserPosition,
 } from "../../utils/helpers";
+import { getCurrencySymbol } from "../../utils/transactionHelpers";
 
 
 // ─── Audio / vibration helpers ───────────────────────────────────────────────
@@ -130,7 +131,9 @@ export const EXCLUSIVE_MSGS = [
 ];
 
 const OPPORTUNITY_MSG_TYPE = "Transaction Opportunity!";
+const FX_OPPORTUNITY_MSG_TYPE = "New FX Transaction Interest";
 const LIQUIDITY_REQUEST_MSG_TYPE = "Liquidity Request!";
+const PROPOSED_RATE_MSG_TYPE = "Proposed Rate";
 const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
 
 
@@ -198,7 +201,7 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
       );
 
       // ── Transaction opportunity (vendor only) ──────────────────────────
-      if (message_type === OPPORTUNITY_MSG_TYPE) {
+      if (message_type === OPPORTUNITY_MSG_TYPE || message_type === FX_OPPORTUNITY_MSG_TYPE) {
         playAlertTone();
         triggerVibration();
 
@@ -206,12 +209,14 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
           onOpportunity(data);
         }
 
-        const amount     = Number(data?.txn_info?.amount || 0).toLocaleString();
-        const clientName = data?.txn_info?.client_name || "a client";
+        const isFx        = message_type === FX_OPPORTUNITY_MSG_TYPE;
+        const destCurr     = data?.txn_info?.destination_curr;
+        const amount       = `${getCurrencySymbol(isFx ? destCurr || "USD" : "NGN")}${Number(data?.txn_info?.amount || 0).toLocaleString()}`;
+        const clientName   = data?.txn_info?.client_name || "a client";
 
         sendPushNotification(
-          "New Cash Request",
-          `₦${amount} from ${clientName}`,
+          isFx ? "New FX Request" : "New Cash Request",
+          `${amount} from ${clientName}`,
           () => {
             localStorage.setItem(PENDING_OPPORTUNITY_KEY, JSON.stringify(data));
             window.focus();
@@ -221,10 +226,29 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
           }
         );
 
-        toast(`New opportunity: ₦${amount} from ${clientName}`, {
-          duration: 8000,
-          icon: "💰",
-        });
+        toast(
+          isFx
+            ? `New FX opportunity: ${amount} from ${clientName}`
+            : `New opportunity: ${amount} from ${clientName}`,
+          { duration: 8000, icon: isFx ? "💱" : "💰" }
+        );
+
+        return;
+      }
+
+      // ── FX vendor proposed a rate (client only) ──────────────────────────
+      if (message_type === PROPOSED_RATE_MSG_TYPE) {
+        playAlertTone();
+        triggerVibration();
+
+        const rates      = data?.txn_info?.proposed_rates || [];
+        const latest     = rates[rates.length - 1];
+        const vendorName = latest?.vendor?.name || "A vendor";
+        const rate       = latest?.proposed_rate;
+        const rateLabel  = rate ? `a rate of ${Number(rate).toLocaleString()}` : "a rate";
+
+        sendPushNotification("New FX Rate Offer", `${vendorName} proposed ${rateLabel}`);
+        toast(`${vendorName} proposed ${rateLabel}`, { duration: 8000, icon: "📈" });
 
         return;
       }

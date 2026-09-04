@@ -427,6 +427,7 @@ export const ACCEPT_TRANSACTION_OPPORTUNITY = gql`
     $businessId: String
     $proposedAmount: Float
     $isVendorToVendor: Boolean
+    $proposedRate: Float
   ) {
     acceptTransactionOpportunity(
       txnId: $txnId
@@ -434,6 +435,7 @@ export const ACCEPT_TRANSACTION_OPPORTUNITY = gql`
       businessId: $businessId
       proposedAmount: $proposedAmount
       isVendorToVendor: $isVendorToVendor
+      proposedRate: $proposedRate
     ) {
       message
     }

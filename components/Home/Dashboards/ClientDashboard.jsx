@@ -32,6 +32,7 @@ import TransactionStatusModal from "../components/TransactionStatusModal";
 import LocationModal from "../components/LocationModal";
 import MapModal from "../components/MapModal";
 import TransactionRequestModal from "../components/TransactionRequestModal";
+import FxRequestModal from "../components/FxRequestModal";
 import { getAvatarColor, STATUS_MAP, formatAmount, formatRange, formatAmountInput, parseAmountInput } from "../../../utils/transactionHelpers";
 
 
@@ -100,6 +101,21 @@ export default function ClientDashboard() {
 
   const [createTransaction, { loading: creating }] = useMutation(CREATE_TRANSACTION);
 
+  // ── FX request modal ──────────────────────────────────────────────────────
+  const [showFxModal, setShowFxModal] = useState(false);
+  const [fxAmount, setFxAmount] = useState("");
+  const [fxSourceCurrency, setFxSourceCurrency] = useState("NGN");
+  const [fxDestinationCurrency, setFxDestinationCurrency] = useState("USD");
+  const [fxTransferMode, setFxTransferMode] = useState(null);
+
+  const resetFxForm = () => {
+    setShowFxModal(false);
+    setFxAmount("");
+    setFxSourceCurrency("NGN");
+    setFxDestinationCurrency("USD");
+    setFxTransferMode(null);
+  };
+
   const handleInitiateTransaction = (vendor, rangeAssetId, assetRange, type = 'request') => {
     setSelectedVendor(vendor);
     setAssetId(rangeAssetId);
@@ -142,10 +158,11 @@ export default function ClientDashboard() {
         transactionInfo: {
           ...prev.transactionInfo,
           transactionId: txnId,
-          vendorName:    txn_info?.vendor_name   || prev.transactionInfo.vendorName,
-          amount:        txn_info?.amount        || prev.transactionInfo.amount,
-          transferMode:  txn_info?.transfer_mode || null,
-          accountInfo:   txn_info?.account_info  || null,
+          vendorName:    txn_info?.vendor_name    || prev.transactionInfo.vendorName,
+          amount:        txn_info?.amount         || prev.transactionInfo.amount,
+          currency:      txn_info?.destination_curr || prev.transactionInfo.currency,
+          transferMode:  txn_info?.transfer_mode  || null,
+          accountInfo:   txn_info?.account_info   || null,
         },
       }));
       refetch();
@@ -183,8 +200,22 @@ export default function ClientDashboard() {
       setTxStatusModal((prev) => ({ ...prev, status: "delayed" }));
     }
 
-    if (message_type === "No Available Vendors") {
+    if (message_type === "No Available Vendors" || message_type === "No Nearby FX Vendors") {
       setTxStatusModal((prev) => ({ ...prev, status: "noVendors" }));
+    }
+
+    if (message_type === "Proposed Rate") {
+      setTxStatusModal((prev) => ({
+        ...prev,
+        status: "fxRatesProposed",
+        transactionInfo: {
+          ...prev.transactionInfo,
+          proposedRates: txn_info?.proposed_rates || [],
+          marketRate:    txn_info?.currency_market_rate,
+          sourceCurrency: txn_info?.source_currency || prev.transactionInfo.sourceCurrency,
+          currency:      txn_info?.destination_curr || prev.transactionInfo.currency,
+        },
+      }));
     }
   }, [navigate]);
 
@@ -238,6 +269,7 @@ export default function ClientDashboard() {
           amount:        parseAmountInput(amount),
           vendorName:    selectedVendor?.name,
           transactionId: txId,
+          txnType:       "LOCAL",
         },
         delayActionLoading: null,
       });
@@ -256,12 +288,70 @@ export default function ClientDashboard() {
     }
   };
 
+  // ── Submit FX request ─────────────────────────────────────────────────────
+  const handleSubmitFxTransaction = async () => {
+    if (!fxAmount || !fxSourceCurrency || !fxDestinationCurrency || !fxTransferMode) {
+      toast.error("Please enter an amount, currency pair, and payment method");
+      return;
+    }
+    if (fxSourceCurrency === fxDestinationCurrency) {
+      toast.error("Source and destination currencies must be different");
+      return;
+    }
+    if (!userLocation) {
+      toast.error("We need your location to find nearby FX vendors");
+      return;
+    }
+
+    try {
+      const payload = {
+        amountToWithdraw: parseAmountInput(fxAmount),
+        clientCurrentCoordinates: {
+          latitude:  userLocation.lat,
+          longitude: userLocation.lng,
+        },
+        collectionMode: "MEET_UP",
+        transferMode: fxTransferMode,
+        collectionLocation: "",
+        txnType: "FX",
+        sourceCurrencyCode: fxSourceCurrency,
+        destinationCurrencyCode: fxDestinationCurrency,
+      };
+
+      const result = await createTransaction({
+        variables: { transactionData: payload },
+      });
+
+      const txId = result?.data?.initiateTransaction?.transaction?.id;
+
+      resetFxForm();
+      setActiveTxId(txId);
+      setTxStatusModal({
+        isOpen: true,
+        status: "loading",
+        transactionInfo: {
+          amount: payload.amountToWithdraw,
+          currency: fxDestinationCurrency,
+          transactionId: txId,
+          txnType: "FX",
+        },
+        delayActionLoading: null,
+      });
+      toast.success("FX request sent! Nearby FX vendors have been notified.");
+
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.graphQLErrors?.[0]?.message || "Failed to create FX request");
+    }
+  };
+
   const [respondToTransaction] = useMutation(RESPOND_TO_TRANSACTION);
 
   const handleDelayResponse = async (decision) => {
     const loadingKey =
       decision === "WAIT"          ? "keepWaiting"
-      : decision === "CANCEL"      ? "selectVendor"
+      : decision === "CANCEL"      ? "cancel"
       : "autoAssign";
 
     setTxStatusModal((prev) => ({ ...prev, delayActionLoading: loadingKey }));
@@ -270,8 +360,9 @@ export default function ClientDashboard() {
       await respondToTransaction({ variables: { txnId: activeTxId, decision } });
 
       if (decision === "CANCEL") {
+        const isFx = txStatusModal.transactionInfo?.txnType === "FX";
         handleCloseStatusModal();
-        toast("Select a vendor and initiate a new request.");
+        toast(isFx ? "FX request cancelled." : "Select a vendor and initiate a new request.");
       } else {
         setTxStatusModal((prev) => ({ ...prev, status: "loading", delayActionLoading: null }));
         if (decision === "SYSTEM_SEARCH") toast("Looking for the nearest available vendor…");
@@ -357,7 +448,11 @@ export default function ClientDashboard() {
           <div className="bg-white rounded-2xl py-6 px-3 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-800">Nearby Vendors</h2>
-              <VendorFilter onFilter={handleVendorTypeFilter} onCollectionModeFilter={handleCollectionModeFilter} />
+              <VendorFilter
+                onFilter={handleVendorTypeFilter}
+                onCollectionModeFilter={handleCollectionModeFilter}
+                onSelectFx={() => setShowFxModal(true)}
+              />
             </div>
 
             <div className="space-y-4">
@@ -544,6 +639,22 @@ export default function ClientDashboard() {
         />
       )}
 
+      {showFxModal && (
+        <FxRequestModal
+          amount={fxAmount}
+          onAmountChange={setFxAmount}
+          sourceCurrency={fxSourceCurrency}
+          onSourceCurrencyChange={setFxSourceCurrency}
+          destinationCurrency={fxDestinationCurrency}
+          onDestinationCurrencyChange={setFxDestinationCurrency}
+          transferMode={fxTransferMode}
+          onTransferModeChange={setFxTransferMode}
+          onSubmit={handleSubmitFxTransaction}
+          onClose={resetFxForm}
+          submitting={creating}
+        />
+      )}
+
       {showLocationModal && (
         <LocationModal
           onClose={() => { setShowLocationModal(false); setSelectedStore(null); }}
@@ -576,7 +687,7 @@ export default function ClientDashboard() {
         delayActionLoading={txStatusModal.delayActionLoading}
         onClose={handleCloseStatusModal}
         onKeepWaiting={() => handleDelayResponse("WAIT")}
-        onSelectVendor={() => handleDelayResponse("CANCEL")}
+        onCancel={() => handleDelayResponse("CANCEL")}
         onAutoAssign={() => handleDelayResponse("SYSTEM_SEARCH")}
         onViewDetails={() => navigate(`/transaction-details/${activeTxId}`)}
         onConfirmPaid={handleConfirmPaid}

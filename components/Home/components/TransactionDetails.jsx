@@ -22,6 +22,7 @@ import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 import TransactionMap from './TransactionMap';
+import { getCurrencySymbol } from '../../../utils/transactionHelpers';
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -147,10 +148,18 @@ export default function TransactionDetails() {
 
   const formattedAmount  = formatTrxnAmount(String(transactionData?.transaction?.amount));
   const amountSign       = ['+', '-'].includes(formattedAmount?.[0]) ? formattedAmount[0] : '';
-  const amountDisplay    = `${amountSign}${Number((formattedAmount || '0').replace(/[+-]/, '') || 0).toLocaleString()}`;
+  const numericAmount    = Number((formattedAmount || '0').replace(/[+-]/, '') || 0).toLocaleString();
   const netAmount        = Number(
     parseFloat((formattedAmount || '0').replace(/[+-]/, '')) - (transaction?.charge || 0)
   ).toLocaleString();
+
+  // FX transactions are denominated in `transaction.currency` (the destination
+  // currency requested by the client), not naira.
+  const isFxTxn        = transaction?.txnType === 'FX';
+  const currencySymbol = getCurrencySymbol(isFxTxn ? transaction?.currency || 'USD' : 'NGN');
+  const formatCurrencyAmount = (value) => `${currencySymbol}${Number(value || 0).toLocaleString()}`;
+  const heroAmountLabel = `${amountSign}${currencySymbol}${numericAmount}`;
+  const netAmountLabel  = `${currencySymbol}${netAmount}`;
 
   const txnDate = formatTxnDate(transactionData?.transaction?.dateCreated);
 
@@ -252,10 +261,10 @@ export default function TransactionDetails() {
               <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight ${
                 isPositive ? 'text-indigo-400' : 'text-rose-400'
               }`}>
-                ₦ {amountDisplay}
+                {heroAmountLabel}
               </p>
               <p className="text-slate-400 text-sm mt-2">
-                Net after fees: <span className="text-slate-200 font-medium">₦{netAmount}</span>
+                Net after fees: <span className="text-slate-200 font-medium">{netAmountLabel}</span>
               </p>
             </div>
 
@@ -318,8 +327,8 @@ export default function TransactionDetails() {
             <InfoRow icon={Hash}        label="Transaction ID"   value={transaction?.id}           mono />
             <InfoRow icon={FileText}    label="Reference"        value={transaction?.txnRef}        mono />
             <InfoRow icon={Calendar}    label="Date & Time"      value={txnDate} />
-            <InfoRow icon={CreditCard}  label="Amount Demanded"  value={`₦${Number(transaction?.amount || 0).toLocaleString()}`} highlight />
-            <InfoRow icon={Hash}        label="Transaction Fee"  value={`₦${Number(transaction?.charge || 0).toLocaleString()}`} />
+            <InfoRow icon={CreditCard}  label="Amount Demanded"  value={formatCurrencyAmount(transaction?.amount)} highlight />
+            <InfoRow icon={Hash}        label="Transaction Fee"  value={formatCurrencyAmount(transaction?.charge)} />
             <InfoRow icon={HandHelping} label="Collection Mode"  value={transaction?.collectionMode?.replaceAll('_', ' ')} />
             <InfoRow icon={Building}    label="Vendor"           value={transaction?.business?.name} />
           </Card>

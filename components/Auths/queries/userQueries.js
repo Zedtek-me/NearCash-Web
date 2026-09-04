@@ -126,6 +126,9 @@ export const GET_TRANSACTIONS = gql`
         amount
         dateCreated
         charge
+        currency
+        txnType
+        meta
         transferMode
         awaitingTransfer
         vendor {

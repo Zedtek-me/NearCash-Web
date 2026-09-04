@@ -26,6 +26,8 @@ export const GET_TRANSACTION = gql`
             txnRef
             amount
             charge
+            currency
+            txnType
             description
             status
             collectionMode

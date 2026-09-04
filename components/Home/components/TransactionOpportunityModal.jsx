@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle, ArrowLeftRight } from "lucide-react";
+import { X, Loader2, Banknote, User, Hash, Zap, Building2, Check, AlertTriangle, ArrowLeftRight, Globe } from "lucide-react";
 import { useMutation } from "@apollo/client";
 import { useWebSocket } from "../../Notification/WebSocketProvider";
 import { ACCEPT_TRANSACTION_OPPORTUNITY } from "../../Auths/mutations/userMutations";
-import { formatAmountInput, parseAmountInput } from "../../../utils/transactionHelpers";
+import { formatAmountInput, parseAmountInput, getCurrencySymbol } from "../../../utils/transactionHelpers";
 
 
 export default function TransactionOpportunityModal({
@@ -21,9 +21,11 @@ export default function TransactionOpportunityModal({
   const [countdown, setCountdown] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [proposedFee, setProposedFee] = useState("");
+  const [proposedRate, setProposedRate] = useState("");
   const timeoutRef = useRef(null);
 
   const isV2V = opportunityData?.message_type === "Liquidity Request!";
+  const isFx  = opportunityData?.message_type === "New FX Transaction Interest";
 
   // Countdown after confirmed acceptance
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function TransactionOpportunityModal({
       setFailedMessage(null);
       setCountdown(null);
       setProposedFee("");
+      setProposedRate("");
 
       const businesses = opportunityData?.txn_info?.businesses ?? [];
       if (businesses.length === 1) {
@@ -106,8 +109,12 @@ export default function TransactionOpportunityModal({
 
   if (!isOpen || !opportunityData) return null;
 
-  const { txn_id, txn_ref, amount, client_name, businesses: buss_info, transfer_mode } = opportunityData.txn_info;
+  const {
+    txn_id, txn_ref, amount, client_name, businesses: buss_info, transfer_mode,
+    source_currency, destination_curr, currency_market_rate,
+  } = opportunityData.txn_info;
   const businesses = buss_info ?? [];
+  const dealAmountLabel = `${getCurrencySymbol(isFx ? destination_curr || "USD" : "NGN")}${Number(amount || 0).toLocaleString()}`;
 
   // ── GraphQL mutation path (primary) ──────────────────────────────────────
   const handleAccept = async () => {
@@ -116,6 +123,14 @@ export default function TransactionOpportunityModal({
       const fee = parseAmountInput(proposedFee);
       if (isNaN(fee) || fee <= 0) {
         setFailedMessage("Enter a valid fee amount to propose.");
+        setFailed(true);
+        return;
+      }
+    }
+    if (isFx) {
+      const rate = parseAmountInput(proposedRate);
+      if (isNaN(rate) || rate <= 0) {
+        setFailedMessage("Enter a valid rate to propose.");
         setFailed(true);
         return;
       }
@@ -134,6 +149,9 @@ export default function TransactionOpportunityModal({
       if (isV2V) {
         variables.proposedAmount = parseAmountInput(proposedFee);
         variables.isVendorToVendor = true;
+      }
+      if (isFx) {
+        variables.proposedRate = parseAmountInput(proposedRate);
       }
       const { data } = await acceptOpportunity({ variables });
       const result = data?.acceptTransactionOpportunity?.message;
@@ -220,26 +238,28 @@ export default function TransactionOpportunityModal({
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: isV2V ? "#0d2a1a" : "#0d2044",
-                    border: `0.5px solid ${isV2V ? "#166534" : "#1e40af"}`,
+                    background: isV2V ? "#0d2a1a" : isFx ? "#1a1033" : "#0d2044",
+                    border: `0.5px solid ${isV2V ? "#166534" : isFx ? "#6d28d9" : "#1e40af"}`,
                   }}
                 >
                   {isV2V
                     ? <ArrowLeftRight size={18} style={{ color: "#4ade80" }} />
+                    : isFx
+                    ? <Globe size={18} style={{ color: "#c4b5fd" }} />
                     : <Zap size={18} style={{ color: "#60a5fa" }} />}
                 </div>
                 <div>
                   <p
                     className="text-xs font-medium uppercase tracking-widest mb-0.5"
-                    style={{ color: isV2V ? "#4ade80" : "#3b82f6" }}
+                    style={{ color: isV2V ? "#4ade80" : isFx ? "#a78bfa" : "#3b82f6" }}
                   >
-                    {isV2V ? "Vendor liquidity request" : "New opportunity"}
+                    {isV2V ? "Vendor liquidity request" : isFx ? "FX exchange request" : "New opportunity"}
                   </p>
                   <h2
                     className="text-base font-semibold"
                     style={{ color: "#e2e8f0" }}
                   >
-                    {isV2V ? "A nearby vendor needs cash" : "Cash withdrawal request"}
+                    {isV2V ? "A nearby vendor needs cash" : isFx ? "Foreign exchange request" : "Cash withdrawal request"}
                   </h2>
                 </div>
               </div>
@@ -255,9 +275,39 @@ export default function TransactionOpportunityModal({
                     <span className="text-xs" style={{ color: "#64748b" }}>Amount requested</span>
                   </div>
                   <span className="text-xl font-semibold" style={{ color: "#f1f5f9" }}>
-                    ₦{Number(amount || 0).toLocaleString()}
+                    {dealAmountLabel}
                   </span>
                 </div>
+
+                {isFx && (source_currency || destination_curr) && (
+                  <>
+                    <div className="border-t" style={{ borderColor: "#1e2d4a" }} />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ArrowLeftRight size={14} style={{ color: "#64748b" }} />
+                        <span className="text-xs" style={{ color: "#64748b" }}>Currency pair</span>
+                      </div>
+                      <span className="text-sm font-medium" style={{ color: "#cbd5e1" }}>
+                        {source_currency || "—"} → {destination_curr || "—"}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                {isFx && (
+                  <>
+                    <div className="border-t" style={{ borderColor: "#1e2d4a" }} />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Banknote size={14} style={{ color: "#64748b" }} />
+                        <span className="text-xs" style={{ color: "#64748b" }}>Market rate</span>
+                      </div>
+                      <span className="text-sm font-medium" style={{ color: "#cbd5e1" }}>
+                        {currency_market_rate ? Number(currency_market_rate).toLocaleString() : "Unavailable"}
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 <div className="border-t" style={{ borderColor: "#1e2d4a" }} />
 
@@ -399,16 +449,54 @@ export default function TransactionOpportunityModal({
                 </div>
               )}
 
+              {/* Propose rate input — FX only */}
+              {isFx && (
+                <div className="mb-5">
+                  <label
+                    className="block text-xs font-medium mb-2"
+                    style={{ color: "#64748b" }}
+                  >
+                    Your proposed rate{source_currency && destination_curr ? ` (${source_currency} → ${destination_curr})` : ""}
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={proposedRate}
+                    onChange={(e) => setProposedRate(formatAmountInput(e.target.value))}
+                    placeholder="e.g. 1450.00"
+                    disabled={accepting}
+                    className="w-full px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                    style={{
+                      background: "#0d1829",
+                      border: "0.5px solid #5b21b6",
+                      color: "#e2e8f0",
+                      outline: "none",
+                    }}
+                    onFocus={e => e.currentTarget.style.borderColor = "#a78bfa"}
+                    onBlur={e => e.currentTarget.style.borderColor = "#5b21b6"}
+                  />
+                  {currency_market_rate ? (
+                    <p className="text-[11px] mt-1.5" style={{ color: "#475569" }}>
+                      Current market rate: {Number(currency_market_rate).toLocaleString()}. The client will review offers from all responding vendors.
+                    </p>
+                  ) : (
+                    <p className="text-[11px] mt-1.5" style={{ color: "#475569" }}>
+                      The client will review offers from all responding vendors.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div
                 className="rounded-lg px-3 py-2.5 mb-5 flex items-start gap-2"
                 style={{
-                  background: isV2V ? "#0d2a1a" : "#0d1829",
-                  border: `0.5px solid ${isV2V ? "#166534" : "#1e3a5f"}`,
+                  background: isV2V ? "#0d2a1a" : isFx ? "#150c2e" : "#0d1829",
+                  border: `0.5px solid ${isV2V ? "#166534" : isFx ? "#5b21b6" : "#1e3a5f"}`,
                 }}
               >
                 <div
                   className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
-                  style={{ background: isV2V ? "#4ade80" : "#3b82f6" }}
+                  style={{ background: isV2V ? "#4ade80" : isFx ? "#a78bfa" : "#3b82f6" }}
                 />
                 <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
                   {isV2V
@@ -416,6 +504,12 @@ export default function TransactionOpportunityModal({
                         Proposing a fee means you agree to supply
                         <span style={{ color: "#86efac" }}> ₦{Number(amount || 0).toLocaleString()} </span>
                         cash to the requesting vendor if they accept your proposal.
+                      </>
+                    : isFx
+                    ? <>
+                        Proposing a rate means you're offering to exchange
+                        <span style={{ color: "#c4b5fd" }}> {dealAmountLabel} </span>
+                        with the client at your quoted rate. They'll review offers from all responding vendors before deciding.
                       </>
                     : <>
                         Accepting this request means you agree to provide
@@ -452,35 +546,37 @@ export default function TransactionOpportunityModal({
 
                 <button
                   onClick={handleAccept}
-                  disabled={accepting || !selectedBusiness || (isV2V && !proposedFee)}
+                  disabled={accepting || !selectedBusiness || (isV2V && !proposedFee) || (isFx && !proposedRate)}
                   className="flex-[2] py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
                   style={{
-                    background: (!selectedBusiness || (isV2V && !proposedFee)) ? "#0f172a" : isV2V ? "#166534" : "#1d4ed8",
-                    color: (!selectedBusiness || (isV2V && !proposedFee)) ? "#475569" : "#eff6ff",
-                    border: (!selectedBusiness || (isV2V && !proposedFee)) ? "0.5px solid #1e293b" : "none",
-                    cursor: !selectedBusiness || accepting || (isV2V && !proposedFee) ? "not-allowed" : "pointer",
+                    background: (!selectedBusiness || (isV2V && !proposedFee) || (isFx && !proposedRate)) ? "#0f172a" : isV2V ? "#166534" : isFx ? "#5b21b6" : "#1d4ed8",
+                    color: (!selectedBusiness || (isV2V && !proposedFee) || (isFx && !proposedRate)) ? "#475569" : "#eff6ff",
+                    border: (!selectedBusiness || (isV2V && !proposedFee) || (isFx && !proposedRate)) ? "0.5px solid #1e293b" : "none",
+                    cursor: !selectedBusiness || accepting || (isV2V && !proposedFee) || (isFx && !proposedRate) ? "not-allowed" : "pointer",
                   }}
                   onMouseOver={e => {
-                    if (selectedBusiness && !accepting && !(isV2V && !proposedFee))
-                      e.currentTarget.style.background = isV2V ? "#14532d" : "#1e40af";
+                    if (selectedBusiness && !accepting && !(isV2V && !proposedFee) && !(isFx && !proposedRate))
+                      e.currentTarget.style.background = isV2V ? "#14532d" : isFx ? "#6d28d9" : "#1e40af";
                   }}
                   onMouseOut={e => {
-                    if (selectedBusiness && !(isV2V && !proposedFee))
-                      e.currentTarget.style.background = isV2V ? "#166534" : "#1d4ed8";
+                    if (selectedBusiness && !(isV2V && !proposedFee) && !(isFx && !proposedRate))
+                      e.currentTarget.style.background = isV2V ? "#166534" : isFx ? "#5b21b6" : "#1d4ed8";
                   }}
                 >
                   {accepting ? (
                     <>
                       <Loader2 size={15} className="animate-spin" />
-                      {isV2V ? "Submitting proposal…" : "Confirming…"}
+                      {isV2V || isFx ? "Submitting proposal…" : "Confirming…"}
                     </>
                   ) : (
                     <>
-                      {isV2V ? <ArrowLeftRight size={15} /> : <Zap size={15} />}
+                      {isV2V ? <ArrowLeftRight size={15} /> : isFx ? <Globe size={15} /> : <Zap size={15} />}
                       {!selectedBusiness
                         ? "Select a business"
                         : isV2V
                         ? "Propose fee"
+                        : isFx
+                        ? "Propose rate"
                         : "Accept transaction"}
                     </>
                   )}
@@ -515,11 +611,13 @@ export default function TransactionOpportunityModal({
 
               <div>
                 <p className="text-base font-semibold mb-1" style={{ color: "#4ade80" }}>
-                  {isV2V ? "Proposal submitted!" : "Transaction accepted!"}
+                  {isV2V || isFx ? "Proposal submitted!" : "Transaction accepted!"}
                 </p>
                 <p className="text-sm" style={{ color: "#64748b" }}>
                   {isV2V
                     ? "Your fee proposal has been sent to the requesting vendor. You'll be notified if they accept."
+                    : isFx
+                    ? "Your rate has been sent to the client. You'll be notified if they accept your offer."
                     : transfer_mode === "BANK_TRANSFER"
                     ? "Awaiting the client's bank transfer. You'll be notified once funds are confirmed."
                     : "The client has been notified. They will be heading to your location."}
@@ -533,9 +631,17 @@ export default function TransactionOpportunityModal({
                 <div className="flex justify-between mb-2">
                   <span className="text-xs" style={{ color: "#86efac" }}>Amount</span>
                   <span className="text-xs font-medium" style={{ color: "#bbf7d0" }}>
-                    ₦{Number(amount || 0).toLocaleString()}
+                    {dealAmountLabel}
                   </span>
                 </div>
+                {isFx && proposedRate && (
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs" style={{ color: "#86efac" }}>Your proposed rate</span>
+                    <span className="text-xs font-medium" style={{ color: "#bbf7d0" }}>
+                      {proposedRate}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between mb-2">
                   <span className="text-xs" style={{ color: "#86efac" }}>Client</span>
                   <span className="text-xs font-medium" style={{ color: "#bbf7d0" }}>
