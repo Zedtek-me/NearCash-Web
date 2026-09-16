@@ -86,6 +86,11 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
         refetch({ requestType });
     };
 
+    const handleTransactionTypeFilter = (type) => {
+        setFilterBy("");
+        refetch({ txnType: type === "All" ? "" : type.toUpperCase() });
+    };
+
     const handleFilterBy = (txt) => {
         setOpenFilter(false);
         if (txt?.length) setFilterBy(txt?.toLowerCase());
@@ -157,6 +162,20 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                     onClick={() => handleRequestTypeFilter(type)}
                 >
                     <p className="text-left capitalize">{type}</p>
+                </div>
+            ))}
+        </div>
+    );
+
+    const TransactionTypeFilterComponent = () => (
+        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
+            {["All", "FX", "Local"].map((type) => (
+                <div
+                    key={type}
+                    className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors"
+                    onClick={() => handleTransactionTypeFilter(type)}
+                >
+                    <p className="text-left">{type}</p>
                 </div>
             ))}
         </div>
@@ -249,6 +268,12 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                     >
                         Date
                     </h3>
+                    <h3
+                        className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
+                        onClick={(e) => handleFilterBy(e.target.textContent)}
+                    >
+                        Transaction Type
+                    </h3>
                     {userType === "VENDOR" ? (
                         <>
                             <h3
@@ -278,6 +303,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
             {filterBy === "status" && <StatusFilterComponent />}
             {filterBy === "date" && <DateFilterComponent />}
             {filterBy === "request type" && <RequestTypeFilterComponent />}
+            {filterBy === "transaction type" && <TransactionTypeFilterComponent />}
             {(filterBy.includes("client") || filterBy.includes("vendor")) && <UserFilterComponent />}
         </div>
     );

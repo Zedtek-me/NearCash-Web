@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin, Copy, Check, TrendingUp } from "lucide-react";
+import { X, CheckCircle2, XCircle, Clock, Loader2, RefreshCw, MapPin, Copy, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation } from "@apollo/client";
 import { GENERATE_VIRTUAL_ACCOUNT } from "../../Auths/mutations/userMutations";
@@ -95,6 +95,11 @@ function ProviderFooter({ provider }) {
  * options are shown: LOCAL gets auto-assign/keep-waiting/select-a-different-vendor;
  * FX (and V2V, once wired up) gets a simplified wait-or-cancel choice, since those
  * requests are broadcast to many vendors rather than tied to one.
+ *
+ * Note: the "vendors proposing FX rates" phase is NOT handled by this modal —
+ * see FxProposalBanner, an inline non-blocking banner (mirroring the V2V
+ * LiquidityBanner pattern) mounted directly in ClientDashboard. This modal
+ * only takes over once the client has accepted a rate ("approved" status).
  */
 export default function TransactionStatusModal({
   isOpen,
@@ -113,16 +118,7 @@ export default function TransactionStatusModal({
   const [secondsLeft, setSecondsLeft] = useState(null);
   const [regenKey, setRegenKey] = useState(0);
   const [copiedField, setCopiedField] = useState(null);
-  const [nowTick, setNowTick] = useState(Date.now());
   const expiredToastFired = useRef(false);
-
-  // Ticks every second while FX rate proposals are showing, so each proposal's
-  // expiry countdown can be computed live without a timer per entry.
-  useEffect(() => {
-    if (status !== "fxRatesProposed") return;
-    const id = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [status]);
 
   // Local copy of accountInfo — updated in-place when the client regenerates
   const [localAccountInfo, setLocalAccountInfo] = useState(null);
@@ -208,6 +204,7 @@ export default function TransactionStatusModal({
   const dotStr = ".".repeat(dots).padEnd(3, "\u00a0");
 
   // Non-NGN transactions (FX) show their own currency symbol instead of \u20a6.
+  // `amount` is the destination-currency equivalent the backend computes for FX.
   const formatDealAmount = (amt) =>
     `${getCurrencySymbol(transactionInfo.currency || "NGN")}${Number(amt || 0).toLocaleString()}`;
 
@@ -839,110 +836,6 @@ export default function TransactionStatusModal({
     </button>
   </>
           )}
-
-          {/* ── FX RATES PROPOSED ───────────────────────── */}
-          {status === "fxRatesProposed" && (() => {
-            const rates = [...(transactionInfo.proposedRates || [])].reverse();
-            const marketRate = transactionInfo.marketRate;
-
-            return (
-              <>
-                <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center"
-                  style={{ background: "#1a1033", border: "2px solid #6d28d9" }}
-                >
-                  <TrendingUp size={28} style={{ color: "#c4b5fd" }} />
-                </div>
-
-                <div className="text-center">
-                  <p className="text-base font-medium mb-1" style={{ color: "#c4b5fd" }}>
-                    {rates.length ? "Vendors have responded" : "Waiting for offers"}
-                  </p>
-                  <p className="text-slate-500 text-sm">
-                    {rates.length
-                      ? `${rates.length} vendor${rates.length === 1 ? "" : "s"} proposed a rate for your ${formatDealAmount(transactionInfo.amount)} request — pick the best one`
-                      : `Nearby FX vendors have been notified about your ${formatDealAmount(transactionInfo.amount)} request`}
-                  </p>
-                </div>
-
-                {rates.length > 0 && (
-                  <div className="w-full space-y-2">
-                    {rates.map((entry, i) => {
-                      const secsLeft = entry?.expiry
-                        ? Math.max(0, Math.floor((new Date(entry.expiry).getTime() - nowTick) / 1000))
-                        : null;
-                      const expired = secsLeft === 0;
-                      const m = secsLeft != null ? Math.floor(secsLeft / 60) : null;
-                      const s = secsLeft != null ? secsLeft % 60 : null;
-                      const countdownLabel = secsLeft == null
-                        ? null
-                        : expired ? "Expired" : m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s left`;
-
-                      return (
-                        <div
-                          key={`${entry?.vendor?.id ?? i}-${entry?.expiry ?? i}`}
-                          className="w-full rounded-xl p-3"
-                          style={{
-                            background: expired ? "#0f172a" : "#1e1b4b",
-                            border: `0.5px solid ${expired ? "#1e293b" : "#3730a3"}`,
-                            opacity: expired ? 0.55 : 1,
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium" style={{ color: expired ? "#64748b" : "#c7d2fe" }}>
-                              {entry?.vendor?.name || "A vendor"}
-                            </span>
-                            {countdownLabel && (
-                              <span
-                                className="text-[11px] font-medium tabular-nums"
-                                style={{ color: expired ? "#64748b" : secsLeft <= 15 ? "#fbbf24" : "#818cf8" }}
-                              >
-                                {countdownLabel}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-[10px]" style={{ color: "#6b7280" }}>Vendor rate</p>
-                              <p className="text-base font-semibold" style={{ color: expired ? "#64748b" : "#f1f5f9" }}>
-                                {Number(entry?.proposed_rate || 0).toLocaleString()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px]" style={{ color: "#6b7280" }}>Market rate</p>
-                              <p className="text-base font-semibold" style={{ color: "#94a3b8" }}>
-                                {marketRate ? Number(marketRate).toLocaleString() : "—"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div
-                  className="rounded-lg px-3 py-2.5 flex items-start gap-2"
-                  style={{ background: "#13102b", border: "0.5px solid #3730a3" }}
-                >
-                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: "#a78bfa" }} />
-                  <p className="text-xs leading-relaxed" style={{ color: "#818cf8" }}>
-                    More vendors may still respond. Compare each vendor's rate against the market rate to pick the best offer.
-                  </p>
-                </div>
-
-                <button
-                  onClick={onClose}
-                  className="w-full py-2.5 rounded-xl text-sm font-medium transition-colors"
-                  style={{ background: "#3730a3", color: "#e0e7ff" }}
-                  onMouseOver={e => e.currentTarget.style.background = "#4338ca"}
-                  onMouseOut={e => e.currentTarget.style.background = "#3730a3"}
-                >
-                  Close
-                </button>
-              </>
-            );
-          })()}
         </div>
       </div>
     </div>

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Menu,
-  X,
   MapPin,
   User,
   Bell,
@@ -10,7 +8,7 @@ import {
   LogOut,
   ChevronDown
 } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_NOTIFICATION } from '../../Auths/queries/userQueries';
 import { UPDATE_NOTIFICATION } from '../../Auths/mutations/userMutations';
@@ -19,17 +17,23 @@ import toast from 'react-hot-toast';
 import { useWebSocket } from '../../Notification/WebSocketProvider';
 import { PUSH_NOTIF_MSG_TYPES } from '../../Notification/web-socket';
 import useAuth from '../../../hooks/useAuth';
+import { getPrimaryNavItems } from './navItems';
 
 const Navbar = ({ currentPage = 'home' }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const socket = useWebSocket();
   const { userData: user } = useAuth();
   const { userType, id } = (user || {});
   const buzId = localStorage.getItem("selected_business");
+
+  // Desktop top-nav icon links (FX Rate / Cross Border) — Home is skipped
+  // here since the logo already serves that role on larger screens.
+  const basePath = `/dashboard/${userType?.toLowerCase() || 'client'}`;
+  const desktopNavItems = getPrimaryNavItems(basePath).filter((item) => item.key !== 'home');
 
   const profilePicture = (() => {
     try {
@@ -119,10 +123,8 @@ const Navbar = ({ currentPage = 'home' }) => {
       localStorage.removeItem("userLocation");
       localStorage.removeItem("selected_business");
       localStorage.removeItem("auth_type");
-      setIsOpen(false);
       return navigate('/auth/login');
     }
-    setIsOpen(false);
     setShowUserMenu(false);
     navigate(href);
   };
@@ -220,16 +222,6 @@ const Navbar = ({ currentPage = 'home' }) => {
     </div>
   );
 
-  // Get filtered menu items based on user type
-  const getFilteredMenuItems = () => {
-    if (userType?.toLowerCase() === "client") {
-      return userMenuItems.filter((item) => 
-        ["profile", "settings", "logout"].includes(item.name.toLowerCase())
-      );
-    }
-    return userMenuItems;
-  };
-
   return (
     <>
       <nav className={`
@@ -252,7 +244,30 @@ const Navbar = ({ currentPage = 'home' }) => {
             </div>
 
             {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-1">
+              {desktopNavItems.map(({ key, label, tooltip, icon: Icon, path }) => {
+                const isActive = location.pathname === path;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => navigate(path)}
+                    title={tooltip}
+                    className={`group relative flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                      isActive ? 'text-indigo-600 bg-indigo-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span>{label}</span>
+                    <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[11px] text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 z-50">
+                      {tooltip}
+                    </span>
+                  </button>
+                );
+              })}
+
+              <div className="w-px h-6 bg-gray-200 mx-2" />
+
               <div className="relative notification-container">
                 <button
                   onClick={() => {
@@ -310,69 +325,28 @@ const Navbar = ({ currentPage = 'home' }) => {
                 </button>
                 {showNotifications && <NotificationDropdown />}
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(!isOpen);
-                }}
-                className="menu-button p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-              >
-                {isOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+
+              <div className="relative user-menu-container">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(!showUserMenu);
+                    setShowNotifications(false);
+                  }}
+                  className="flex items-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {profilePicture
+                      ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                      : <User size={16} className="text-white" />
+                    }
+                  </div>
+                </button>
+                {showUserMenu && <UserDropdown />}
+              </div>
             </div>
           </div>
         </div>
       </nav>
-
-      {/* Mobile Menu - Simplified without complex transitions */}
-      {isOpen && (
-        <div className="fixed top-16 left-0 right-0 bottom-0 z-30 md:hidden">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsOpen(false)}
-          />
-          
-          {/* Menu Content */}
-          <div className="relative bg-white h-full overflow-y-auto shadow-xl">
-            <div className="px-4 py-4 space-y-2">
-              
-              {/* User Info Section */}
-              <div className="pb-4 border-b border-gray-200">
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {profilePicture
-                      ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                      : <User size={24} className="text-white" />
-                    }
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900 truncate">{user?.fullName || 'John Doe'}</p>
-                    <p className="text-sm text-gray-500 truncate">{user?.email || 'john@example.com'}</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* User Menu Items */}
-              <div className="space-y-1 py-2">
-                {getFilteredMenuItems().map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.name}
-                      onClick={() => handleNavigation(item.href)}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-150 active:bg-gray-200"
-                    >
-                      <Icon size={20} className="flex-shrink-0" />
-                      <span className="font-medium text-base">{item.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

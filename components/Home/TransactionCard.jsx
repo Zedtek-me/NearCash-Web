@@ -4,7 +4,7 @@ import { UPDATE_TRANSACTION_STATUS } from "../Auths/mutations/userMutations";
 import { useNavigate } from "react-router";
 import { useMutation } from "@apollo/client";
 import toast from "react-hot-toast";
-import { formatTxnAmount } from "../../utils/transactionHelpers";
+import { formatTxnAmount, formatTxnCharge, getFxSourceCurrency } from "../../utils/transactionHelpers";
 
 export default function TransactionCard({ transaction, index, refetch, onReject, onViewDetails, isVendor, isOutgoing, isAwaitingTransfer }) {
   const [open, setOpen] = useState(false);
@@ -64,6 +64,9 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
     navigate(`/transaction-details/${id}`)
   }
 
+  const isFx = transaction?.txnType === "FX";
+  const fxSourceCurrency = getFxSourceCurrency(transaction);
+
 
   return (
     <div
@@ -81,6 +84,14 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
           <span className="font-bold text-gray-800">
             {formatTxnAmount(transaction)}
           </span>
+          {isFx && (
+            <span className="ml-1.5 align-middle px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-600 border border-purple-200">
+              FX
+            </span>
+          )}
+          {isFx && fxSourceCurrency && (
+            <span className="ml-1 text-xs text-gray-400">(from {fxSourceCurrency})</span>
+          )}
           {isVendor && transaction?.client?.fullName && transaction?.business?.name && (
             <div className="text-xs text-gray-400 mt-0.5 space-y-0.5">
               <div>From {transaction.client.fullName}</div>
@@ -129,7 +140,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
               transaction?.amount?.toString()?.startsWith("+") ? "text-indigo-600" : "text-red-600"
             }`}
           >
-            {transaction?.charge}
+            {formatTxnCharge(transaction)}
           </span>
           <span
             className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(

@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { Navigate } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client";
+import { TrendingUp, Globe, Zap } from "lucide-react";
 import AuthLayout from "../components/Auths/AuthLayout.jsx";
 import Login from "../components/Auths/Login.jsx";
 import SignUp from "../components/Auths/SignUp.jsx";
@@ -22,6 +23,7 @@ import TransactionDetails from "../components/Home/components/TransactionDetails
 import ProfilePage from "../components/Home/components/Profile.jsx";
 import EditStorePage from "../components/Home/Dashboards/EditStorePage.jsx";
 import KYCPage from "../components/Auths/KYC.jsx";
+import ComingSoon from "../components/Home/components/ComingSoon.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -50,6 +52,36 @@ const App = () => {
                 </Route>
                 <Route path="/dashboard/:user_type" element={ user?.email ? <DashboardLayout/> : <Navigate to="/" replace/> }>
                     <Route index element={<Home/>}/>
+                    <Route
+                        path="fx-rate"
+                        element={
+                            <ComingSoon
+                                icon={TrendingUp}
+                                title="FX Rate"
+                                description="Live exchange rates are coming soon — track real-time rates for your favorite currency pairs right here."
+                            />
+                        }
+                    />
+                    <Route
+                        path="cross-border"
+                        element={
+                            <ComingSoon
+                                icon={Globe}
+                                title="Cross Border Payments"
+                                description="Send and receive cross-border payments directly from NearCash. This feature is on the way."
+                            />
+                        }
+                    />
+                    <Route
+                        path="utilities"
+                        element={
+                            <ComingSoon
+                                icon={Zap}
+                                title="Utilities"
+                                description="Pay for airtime, data, electricity and more, right from NearCash. This feature is on the way."
+                            />
+                        }
+                    />
                 </Route>
                 <Route path="business-setup" element={<BusinessSetUpPage />}/>
                 <Route path="/kyc" element={<KYCPage />}/>

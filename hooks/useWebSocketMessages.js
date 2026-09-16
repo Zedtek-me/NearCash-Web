@@ -24,6 +24,8 @@ const TXN_STATUS_MESSAGES = [
  */
 export function useTxnStatusMessages(socket, activeTxId, onMessage) {
   useEffect(() => {
+    // TEMP DEBUG — remove once FX banner visibility issue is diagnosed.
+    console.log("[FX-DEBUG] useTxnStatusMessages effect run:", { hasSocket: !!socket, activeTxId });
     if (!socket || !activeTxId) return;
 
     const handler = (event) => {
@@ -35,6 +37,7 @@ export function useTxnStatusMessages(socket, activeTxId, onMessage) {
       }
 
       const { message_type, txn_info } = data;
+      console.log("[FX-DEBUG] raw WS message:", message_type, txn_info);
 
       if (!TXN_STATUS_MESSAGES.includes(message_type)) return;
 

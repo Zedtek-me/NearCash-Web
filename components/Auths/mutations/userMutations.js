@@ -482,3 +482,31 @@ export const ACCEPT_PROPOSAL = gql`
     }
   }
   `
+
+export const ACCEPT_PROPOSED_FX_RATE = gql`
+  mutation AcceptProposedFXRate(
+    $txnId: String!,
+    $rate: Float!,
+    $vendorBusinessId: String!,
+  ) {
+    acceptProposedFxRate(
+      txnId: $txnId,
+      rate: $rate,
+      vendorBusinessId: $vendorBusinessId
+    ) {
+      message
+      transaction {
+        id
+        status
+        amount
+        charge
+        currency
+        transferMode
+        business {
+          id
+          name
+        }
+      }
+    }
+  }
+`;

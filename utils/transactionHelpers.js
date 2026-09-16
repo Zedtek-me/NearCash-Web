@@ -98,6 +98,43 @@ export const formatTxnAmount = (transaction) => {
   return `${getCurrencySymbol(code)}${amount}`;
 };
 
+/**
+ * Parses a transaction's `meta` field, which comes back from GraphQL as a
+ * JSON-encoded string. Returns {} for missing/malformed meta so callers can
+ * chain optional access without null checks.
+ */
+export const parseTxnMeta = (transaction) => {
+  try {
+    const meta = typeof transaction?.meta === "string" ? JSON.parse(transaction.meta) : transaction?.meta;
+    return meta || {};
+  } catch {
+    return {};
+  }
+};
+
+/**
+ * Extracts the source (tendered) currency code for an FX transaction from its
+ * `meta.currency_pair`. Returns null for non-FX transactions or missing meta.
+ */
+export const getFxSourceCurrency = (transaction) => {
+  if (transaction?.txnType !== "FX") return null;
+  return parseTxnMeta(transaction)?.currency_pair?.source_currency_code || null;
+};
+
+/**
+ * Formats a transaction's charge/fee with its correct currency symbol.
+ * For FX, `charge` holds the accepted exchange rate — how much of the SOURCE
+ * currency it takes to get 1 unit of the destination currency — so it's
+ * quoted against the source currency, not `transaction.currency`
+ * (destination). Everything else uses `transaction.currency`, defaulting NGN.
+ */
+export const formatTxnCharge = (transaction) => {
+  const code = transaction?.txnType === "FX"
+    ? (getFxSourceCurrency(transaction) || "NGN")
+    : (transaction?.currency || "NGN");
+  return `${getCurrencySymbol(code)}${Number(transaction?.charge || 0).toLocaleString()}`;
+};
+
 export const STATUS_MAP = [
   { name: "All" },
   { name: "Initiated" },

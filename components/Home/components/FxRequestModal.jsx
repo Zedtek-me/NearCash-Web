@@ -131,11 +131,11 @@ export default function FxRequestModal({
         {/* Amount */}
         <div className="mb-5">
           <label className="block text-sm mb-1 text-gray-400">
-            Amount you want{destinationCurrency ? ` (in ${destinationCurrency})` : ""}
+            {`${sourceCurrency} Amount you want`} {destinationCurrency ? ` (to be converted to ${destinationCurrency})` : ""}
           </label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
-              {getCurrencySymbol(destinationCurrency)}
+              {getCurrencySymbol(sourceCurrency)}
             </span>
             <input
               type="text"
@@ -143,7 +143,7 @@ export default function FxRequestModal({
               value={amount}
               onChange={(e) => onAmountChange(formatAmountInput(e.target.value))}
               className="w-full pl-7 pr-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
-              placeholder={`Enter amount in ${destinationCurrency || "your preferred currency"}`}
+              placeholder={`Enter amount in ${sourceCurrency || "your preferred currency"}`}
             />
           </div>
         </div>

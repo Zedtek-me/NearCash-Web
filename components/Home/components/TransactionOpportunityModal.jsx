@@ -303,7 +303,9 @@ export default function TransactionOpportunityModal({
                         <span className="text-xs" style={{ color: "#64748b" }}>Market rate</span>
                       </div>
                       <span className="text-sm font-medium" style={{ color: "#cbd5e1" }}>
-                        {currency_market_rate ? Number(currency_market_rate).toLocaleString() : "Unavailable"}
+                        {currency_market_rate
+                          ? `${getCurrencySymbol(source_currency || "NGN")}${Number(currency_market_rate).toLocaleString()}`
+                          : "Unavailable"}
                       </span>
                     </div>
                   </>
@@ -458,26 +460,34 @@ export default function TransactionOpportunityModal({
                   >
                     Your proposed rate{source_currency && destination_curr ? ` (${source_currency} → ${destination_curr})` : ""}
                   </label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={proposedRate}
-                    onChange={(e) => setProposedRate(formatAmountInput(e.target.value))}
-                    placeholder="e.g. 1450.00"
-                    disabled={accepting}
-                    className="w-full px-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
-                    style={{
-                      background: "#0d1829",
-                      border: "0.5px solid #5b21b6",
-                      color: "#e2e8f0",
-                      outline: "none",
-                    }}
-                    onFocus={e => e.currentTarget.style.borderColor = "#a78bfa"}
-                    onBlur={e => e.currentTarget.style.borderColor = "#5b21b6"}
-                  />
+                  <div className="relative">
+                    <span
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium"
+                      style={{ color: "#64748b" }}
+                    >
+                      {getCurrencySymbol(source_currency || "NGN")}
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={proposedRate}
+                      onChange={(e) => setProposedRate(formatAmountInput(e.target.value))}
+                      placeholder="e.g. 1450.00"
+                      disabled={accepting}
+                      className="w-full pl-7 pr-4 py-2.5 rounded-xl text-sm disabled:opacity-50"
+                      style={{
+                        background: "#0d1829",
+                        border: "0.5px solid #5b21b6",
+                        color: "#e2e8f0",
+                        outline: "none",
+                      }}
+                      onFocus={e => e.currentTarget.style.borderColor = "#a78bfa"}
+                      onBlur={e => e.currentTarget.style.borderColor = "#5b21b6"}
+                    />
+                  </div>
                   {currency_market_rate ? (
                     <p className="text-[11px] mt-1.5" style={{ color: "#475569" }}>
-                      Current market rate: {Number(currency_market_rate).toLocaleString()}. The client will review offers from all responding vendors.
+                      Current market rate: {getCurrencySymbol(source_currency || "NGN")}{Number(currency_market_rate).toLocaleString()}. The client will review offers from all responding vendors.
                     </p>
                   ) : (
                     <p className="text-[11px] mt-1.5" style={{ color: "#475569" }}>
@@ -638,7 +648,7 @@ export default function TransactionOpportunityModal({
                   <div className="flex justify-between mb-2">
                     <span className="text-xs" style={{ color: "#86efac" }}>Your proposed rate</span>
                     <span className="text-xs font-medium" style={{ color: "#bbf7d0" }}>
-                      {proposedRate}
+                      {getCurrencySymbol(source_currency || "NGN")}{proposedRate}
                     </span>
                   </div>
                 )}

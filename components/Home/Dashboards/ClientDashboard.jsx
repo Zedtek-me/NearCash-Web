@@ -22,6 +22,8 @@ import { GET_ANALYTICS } from "./queries/analytics";
 import {
   CREATE_TRANSACTION,
   RESPOND_TO_TRANSACTION,
+  ACCEPT_PROPOSED_FX_RATE,
+  GENERATE_VIRTUAL_ACCOUNT,
 } from "../../Auths/mutations/userMutations";
 
 import TransactionCard from "../TransactionCard";
@@ -33,6 +35,7 @@ import LocationModal from "../components/LocationModal";
 import MapModal from "../components/MapModal";
 import TransactionRequestModal from "../components/TransactionRequestModal";
 import FxRequestModal from "../components/FxRequestModal";
+import FxProposalBanner from "../components/FxProposalBanner";
 import { getAvatarColor, STATUS_MAP, formatAmount, formatRange, formatAmountInput, parseAmountInput } from "../../../utils/transactionHelpers";
 
 
@@ -134,6 +137,13 @@ export default function ClientDashboard() {
     delayActionLoading: null,
   });
 
+  // ── FX vendors proposing rates — inline banner, not the blocking modal ────
+  // Mirrors the vendor-to-vendor LiquidityBanner's "initiated" pattern: stays
+  // visible and keeps updating live while the client carries on using the
+  // dashboard, rather than a full-screen popup that stops listening once closed.
+  const [fxProposal, setFxProposal] = useState(null);
+  const [fxBannerDismissed, setFxBannerDismissed] = useState(false);
+
   const handleCloseStatusModal = () => {
     setTxStatusModal({ isOpen: false, status: "loading", transactionInfo: {}, delayActionLoading: null });
     setActiveTxId(null);
@@ -150,6 +160,8 @@ export default function ClientDashboard() {
   // useTxnStatusMessages drives the modal state; NotificationSocket handles toasting
   const onTxnStatusMessage = useCallback((message_type, data) => {
     const { txn_info } = data;
+    // TEMP DEBUG — remove once FX banner visibility issue is diagnosed.
+    console.log("[FX-DEBUG] onTxnStatusMessage received:", message_type, { activeTxId, txn_info });
     if (message_type === "Transaction Approved!") {
       const txnId = txn_info?.txn_id;
       setTxStatusModal((prev) => ({
@@ -196,26 +208,35 @@ export default function ClientDashboard() {
       setTxStatusModal((prev) => ({ ...prev, status: "declined" }));
     }
 
-    if (message_type === "Vendor Response Delayed") {
+    // FX's "waiting for vendors" phase lives entirely in the inline banner —
+    // matches the vendor-to-vendor liquidity banner, which also has no
+    // response to this message. Only LOCAL gets the blocking "delayed" prompt.
+    if (message_type === "Vendor Response Delayed" && txn_info?.txn_type !== "FX") {
       setTxStatusModal((prev) => ({ ...prev, status: "delayed" }));
     }
 
-    if (message_type === "No Available Vendors" || message_type === "No Nearby FX Vendors") {
+    if (message_type === "No Available Vendors") {
       setTxStatusModal((prev) => ({ ...prev, status: "noVendors" }));
     }
 
+    // FX vendors proposing/finding-no-vendors surfaces in the inline banner,
+    // not the blocking modal — reopen it (un-dismiss) so new activity is
+    // never silently missed, the same way vendor opportunities keep surfacing.
+    if (message_type === "No Nearby FX Vendors") {
+      setFxProposal((prev) => (prev ? { ...prev, noVendorsFound: true } : prev));
+      setFxBannerDismissed(false);
+    }
+
     if (message_type === "Proposed Rate") {
-      setTxStatusModal((prev) => ({
-        ...prev,
-        status: "fxRatesProposed",
-        transactionInfo: {
-          ...prev.transactionInfo,
-          proposedRates: txn_info?.proposed_rates || [],
-          marketRate:    txn_info?.currency_market_rate,
-          sourceCurrency: txn_info?.source_currency || prev.transactionInfo.sourceCurrency,
-          currency:      txn_info?.destination_curr || prev.transactionInfo.currency,
-        },
+      setFxProposal((prev) => ({
+        ...(prev || {}),
+        noVendorsFound: false,
+        proposedRates: txn_info?.proposed_rates || [],
+        marketRate:    txn_info?.currency_market_rate,
+        sourceCurrency: txn_info?.source_currency || prev?.sourceCurrency,
+        destinationCurrency: txn_info?.destination_curr || prev?.destinationCurrency,
       }));
+      setFxBannerDismissed(false);
     }
   }, [navigate]);
 
@@ -322,16 +343,41 @@ export default function ClientDashboard() {
         variables: { transactionData: payload },
       });
 
-      const txId = result?.data?.initiateTransaction?.transaction?.id;
+      const txn = result?.data?.initiateTransaction?.transaction;
+      const txId = txn?.id;
+
+      // TEMP DEBUG — remove once FX banner visibility issue is diagnosed.
+      console.log("[FX-DEBUG] initiateTransaction result:", result?.data, "txId:", txId);
 
       resetFxForm();
       setActiveTxId(txId);
+
+      // Show the inline proposal banner immediately (searching → live offers),
+      // not a blocking modal — matches the vendor-to-vendor liquidity banner.
+      setFxBannerDismissed(false);
+      setFxProposal({
+        transactionId: txId,
+        tenderedAmount: payload.amountToWithdraw,
+        sourceCurrency: fxSourceCurrency,
+        destinationCurrency: txn?.currency || fxDestinationCurrency,
+        marketRate: null,
+        proposedRates: [],
+        noVendorsFound: false,
+      });
+
+      // Keep transactionInfo seeded (but the modal closed) so that once a rate
+      // is accepted, handleAcceptFxRate's merge has currency/id to build on.
       setTxStatusModal({
-        isOpen: true,
+        isOpen: false,
         status: "loading",
         transactionInfo: {
-          amount: payload.amountToWithdraw,
-          currency: fxDestinationCurrency,
+          // `amount` is the destination-currency equivalent the backend computed
+          // from the tendered amount — everything downstream (vendor opportunity
+          // broadcasts, rate proposals, approval) is denominated in this.
+          amount: txn?.amount,
+          currency: txn?.currency || fxDestinationCurrency,
+          tenderedAmount: payload.amountToWithdraw,
+          sourceCurrency: fxSourceCurrency,
           transactionId: txId,
           txnType: "FX",
         },
@@ -343,6 +389,78 @@ export default function ClientDashboard() {
     } catch (err) {
       console.error(err);
       toast.error(err?.graphQLErrors?.[0]?.message || "Failed to create FX request");
+    }
+  };
+
+  // ── Accept a proposed FX rate ──────────────────────────────────────────────
+  const [acceptProposedFxRate] = useMutation(ACCEPT_PROPOSED_FX_RATE);
+  const [generateVirtualAccount] = useMutation(GENERATE_VIRTUAL_ACCOUNT);
+  const [acceptingRateFor, setAcceptingRateFor] = useState(null);
+
+  const handleAcceptFxRate = async (vendorBusinessId, rate) => {
+    if (!vendorBusinessId || !activeTxId) return;
+    setAcceptingRateFor(vendorBusinessId);
+
+    try {
+      const result = await acceptProposedFxRate({
+        variables: {
+          txnId: String(activeTxId),
+          rate: Number(rate),
+          vendorBusinessId: String(vendorBusinessId),
+        },
+      });
+
+      const txn = result?.data?.acceptProposedFxRate?.transaction;
+      if (!txn) throw new Error("No transaction returned");
+
+      // Bank-transfer FX acceptances don't get a virtual account generated
+      // automatically the way LOCAL approvals do — fetch one now.
+      let accountInfo = null;
+      if (txn.transferMode === "BANK_TRANSFER") {
+        try {
+          const vaResult = await generateVirtualAccount({ variables: { txnId: String(txn.id) } });
+          const info = vaResult?.data?.generateVirtualAccount?.accountInfo;
+          if (info) {
+            accountInfo = {
+              account_number:              info.accountNumber,
+              account_bank_name:           info.accountBankName,
+              account_name:                info.accountName,
+              amount:                      info.amount,
+              reference:                   info.reference,
+              account_expiration_datetime: info.accountExpirationDatetime,
+              note:                        info.note,
+              provider:                    info.provider,
+              currency:                    info.currency,
+            };
+          }
+        } catch (vaErr) {
+          console.error(vaErr);
+          toast.error("Rate accepted, but we couldn't generate a payment account. Try regenerating it below.");
+        }
+      }
+
+      // The proposal-comparison phase is over — hand off from the inline
+      // banner to the modal for the accept/payment flow.
+      setFxProposal(null);
+      setTxStatusModal((prev) => ({
+        ...prev,
+        isOpen: true,
+        status: "approved",
+        transactionInfo: {
+          ...prev.transactionInfo,
+          vendorName:   txn.business?.name || prev.transactionInfo.vendorName,
+          amount:       txn.amount ?? prev.transactionInfo.amount,
+          transferMode: txn.transferMode,
+          accountInfo,
+        },
+      }));
+      toast.success("Rate accepted! The vendor has been notified.");
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.graphQLErrors?.[0]?.message || "Failed to accept this rate. Please try again.");
+    } finally {
+      setAcceptingRateFor(null);
     }
   };
 
@@ -396,9 +514,33 @@ export default function ClientDashboard() {
     }
   };
 
+  // TEMP DEBUG — remove once FX banner visibility issue is diagnosed.
+  console.log("[FX-DEBUG] render:", { fxProposal, fxBannerDismissed, activeTxId });
+
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
-      <div className="max-w-7xl mx-auto mt-14">
+    <>
+      {fxProposal && !fxBannerDismissed && (
+        <FxProposalBanner
+          tenderedAmount={fxProposal.tenderedAmount}
+          sourceCurrency={fxProposal.sourceCurrency}
+          destinationCurrency={fxProposal.destinationCurrency}
+          marketRate={fxProposal.marketRate}
+          proposedRates={fxProposal.proposedRates}
+          noVendorsFound={fxProposal.noVendorsFound}
+          onAcceptRate={handleAcceptFxRate}
+          acceptingRateFor={acceptingRateFor}
+          onDismiss={() => setFxBannerDismissed(true)}
+          onRetry={() => {
+            setFxBannerDismissed(true);
+            setFxProposal(null);
+            setActiveTxId(null);
+            setShowFxModal(true);
+          }}
+        />
+      )}
+
+      <div className="min-h-screen bg-gray-50 py-6 px-2 md:p-6">
+        <div className="max-w-7xl mx-auto mt-14">
         <div className="mb-8">
           <h1 className="text-xl md:text-2xl font-semibold mb-1">
             <span className="text-gray-900">Welcome,</span>{' '}
@@ -696,6 +838,7 @@ export default function ClientDashboard() {
 
       {/* Single NotificationSocket instance per dashboard */}
       <NotificationSocket />
-    </div>
+      </div>
+    </>
   );
 }

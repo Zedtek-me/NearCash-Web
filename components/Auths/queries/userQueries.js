@@ -103,6 +103,7 @@ export const GET_TRANSACTIONS = gql`
     $dateFrom: Date
     $dateTo: Date
     $requestType: String
+    $txnType: String
     $pageCount: Int
     $pageNumber: Int
   ) {
@@ -116,6 +117,7 @@ export const GET_TRANSACTIONS = gql`
       dateFrom: $dateFrom
       dateTo: $dateTo
       requestType: $requestType
+      txnType: $txnType
       pageCount: $pageCount
       pageNumber: $pageNumber
     ) {

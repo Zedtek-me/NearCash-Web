@@ -13,6 +13,9 @@ import {
   Phone,
   FileText,
   HandHelping,
+  Globe,
+  TrendingUp,
+  Wallet,
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@apollo/client';
@@ -22,7 +25,7 @@ import { UPDATE_TRANSACTION_STATUS } from '../../Auths/mutations/userMutations';
 import Navbar from '../Navs/Headers';
 import toast from 'react-hot-toast';
 import TransactionMap from './TransactionMap';
-import { getCurrencySymbol } from '../../../utils/transactionHelpers';
+import { getCurrencySymbol, parseTxnMeta } from '../../../utils/transactionHelpers';
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -155,9 +158,17 @@ export default function TransactionDetails() {
 
   // FX transactions are denominated in `transaction.currency` (the destination
   // currency requested by the client), not naira.
-  const isFxTxn        = transaction?.txnType === 'FX';
-  const currencySymbol = getCurrencySymbol(isFxTxn ? transaction?.currency || 'USD' : 'NGN');
+  const isFxTxn         = transaction?.txnType === 'FX';
+  const fxMeta          = isFxTxn ? parseTxnMeta(transaction) : null;
+  const fxCurrencyPair  = fxMeta?.currency_pair || null;
+  const fxSourceCurrency = fxCurrencyPair?.source_currency_code || null;
+  // Only populated once notify_vendor_about_transaction has run for this txn —
+  // may be null/absent for a brief window right after creation.
+  const fxMarketRate    = fxMeta?.currency_market_rate ?? null;
+  const currencySymbol  = getCurrencySymbol(isFxTxn ? transaction?.currency || 'USD' : 'NGN');
+  const sourceCurrencySymbol = getCurrencySymbol(fxSourceCurrency || 'NGN');
   const formatCurrencyAmount = (value) => `${currencySymbol}${Number(value || 0).toLocaleString()}`;
+  const formatSourceAmount = (value) => `${sourceCurrencySymbol}${Number(value || 0).toLocaleString()}`;
   const heroAmountLabel = `${amountSign}${currencySymbol}${numericAmount}`;
   const netAmountLabel  = `${currencySymbol}${netAmount}`;
 
@@ -255,14 +266,24 @@ export default function TransactionDetails() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
             {/* Amount block */}
             <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-2">
-                Transaction Amount
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+                  Transaction Amount
+                </p>
+                {isFxTxn && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    FX
+                  </span>
+                )}
+              </div>
               <p className={`text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight ${
                 isPositive ? 'text-indigo-400' : 'text-rose-400'
               }`}>
                 {heroAmountLabel}
               </p>
+              {isFxTxn && fxSourceCurrency && (
+                <p className="text-slate-500 text-xs mt-1">Converted from {fxSourceCurrency}</p>
+              )}
               <p className="text-slate-400 text-sm mt-2">
                 Net after fees: <span className="text-slate-200 font-medium">{netAmountLabel}</span>
               </p>
@@ -328,7 +349,28 @@ export default function TransactionDetails() {
             <InfoRow icon={FileText}    label="Reference"        value={transaction?.txnRef}        mono />
             <InfoRow icon={Calendar}    label="Date & Time"      value={txnDate} />
             <InfoRow icon={CreditCard}  label="Amount Demanded"  value={formatCurrencyAmount(transaction?.amount)} highlight />
-            <InfoRow icon={Hash}        label="Transaction Fee"  value={formatCurrencyAmount(transaction?.charge)} />
+            {isFxTxn ? (
+              <>
+                <InfoRow
+                  icon={Wallet}
+                  label="Amount Tendered"
+                  value={fxCurrencyPair?.source_currency_amount != null ? formatSourceAmount(fxCurrencyPair.source_currency_amount) : null}
+                />
+                <InfoRow icon={Globe}      label="Source Currency"      value={fxSourceCurrency} />
+                <InfoRow
+                  icon={TrendingUp}
+                  label="Official Market Rate"
+                  value={fxMarketRate ? `${sourceCurrencySymbol}${Number(fxMarketRate).toLocaleString()}` : null}
+                />
+                <InfoRow
+                  icon={Check}
+                  label="Rate Accepted"
+                  value={transaction?.charge ? `${sourceCurrencySymbol}${Number(transaction.charge).toLocaleString()}` : "Pending"}
+                />
+              </>
+            ) : (
+              <InfoRow icon={Hash} label="Transaction Fee" value={formatCurrencyAmount(transaction?.charge)} />
+            )}
             <InfoRow icon={HandHelping} label="Collection Mode"  value={transaction?.collectionMode?.replaceAll('_', ' ')} />
             <InfoRow icon={Building}    label="Vendor"           value={transaction?.business?.name} />
           </Card>
