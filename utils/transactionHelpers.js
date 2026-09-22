@@ -3,6 +3,10 @@
  * Centralised here to prevent duplication.
  */
 
+export const preciseRound = (num, decimalPlaces) => {
+    return Number(Math.round(num + "e+" + decimalPlaces) + "e-" + decimalPlaces);
+}
+
 export const AVATAR_COLORS = [
   "bg-blue-400",
   "bg-gray-400",
