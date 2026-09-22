@@ -56,7 +56,11 @@ const App = () => {
                     <Route index element={<Home/>}/>
                     <Route
                         path="fx-rate"
-                        element={<FxRatePage/>}
+                        element={<ComingSoon
+                            title="Real-time Exchange Rate"
+                            icon={TrendingUp}
+                            description="Compare currencies to get general market conversion rate"
+                        />}
                     />
                     <Route
                         path="cross-border"
