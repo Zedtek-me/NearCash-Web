@@ -265,6 +265,7 @@ export default function ClientDashboard() {
         },
         collectionMode: policiesData?.businessTransactionPolicyForUser?.cashCollectionMode,
         collectionLocation: "",
+        txnType: "LOCAL"
       };
 
       if (!isDeposit) payload.transferMode = transferMode;

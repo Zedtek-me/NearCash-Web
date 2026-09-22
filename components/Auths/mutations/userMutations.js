@@ -172,6 +172,7 @@ mutation InitiateTransaction($transactionData: InitiateTransactionInputType!){
             }
             collectionMode
             txnLocation
+            txnType
             amount
             charge
             currency
