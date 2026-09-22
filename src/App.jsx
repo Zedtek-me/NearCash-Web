@@ -24,6 +24,8 @@ import ProfilePage from "../components/Home/components/Profile.jsx";
 import EditStorePage from "../components/Home/Dashboards/EditStorePage.jsx";
 import KYCPage from "../components/Auths/KYC.jsx";
 import ComingSoon from "../components/Home/components/ComingSoon.jsx";
+import FxRatePage from "../components/Home/components/FxRatePage.jsx";
+import ConvertAmount from "../components/Home/components/ConvertAmount.jsx";
 
 const App = () => {
     const { userData: user, updateUser, clearUser, isLoading, setIsLoading } = useAuth()
@@ -54,13 +56,7 @@ const App = () => {
                     <Route index element={<Home/>}/>
                     <Route
                         path="fx-rate"
-                        element={
-                            <ComingSoon
-                                icon={TrendingUp}
-                                title="FX Rate"
-                                description="Live exchange rates are coming soon — track real-time rates for your favorite currency pairs right here."
-                            />
-                        }
+                        element={<FxRatePage/>}
                     />
                     <Route
                         path="cross-border"
@@ -95,7 +91,11 @@ const App = () => {
                 <Route path="/profile" element={<ProfilePage />}/>
                 <Route path="/edit-business/:id" element={<EditStorePage />}/>
 
-
+                {/* TODO: Make the routes below, protected! */}
+                <Route path="/convert-amount" element={<ConvertAmount/>}/>
+                <Route path="/get-rate" element={<ComingSoon
+                icon={TrendingUp} title={"Coming Soon"} description={"Raw Rate Comparison Coming Soon!"}
+                />}/>
             </Routes>
         </Router>
     )
