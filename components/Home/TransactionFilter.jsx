@@ -97,7 +97,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     };
 
     const StatusFilterComponent = () => (
-        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
+        <div className="absolute left-0 z-20 mt-2 flex w-44 flex-col items-start justify-between rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
             {statusMap.map((statusData, idx) => (
                 <div
                     className={`text-${statusData?.color} w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors`}
@@ -111,7 +111,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     );
 
     const DateFilterComponent = () => (
-        <div className="absolute md:left-[-50%] mt-2 bg-white flex flex-col justify-center items-center sm:w-[30rem] md:w-[26rem] z-10 py-4 px-4 rounded-xl shadow-lg border border-gray-200">
+        <div className="absolute left-0 z-20 mt-2 flex w-[min(26rem,calc(100vw-2rem))] flex-col items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-xl shadow-slate-900/10 sm:w-[30rem] md:left-[-50%]">
             <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-2">
                 <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center w-full sm:w-auto gap-2">
                     <h2 className="font-medium whitespace-nowrap">From:</h2>
@@ -138,14 +138,14 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
                 <button
                     type="button"
                     onClick={handleDateFilter}
-                    className="bg-black text-white font-medium transition-all duration-300 ease-in-out hover:bg-gray-500 py-2 px-6 rounded-lg shadow-sm"
+                    className="rounded-lg bg-indigo-600 px-6 py-2 font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
                 >
                     Search
                 </button>
                 <button
                     type="button"
                     onClick={handleClearFilter}
-                    className="bg-gray-300 text-gray-700 font-medium transition-all duration-300 ease-in-out hover:bg-gray-400 py-2 px-6 rounded-lg shadow-sm"
+                    className="rounded-lg border border-slate-200 bg-white px-6 py-2 font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
                 >
                     Clear
                 </button>
@@ -154,7 +154,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     );
 
     const RequestTypeFilterComponent = () => (
-        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
+        <div className="absolute left-0 z-20 mt-2 flex w-44 flex-col items-start justify-between rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
             {["incoming", "outgoing"].map((type) => (
                 <div
                     key={type}
@@ -168,7 +168,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     );
 
     const TransactionTypeFilterComponent = () => (
-        <div className="absolute left-0 mt-2 flex flex-col justify-between items-start px-4 py-3 text-black z-10 bg-white w-44 rounded-xl shadow-lg border border-gray-200">
+        <div className="absolute left-0 z-20 mt-2 flex w-44 flex-col items-start justify-between rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
             {["All", "FX", "Local"].map((type) => (
                 <div
                     key={type}
@@ -186,7 +186,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
         const isEmpty = !list?.length;
 
         return (
-            <div className="absolute left-0 mt-2 z-10 bg-white rounded-xl shadow-lg border border-gray-200 w-56">
+            <div className="absolute left-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10">
                 <div className="max-h-64 overflow-y-auto">
                     {isEmpty ? (
                         <div className="p-4">
@@ -242,9 +242,9 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
     };
 
     return (
-        <div className="relative inline-block text-black">
+        <div className="relative inline-block text-slate-800">
             <div
-                className="filter-by flex justify-center items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
+                className="filter-by flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
                 onClick={handleOpenFilter}
             >
                 <p className="font-semibold text-sm whitespace-nowrap">Filter by</p>
@@ -255,7 +255,7 @@ const TransactionFilter = ({ statusMap, refetch, user, businessId = null }) => {
             </div>
 
             {openFilter && (
-                <div className="absolute left-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-44 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute left-0 z-20 mt-2 flex w-44 flex-col items-start justify-start rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
                     <h3
                         className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
                         onClick={(e) => handleFilterBy(e.target.textContent)}

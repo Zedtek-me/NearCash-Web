@@ -48,7 +48,7 @@ export default function FxProposalBanner({
   );
 
   return (
-    <div className="mt-16 w-full bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 px-4 py-4 shadow-md">
+    <div className="mt-16 w-full border-b border-slate-700 bg-slate-950 px-4 py-4 shadow-sm">
       <div className="max-w-7xl mx-auto">
         {noVendorsFound ? (
           <div className="flex items-start gap-3">

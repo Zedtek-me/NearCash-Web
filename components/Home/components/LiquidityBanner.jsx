@@ -188,7 +188,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
   );
 
   return (
-    <div className="mt-16 w-full bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 px-4 py-4 shadow-md">
+    <div className="mt-16 w-full border-b border-slate-700 bg-slate-950 px-4 py-4 shadow-sm">
       <div className="max-w-7xl mx-auto">
 
         {/* ── PROMPT ─────────────────────────────────────────────────── */}
@@ -234,7 +234,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
 
         {/* ── UPDATE ─────────────────────────────────────────────────── */}
         {mode === "update" && (
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col items-start gap-3 sm:flex-row">
             <AlertTriangle size={18} className="text-amber-400 mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white">Liquidity Check — {business.name}</p>
@@ -403,7 +403,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
 
         {/* ── UNAVAILABLE ────────────────────────────────────────────── */}
         {mode === "unavailable" && (
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col items-start gap-3 sm:flex-row">
             <AlertTriangle size={18} className="text-red-400 mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white">No vendors available</p>
@@ -411,7 +411,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
                 No nearby vendors were available to fulfil your liquidity request.
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-shrink-0">
               <button
                 onClick={() => { setSourceAmount(""); setMode("source"); }}
                 className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-500 text-slate-200 hover:bg-slate-700 text-xs font-semibold rounded-lg transition-colors"
@@ -427,7 +427,7 @@ const LiquidityBanner = ({ business, onDismiss }) => {
         {/* ── TRANSFER PENDING ───────────────────────────────────────── */}
         {mode === "transfer_pending" && (
           <div className="flex flex-col gap-3">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-col items-start gap-3 sm:flex-row">
               <AlertTriangle size={18} className="text-green-400 mt-0.5 flex-shrink-0" />
               <p className="text-sm font-semibold text-white flex-1 min-w-0">
                 Request approved — transfer to complete
@@ -444,10 +444,10 @@ const LiquidityBanner = ({ business, onDismiss }) => {
               </button>
             </div>
             {virtualAccount ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 pl-7">
+              <div className="grid min-w-0 grid-cols-2 gap-x-4 gap-y-3 pl-7 sm:grid-cols-4">
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider">Bank</p>
-                  <p className="text-xs font-semibold text-white">{virtualAccount.account_bank_name ?? "—"}</p>
+                  <p className="break-words text-xs font-semibold text-white">{virtualAccount.account_bank_name ?? "—"}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider">Account No.</p>
@@ -455,13 +455,13 @@ const LiquidityBanner = ({ business, onDismiss }) => {
                     onClick={() => { navigator.clipboard?.writeText(virtualAccount.account_number); toast.success("Copied!"); }}
                     className="flex items-center gap-1 text-xs font-mono font-semibold text-indigo-300 hover:text-white transition-colors"
                   >
-                    {virtualAccount.account_number ?? "—"}
+                    <span className="break-all">{virtualAccount.account_number ?? "—"}</span>
                     <Copy size={11} className="flex-shrink-0" />
                   </button>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider">Account Name</p>
-                  <p className="text-xs font-semibold text-white">{virtualAccount.account_name ?? "—"}</p>
+                  <p className="break-words text-xs font-semibold text-white">{virtualAccount.account_name ?? "—"}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider">Amount</p>

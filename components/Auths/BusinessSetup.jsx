@@ -200,12 +200,12 @@ export default function AccountTypePage() {
   };
 
   const inputCls =
-    'w-full px-5 py-3.5 bg-gray-900 border border-gray-700 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-gray-400 transition-colors duration-200 text-sm';
+    'w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none';
 
   const labelCls = 'block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-2';
 
   return (
-    <div className="min-h-screen bg-black p-4 pb-16">
+    <div className="min-h-screen bg-slate-950 p-4 pb-16">
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}
@@ -222,10 +222,10 @@ export default function AccountTypePage() {
         <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
           {/* Client card */}
           <div
-            className={`relative bg-white/5 backdrop-blur-lg rounded-3xl p-6 sm:p-8 border transition-all duration-300 cursor-pointer group hover:scale-[1.02] ${
+            className={`group relative cursor-pointer rounded-2xl border bg-white/[0.035] p-6 transition-colors duration-200 sm:p-8 ${
               selectedType === 'client'
-                ? 'border-white bg-white/10 shadow-lg shadow-white/10'
-                : 'border-gray-800 hover:border-gray-600'
+                ? 'border-indigo-400 bg-indigo-500/10'
+                : 'border-slate-800 hover:border-slate-600'
             }`}
             onClick={() => handleTypeSelect('client')}
           >
@@ -233,7 +233,7 @@ export default function AccountTypePage() {
               <div className={`w-5 h-5 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                 selectedType === 'client' ? 'border-white bg-white' : 'border-gray-600 group-hover:border-gray-400'
               }`}>
-                {selectedType === 'client' && <div className="w-2 h-2 bg-black rounded-full" />}
+                {selectedType === 'client' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
               </div>
             </div>
 
@@ -252,10 +252,10 @@ export default function AccountTypePage() {
 
           {/* Vendor card */}
           <div
-            className={`relative bg-white/5 backdrop-blur-lg rounded-3xl p-6 sm:p-8 border transition-all duration-300 cursor-pointer group hover:scale-[1.02] ${
+              className={`group relative cursor-pointer rounded-2xl border bg-white/[0.035] p-6 transition-colors duration-200 sm:p-8 ${
               selectedType === 'vendor'
-                ? 'border-white bg-white/10 shadow-lg shadow-white/10'
-                : 'border-gray-800 hover:border-gray-600'
+                ? 'border-indigo-400 bg-indigo-500/10'
+                : 'border-slate-800 hover:border-slate-600'
             }`}
             onClick={() => handleTypeSelect('vendor')}
           >
@@ -263,7 +263,7 @@ export default function AccountTypePage() {
               <div className={`w-5 h-5 rounded-full border-2 transition-all duration-200 flex items-center justify-center ${
                 selectedType === 'vendor' ? 'border-white bg-white' : 'border-gray-600 group-hover:border-gray-400'
               }`}>
-                {selectedType === 'vendor' && <div className="w-2 h-2 bg-black rounded-full" />}
+                {selectedType === 'vendor' && <div className="w-2 h-2 rounded-full bg-indigo-600" />}
               </div>
             </div>
 
@@ -318,7 +318,7 @@ export default function AccountTypePage() {
                         <div className={`w-4 h-4 mt-0.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
                           businessType === value ? 'border-white bg-white' : 'border-gray-600'
                         }`}>
-                          {businessType === value && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
+                          {businessType === value && <div className="h-1.5 w-1.5 rounded-full bg-indigo-600" />}
                         </div>
                       </div>
                       <p className="text-xs sm:text-sm font-semibold text-white leading-tight">{label}</p>
@@ -458,7 +458,7 @@ export default function AccountTypePage() {
                             key={index}
                             onClick={() => handleRangeSelect(option)}
                             className={`flex items-center p-2.5 rounded-lg cursor-pointer transition-colors duration-150 ${
-                              isSelected ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-800'
+                              isSelected ? 'bg-indigo-600 text-white' : 'text-gray-800 hover:bg-gray-50'
                             }`}
                           >
                             <div className={`w-4 h-4 border-2 rounded mr-3 flex items-center justify-center flex-shrink-0 ${
@@ -515,7 +515,7 @@ export default function AccountTypePage() {
                             <button
                               type="button"
                               onClick={handleCustomRangeSubmit}
-                              className="flex-1 bg-black text-white py-2 rounded-lg text-sm hover:bg-gray-800 transition-colors flex items-center justify-center gap-1"
+                              className="flex-1 rounded-lg bg-indigo-600 py-2 text-sm text-white transition-colors hover:bg-indigo-700 flex items-center justify-center gap-1"
                             >
                               <Check className="w-3.5 h-3.5" /> Add
                             </button>
@@ -561,7 +561,7 @@ export default function AccountTypePage() {
             disabled={loading || updatingBuz || !selectedType || (selectedType === 'vendor' && !isFormValid)}
             className={`w-full py-4 px-8 rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-3 ${
               selectedType && (selectedType === 'client' || isFormValid) && !loading && !updatingBuz
-                ? 'bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/10 hover:scale-[1.01]'
+                ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
                 : 'bg-white/10 text-gray-500 cursor-not-allowed'
             }`}
           >

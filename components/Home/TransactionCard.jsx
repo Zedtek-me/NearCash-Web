@@ -37,17 +37,18 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
 
   const getAvatarColor = (index) => {
-    const colors = ['bg-blue-400', 'bg-gray-400', 'bg-indigo-400', 'bg-amber-400', 'bg-orange-400'];
+    const colors = ['bg-indigo-50 text-indigo-700', 'bg-slate-100 text-slate-700', 'bg-violet-50 text-violet-700', 'bg-sky-50 text-sky-700', 'bg-emerald-50 text-emerald-700'];
     return colors[index % colors.length];
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'FULFILLED': return 'bg-indigo-100 text-indigo-600';
-      case 'INITIATED': return 'bg-yellow-100 text-yellow-600';
-      case 'CANCELLED' || 'DECLINED': return 'bg-red-100 text-red-600';
-      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-600';
-      default: return 'bg-gray-100 text-gray-600';
+      case 'FULFILLED': return 'border border-emerald-200 bg-emerald-50 text-emerald-700';
+      case 'INITIATED': return 'border border-amber-200 bg-amber-50 text-amber-700';
+      case 'CANCELLED':
+      case 'DECLINED': return 'border border-rose-200 bg-rose-50 text-rose-700';
+      case 'IN_PROGRESS': return 'border border-indigo-200 bg-indigo-50 text-indigo-700';
+      default: return 'border border-slate-200 bg-slate-50 text-slate-600';
     }
   };
   const handleUpdateStatus = async (id, status) => {
@@ -66,26 +67,27 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
   const isFx = transaction?.txnType === "FX";
   const fxSourceCurrency = getFxSourceCurrency(transaction);
+  const avatarName = isVendor ? transaction?.client?.fullName : transaction?.business?.name;
 
 
   return (
     <div
       key={transaction.id}
-      className="bg-white md:flex items-center justify-between px-3 py-5 hover:bg-gray-50 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl relative"
+      className="relative rounded-xl border border-slate-200 bg-white px-4 py-4 transition-colors hover:border-slate-300 md:flex md:items-center md:justify-between"
     >
       {/* Left side */}
-      <div className="flex items-center">
+      <div className="flex min-w-0 items-center">
         <div
-          className={`w-10 h-10 ${getAvatarColor(index)} rounded-full flex items-center justify-center mr-3 shadow-sm`}
+          className={`mr-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ${getAvatarColor(index)}`}
         >
-
+          {(avatarName || "N").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
         </div>
-        <div>
-          <span className="font-bold text-gray-800">
+        <div className="min-w-0 flex-1">
+          <span className="font-semibold text-slate-900">
             {formatTxnAmount(transaction)}
           </span>
           {isFx && (
-            <span className="ml-1.5 align-middle px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-600 border border-purple-200">
+            <span className="ml-1.5 align-middle rounded-md border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">
               FX
             </span>
           )}
@@ -111,7 +113,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
               {transaction.transferMode === "BANK_TRANSFER" ? "Bank Transfer" : "Card"}
             </div>
           )}
-          <div className="text-sm text-gray-500 mt-1">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
+          <div className="mt-1 text-xs text-slate-500">{new Date(transaction.dateCreated).toLocaleString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -123,27 +125,27 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
       </div>
 
       {/* Right side */}
-      <div className="flex flex-col pt-5 md:pt-0 items-end gap-1">
+      <div className="flex max-w-full flex-col items-end gap-1 pt-5 md:pt-0">
         {isAwaitingTransfer && (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-600 border border-amber-200">
+          <span className="max-w-full whitespace-normal break-words rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-right text-xs font-medium text-amber-700">
             {isVendor && !isOutgoing ? "Awaiting Transfer From Client" : "Awaiting Transfer"}
           </span>
         )}
         {!isAwaitingTransfer && transaction.status === "IN_PROGRESS" && transaction.transferMode === "BANK_TRANSFER" && (
-          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-600 border border-indigo-200">
+          <span className="max-w-full whitespace-normal break-words rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-right text-xs font-medium text-indigo-700">
             Transfer Confirmed
           </span>
         )}
         <div className="flex items-center space-x-2">
           <span
-            className={`font-medium ${
+            className={`text-sm font-semibold ${
               transaction?.amount?.toString()?.startsWith("+") ? "text-indigo-600" : "text-red-600"
             }`}
           >
             {formatTxnCharge(transaction)}
           </span>
           <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${getStatusColor(
               transaction.status
             )}`}
           >
@@ -164,7 +166,7 @@ export default function TransactionCard({ transaction, index, refetch, onReject,
 
         {/* Dropdown Menu */}
         {open && (
-          <div ref={menuRef} className="absolute right-3 top-14 bg-white text-gray-700 border border-gray-200 rounded-lg shadow-lg w-48 z-20">
+          <div ref={menuRef} className="absolute right-3 top-14 z-20 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white text-slate-700 shadow-xl shadow-slate-900/10">
             {/* Incoming vendor transactions: Approve + Reject */}
             {isVendor && !isOutgoing && (
               <>

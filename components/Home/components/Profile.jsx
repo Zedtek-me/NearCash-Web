@@ -167,13 +167,13 @@ export default function ProfilePage() {
     : formData.firstName || 'User';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar user={userData} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-16">
 
         {/* ── Hero card ── */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
+        <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-sm sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
 
             {/* Avatar */}

@@ -1,0 +1,38 @@
+{
+  "name": "nearcash-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "check": "expo-doctor"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.13.8",
+    "@react-native-community/datetimepicker": "9.1.0",
+    "@react-native-firebase/app": "^26.4.0",
+    "@react-native-firebase/messaging": "^26.4.0",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
+    "expo-location": "~57.0.20",
+    "expo-router": "~57.0.25",
+    "expo-secure-store": "~57.0.4",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "graphql": "^16.11.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-maps": "1.27.2",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "expo-doctor": "^1.20.0",
+    "typescript": "~5.9.3"
+  }
+}

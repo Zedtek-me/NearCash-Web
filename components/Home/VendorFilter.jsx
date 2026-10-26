@@ -43,9 +43,9 @@ const VendorFilter = ({ onFilter, onCollectionModeFilter, onSelectFx }) => {
     };
 
     return (
-        <div className="relative inline-block text-black">
+        <div className="relative inline-block text-slate-800">
             <div
-                className="filter-by flex justify-center items-center gap-2 px-4 py-2 bg-white rounded-xl cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm"
+                className="filter-by flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
                 onClick={handleOpenFilter}
             >
                 <p className="font-semibold text-sm whitespace-nowrap">Filter by</p>
@@ -56,7 +56,7 @@ const VendorFilter = ({ onFilter, onCollectionModeFilter, onSelectFx }) => {
             </div>
 
             {openFilter && (
-                <div className="absolute right-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-48 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute right-0 z-20 mt-2 flex w-48 flex-col items-start justify-start rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
                     <h3
                         className="w-full py-2 hover:bg-gray-50 cursor-pointer rounded transition-colors font-medium"
                         onClick={() => handleFilterBy("vendor type")}
@@ -73,7 +73,7 @@ const VendorFilter = ({ onFilter, onCollectionModeFilter, onSelectFx }) => {
             )}
 
             {filterBy === "vendor type" && (
-                <div className="absolute right-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-48 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute right-0 z-20 mt-2 flex w-48 flex-col items-start justify-start rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
                     {VENDOR_TYPES.map(({ label, value }) => (
                         <div
                             key={label}
@@ -87,7 +87,7 @@ const VendorFilter = ({ onFilter, onCollectionModeFilter, onSelectFx }) => {
             )}
 
             {filterBy === "collection mode" && (
-                <div className="absolute right-0 mt-2 flex flex-col justify-start items-start text-black z-10 bg-white w-48 py-3 px-4 rounded-xl shadow-lg border border-gray-200">
+                <div className="absolute right-0 z-20 mt-2 flex w-48 flex-col items-start justify-start rounded-xl border border-slate-200 bg-white px-2 py-2 text-slate-800 shadow-xl shadow-slate-900/10">
                     {COLLECTION_MODES.map(({ label, value }) => (
                         <div
                             key={label}

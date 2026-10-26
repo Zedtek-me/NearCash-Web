@@ -17,8 +17,7 @@ const Footers = () => {
 
     return (
         <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200"
-            style={{ boxShadow: "0 -2px 10px rgba(0,0,0,0.06)" }}
+            className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden"
             aria-label="Primary"
         >
             <div className="flex items-stretch justify-around">

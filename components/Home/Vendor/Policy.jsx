@@ -146,7 +146,7 @@ const TransactionPolicyPage = () => {
       <Navbar user={userData} />
 
       {/* ── Page header ── */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 mt-14">
+      <div className="mt-14 border-b border-slate-800 bg-slate-950">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">

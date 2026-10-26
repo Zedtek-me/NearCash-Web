@@ -5,7 +5,7 @@ import { LuLoader } from "react-icons/lu";
 export default function Loader( { extraStyles } ) {
     return (
         <div className={
-            "rounded-full w-60 h-6 p-2 bg-black text-white text-center flex flex-col justify-center items-center"
+            "flex h-6 w-60 flex-col items-center justify-center rounded-full bg-indigo-600 p-2 text-center text-white"
             + extraStyles
         }>
             <LuLoader className="h-full w-full loader"/>

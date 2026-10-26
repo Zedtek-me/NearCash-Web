@@ -69,10 +69,10 @@ export default function KYCPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-slate-950">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-white/[0.03] rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/2 h-[350px] w-[700px] -translate-x-1/2 rounded-full bg-indigo-500/[0.04] blur-3xl" />
       </div>
 
       <div className="relative max-w-2xl mx-auto px-4 py-16">
@@ -80,8 +80,7 @@ export default function KYCPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <div className="relative inline-flex items-center justify-center mb-7">
-            <div className="absolute w-28 h-28 bg-white/5 rounded-full blur-2xl" />
-            <div className="relative w-20 h-20 bg-gradient-to-br from-white/15 to-white/5 border border-white/20 rounded-2xl flex items-center justify-center shadow-xl">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-500/10">
               <ShieldCheck className="w-9 h-9 text-white" />
             </div>
           </div>
@@ -137,7 +136,7 @@ export default function KYCPage() {
                 inputMode="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                 placeholder="e.g. 08012345678"
               />
             </div>
@@ -153,7 +152,7 @@ export default function KYCPage() {
                 maxLength={11}
                 value={formData.bvn}
                 onChange={(e) => handleInputChange('bvn', e.target.value.replace(/\D/g, ''))}
-                className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm tracking-[0.2em]"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm tracking-[0.2em] text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                 placeholder="Enter your 11-digit BVN"
               />
               {formData.bvn.length > 0 && formData.bvn.length !== 11 && (
@@ -172,7 +171,7 @@ export default function KYCPage() {
                 maxLength={11}
                 value={formData.nin}
                 onChange={(e) => handleInputChange('nin', e.target.value.replace(/\D/g, ''))}
-                className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm tracking-[0.2em]"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm tracking-[0.2em] text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                 placeholder="Enter your 11-digit NIN"
               />
               {formData.nin.length > 0 && formData.nin.length !== 11 && (
@@ -190,7 +189,7 @@ export default function KYCPage() {
                   type="text"
                   value={formData.country}
                   onChange={(e) => handleInputChange('country', e.target.value)}
-                  className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                   placeholder="e.g. Nigeria"
                 />
               </div>
@@ -218,7 +217,7 @@ export default function KYCPage() {
                   type="text"
                   value={formData.remittanceBankName}
                   onChange={(e) => handleInputChange('remittanceBankName', e.target.value)}
-                  className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                   placeholder="e.g. First Bank of Nigeria"
                 />
               </div>
@@ -231,7 +230,7 @@ export default function KYCPage() {
                     inputMode="numeric"
                     value={formData.remittanceBankCode}
                     onChange={(e) => handleInputChange('remittanceBankCode', e.target.value)}
-                    className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                     placeholder="e.g. 011"
                   />
                 </div>
@@ -243,7 +242,7 @@ export default function KYCPage() {
                     maxLength={10}
                     value={formData.remittanceAccountNumber}
                     onChange={(e) => handleInputChange('remittanceAccountNumber', e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-5 py-4 bg-black/60 border border-gray-700 rounded-2xl text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-colors duration-200 text-sm tracking-[0.2em]"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3.5 text-sm tracking-[0.2em] text-white placeholder-slate-500 transition-colors focus:border-indigo-400 focus:outline-none"
                     placeholder="10-digit number"
                   />
                   {formData.remittanceAccountNumber.length > 0 && formData.remittanceAccountNumber.length !== 10 && (
@@ -262,7 +261,7 @@ export default function KYCPage() {
             disabled={!isFormValid || loading}
             className={`w-full py-4 px-8 rounded-2xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-3 ${
               isFormValid && !loading
-                ? 'bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/10 hover:scale-[1.02]'
+                ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm'
                 : 'bg-white/8 text-gray-600 cursor-not-allowed'
             }`}
           >
@@ -279,7 +278,7 @@ export default function KYCPage() {
             )}
           </button>
           <p className="text-center text-gray-700 text-xs mt-4">
-            Your data is encrypted end-to-end and never shared with third parties.
+            Your information is used to verify your identity and complete account setup.
           </p>
         </div>
 

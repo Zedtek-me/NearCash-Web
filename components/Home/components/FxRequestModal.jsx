@@ -50,33 +50,33 @@ export default function FxRequestModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50">
-      <div className="bg-black border border-gray-700 rounded-xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/20">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
         >
           <X size={20} />
         </button>
 
         <div className="flex items-center gap-2 mb-1">
           <Banknote size={20} className="text-indigo-400" />
-          <h2 className="text-xl font-bold text-gray-400">Request Foreign Exchange</h2>
+          <h2 className="pr-8 text-xl font-semibold tracking-tight text-slate-900">Request Foreign Exchange</h2>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="mb-4 text-sm leading-6 text-slate-500">
           Tell us how much, and which currencies — nearby FX vendors will be notified
           and can offer you a rate.
         </p>
 
         {/* Currency pair */}
         <div className="mb-4">
-          <label className="block text-sm mb-1 text-gray-400">Currency pair</label>
+          <label className="mb-1 block text-sm font-medium text-slate-700">Currency pair</label>
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <select
                 value={sourceCurrency}
                 onChange={(e) => onSourceCurrencyChange(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg pr-9"
+                className="w-full appearance-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 pr-9 text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
               >
                 {CURRENCY_OPTIONS.map((code) => (
                   <option key={code} value={code}>
@@ -93,7 +93,7 @@ export default function FxRequestModal({
             <button
               type="button"
               onClick={handleSwap}
-              className="p-2 text-gray-400 hover:text-white border border-gray-600 rounded-lg hover:border-gray-400 transition-colors"
+              className="rounded-xl border border-slate-200 p-2 text-slate-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
               title="Swap currencies"
             >
               <ArrowLeftRight size={16} />
@@ -103,7 +103,7 @@ export default function FxRequestModal({
               <select
                 value={destinationCurrency}
                 onChange={(e) => onDestinationCurrencyChange(e.target.value)}
-                className="w-full appearance-none px-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg pr-9"
+                className="w-full appearance-none rounded-xl border border-slate-300 bg-white px-3 py-2.5 pr-9 text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
               >
                 {CURRENCY_OPTIONS.map((code) => (
                   <option key={code} value={code}>
@@ -117,12 +117,12 @@ export default function FxRequestModal({
               />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            You're paying in <span className="text-gray-300">{getCurrencySymbol(sourceCurrency)} {sourceCurrency}</span>, requesting{" "}
-            <span className="text-gray-300">{getCurrencySymbol(destinationCurrency)} {destinationCurrency}</span>.
+          <p className="mt-1 text-xs text-slate-500">
+            You're paying in <span className="text-slate-700">{getCurrencySymbol(sourceCurrency)} {sourceCurrency}</span>, requesting{" "}
+            <span className="text-slate-700">{getCurrencySymbol(destinationCurrency)} {destinationCurrency}</span>.
           </p>
           {sameCurrency && (
-            <p className="text-xs text-red-400 mt-1">
+            <p className="mt-1 text-xs text-red-600">
               Source and destination currencies must be different.
             </p>
           )}
@@ -130,11 +130,11 @@ export default function FxRequestModal({
 
         {/* Amount */}
         <div className="mb-5">
-          <label className="block text-sm mb-1 text-gray-400">
+          <label className="mb-1 block text-sm font-medium text-slate-700">
             {`${sourceCurrency} Amount you want`} {destinationCurrency ? ` (to be converted to ${destinationCurrency})` : ""}
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
               {getCurrencySymbol(sourceCurrency)}
             </span>
             <input
@@ -142,7 +142,7 @@ export default function FxRequestModal({
               inputMode="numeric"
               value={amount}
               onChange={(e) => onAmountChange(formatAmountInput(e.target.value))}
-              className="w-full pl-7 pr-3 py-2 bg-gray-900 text-white border border-gray-600 rounded-lg"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-7 pr-3 text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
               placeholder={`Enter amount in ${sourceCurrency || "your preferred currency"}`}
             />
           </div>
@@ -150,7 +150,7 @@ export default function FxRequestModal({
 
         {/* Payment method */}
         <div className="mb-5">
-          <p className="text-sm mb-2 text-gray-400">Payment method</p>
+          <p className="mb-2 text-sm font-medium text-slate-700">Payment method</p>
           <div className="grid grid-cols-2 gap-3">
             {TRANSFER_MODE_OPTIONS.map(({ value, label, description, Icon }) => {
               const active = transferMode === value;
@@ -161,18 +161,18 @@ export default function FxRequestModal({
                   onClick={() => onTransferModeChange(value)}
                   className={`flex flex-col items-start gap-2 p-4 rounded-xl border text-left transition-all duration-200 ${
                     active
-                      ? "border-white bg-gray-800"
-                      : "border-gray-600 bg-gray-900 hover:border-gray-400"
+                      ? "border-indigo-500 bg-indigo-50"
+                      : "border-slate-200 bg-white hover:border-slate-400"
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <Icon size={18} className={active ? "text-white" : "text-gray-500"} />
-                    {active && <Check size={14} className="text-white" />}
+                    <Icon size={18} className={active ? "text-indigo-600" : "text-slate-500"} />
+                    {active && <Check size={14} className="text-indigo-600" />}
                   </div>
-                  <span className={`text-sm font-medium ${active ? "text-white" : "text-gray-400"}`}>
+                  <span className={`text-sm font-medium ${active ? "text-indigo-800" : "text-slate-700"}`}>
                     {label}
                   </span>
-                  <span className="text-xs text-gray-500 leading-snug">{description}</span>
+                  <span className="text-xs leading-snug text-slate-500">{description}</span>
                 </button>
               );
             })}
@@ -182,7 +182,7 @@ export default function FxRequestModal({
         <button
           onClick={onSubmit}
           disabled={submitting || !canSubmit}
-          className="w-full py-2 bg-white text-black rounded-lg font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex w-full items-center justify-center rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting && <Loader2 className="animate-spin mr-2" size={16} />}
           Send FX Request

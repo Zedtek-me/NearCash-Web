@@ -80,12 +80,12 @@ const handleLoginWithEmail =  () => {
     };
 
   return (
-    <div className="w-full md:w-1/3 pt-8">
+    <div className="auth-form w-full pt-7">
       <div 
         className="flex flex-col space-y-6"
       >
         <div className="relative">
-          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+          <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
             <HiOutlineMail className="w-5 h-5 text-gray-500 mr-3" />
             <div className="flex-1">
               <label htmlFor="email" className="block text-xs text-gray-500">Email Address</label>
@@ -95,14 +95,14 @@ const handleLoginWithEmail =  () => {
                 id="email" 
                 onChange={(e) => handleState(e, setData)}
                 className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-                placeholder="uimasann977@gmail.com"
+                placeholder="you@example.com"
               />
             </div>
           </div>
         </div>
 
         <div className="relative">
-          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+          <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
             <MdLockOutline className="w-5 h-5 text-gray-500 mr-3" />
             <div className="flex-1">
               <label htmlFor="password" className="block text-xs text-gray-500 ">Password</label>
@@ -130,27 +130,27 @@ const handleLoginWithEmail =  () => {
             <input 
               type="checkbox" 
               id="remember" 
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
             <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
               Remember me
             </label>
           </div>
-          <button type="button" className="text-sm text-blue-600 hover:text-blue-800">
+          <button type="button" className="text-sm font-medium text-indigo-600 transition hover:text-indigo-800">
             Forgot password?
           </button>
         </div>
 
         <div className="pt-4">
           {googleLoading ? (
-            <div className="w-full bg-black text-white py-4 rounded-full flex justify-center items-center">
+            <div className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-900 py-3 text-white">
               <Loader />
             </div>
           ) : (
             <button 
               type="submit" 
               onClick={handleLoginWithEmail}
-              className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors"
+              className="min-h-12 w-full rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Login
             </button>
@@ -163,14 +163,14 @@ const handleLoginWithEmail =  () => {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">Or</span>
+            <span className="bg-white px-4 text-slate-400">Or continue with</span>
           </div>
         </div>
 
         <div className="flex space-x-4">
           <button 
             type="button"
-            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:bg-slate-50"
             disabled={googleLoading}
               onClick={handleGoogleSignIn}
           >

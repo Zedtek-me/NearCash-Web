@@ -7,15 +7,15 @@ const EmptyTableState= ({
   icon,
 }) => {
   return (
-    <div className="w-full flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-gray-50 dark:bg-gray-900">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full">
-          {icon || <Inbox size={32} className="text-gray-500" />}
+    <div className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-slate-400 ring-1 ring-slate-200">
+          {icon || <Inbox size={23} className="text-slate-500" />}
         </div>
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <h3 className="text-base font-semibold text-slate-900">
           {title}
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+        <p className="max-w-md text-sm leading-6 text-slate-500">
           {description}
         </p>
       </div>

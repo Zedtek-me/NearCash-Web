@@ -8,11 +8,11 @@ export const preciseRound = (num, decimalPlaces) => {
 }
 
 export const AVATAR_COLORS = [
-  "bg-blue-400",
-  "bg-gray-400",
-  "bg-indigo-400",
-  "bg-amber-400",
-  "bg-orange-400",
+  "bg-indigo-50 text-indigo-700",
+  "bg-slate-100 text-slate-700",
+  "bg-violet-50 text-violet-700",
+  "bg-sky-50 text-sky-700",
+  "bg-emerald-50 text-emerald-700",
 ];
 
 export const getAvatarColor = (index) =>

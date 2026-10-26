@@ -732,7 +732,6 @@ export default function TransactionStatusModal({
           {status === "awaitingConfirmation" && (
             <>
               <div className="relative w-16 h-16 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-25" />
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center"
                   style={{ background: "#0a1628", border: "2px solid #1d4ed8" }}

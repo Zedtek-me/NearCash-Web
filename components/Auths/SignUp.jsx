@@ -91,10 +91,10 @@ const handleSignUpWithEmail =  () => {
     };
 
     return (
-        <div className="w-full md:w-1/3 pt-8">
+        <div className="auth-form w-full pt-7">
             <div className="flex flex-col space-y-6">
               <div className="relative">
-          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+          <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
             <div className="flex-1">
               <label htmlFor="firstName" className="block text-xs text-gray-500">
                 First Name
@@ -113,7 +113,7 @@ const handleSignUpWithEmail =  () => {
 
         {/* LAST NAME */}
         <div className="relative">
-          <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+          <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
             <div className="flex-1">
               <label htmlFor="lastName" className="block text-xs text-gray-500">
                 Last Name
@@ -130,7 +130,7 @@ const handleSignUpWithEmail =  () => {
           </div>
         </div>
                 <div className="relative">
-                    <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+                    <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
                         <div className="flex items-center justify-center w-6 h-6 mr-3">
                             <MdEmail className="w-5 h-5 text-gray-500" />
                         </div>
@@ -142,14 +142,14 @@ const handleSignUpWithEmail =  () => {
                                 id="email" 
                                 onChange={(e) => handleState(e, setData)}
                                 className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm"
-                                placeholder="uimasann977@gmail.com"
+                                placeholder="you@example.com"
                             />
                         </div>
                     </div>
                 </div>
 
                 <div className="relative">
-                    <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+                    <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
                         <div className="flex items-center justify-center w-6 h-6 mr-3">
                             <MdLockOutline className="w-5 h-5 text-gray-500" />
                         </div>
@@ -175,7 +175,7 @@ const handleSignUpWithEmail =  () => {
                 </div>
 
                 <div className="relative">
-                    <div className="flex items-center bg-white rounded-[50px] px-4 py-2 border border-gray-200">
+                    <div className="flex min-h-14 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-50">
                         <div className="flex items-center justify-center w-6 h-6 mr-3">
                             <MdLockOutline className="w-5 h-5 text-gray-500" />
                         </div>
@@ -202,14 +202,14 @@ const handleSignUpWithEmail =  () => {
 
                 <div className="pt-10">
                     {googleLoading ? (
-                        <div className="w-full bg-black text-white py-4 rounded-full flex justify-center items-center">
+                        <div className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-900 py-3 text-white">
                             <Loader />
                         </div>
                     ) : (
                         <button 
                             type="submit" 
                             onClick={handleSignUpWithEmail}
-                            className="w-full bg-black text-white py-4 rounded-full font-medium hover:bg-gray-800 transition-colors"
+                            className="min-h-12 w-full rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             Signup
                         </button>
@@ -220,7 +220,7 @@ const handleSignUpWithEmail =  () => {
                             <div className="w-full border-t border-gray-200"></div>
                           </div>
                           <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white text-gray-500">Or</span>
+                            <span className="bg-white px-4 text-slate-400">Or continue with</span>
                           </div>
                         </div>
                 
@@ -229,7 +229,7 @@ const handleSignUpWithEmail =  () => {
                             type="button"
                             disabled={googleLoading}
                             onClick={handleGoogleSignIn}
-                            className="flex-1 flex items-center justify-center py-3 px-4 border border-gray-300 rounded-[50px] hover:bg-gray-50 transition-colors"
+                            className="flex min-h-12 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 transition hover:bg-slate-50"
                           >
                             <FcGoogle className="w-5 h-5 mr-2" />
                             <span className="text-sm font-medium text-gray-700">Google</span>

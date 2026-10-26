@@ -146,7 +146,7 @@ const Navbar = ({ currentPage = 'home' }) => {
 
 
   const NotificationDropdown = () => (
-    <div className="absolute right-[-55px] md:right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+    <div className="absolute -right-12 z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10 md:-right-16">
       <div className="p-4 border-b border-gray-100">
         <h3 className="font-semibold text-gray-800">Notifications</h3>
       </div>
@@ -168,12 +168,12 @@ const Navbar = ({ currentPage = 'home' }) => {
           <span className="mt-1 w-2 h-2 bg-indigo-500 rounded-full shrink-0" />
         )}
 
-        <div className="flex-1">
-          <p className={`text-sm mb-1 ${isUnread ? "font-medium text-gray-700" : "font-bold text-gray-900"}`}>
+        <div className="min-w-0 flex-1">
+          <p className={`mb-1 break-words text-sm ${isUnread ? "font-medium text-gray-700" : "font-bold text-gray-900"}`}>
             {notification?.title}
           </p>
 
-          <p className="text-xs text-gray-500">
+          <p className="break-words text-xs text-gray-500">
             {notification?.message}
           </p>
 
@@ -194,7 +194,7 @@ const Navbar = ({ currentPage = 'home' }) => {
   );
 
   const UserDropdown = () => (
-    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+    <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-900/10">
       <div className="px-4 py-3 border-b border-gray-100">
         <p className="font-semibold text-gray-800 truncate">{user?.fullName || 'John Doe'}</p>
         <p className="text-sm text-gray-500 truncate">{user?.email || 'john@example.com'}</p>
@@ -227,8 +227,8 @@ const Navbar = ({ currentPage = 'home' }) => {
       <nav className={`
         fixed top-0 left-0 right-0 z-40 transition-all duration-300
         ${isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-slate-200/50'
-          : 'bg-white shadow-sm'
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200'
+          : 'bg-white border-b border-slate-200/80'
         }
       `}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -236,10 +236,10 @@ const Navbar = ({ currentPage = 'home' }) => {
             {/* Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate("/")}>
-                <div className="w-8 h-8 bg-gradient-to-br from-slate-900 to-slate-700 rounded-lg flex items-center justify-center">
+                <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="ml-2 text-xl font-bold text-slate-900">NearCash</span>
+                <span className="ml-2.5 text-lg font-semibold tracking-tight text-slate-900">NearCash</span>
               </div>
             </div>
 
@@ -278,7 +278,7 @@ const Navbar = ({ currentPage = 'home' }) => {
                 >
                   <Bell size={20} />
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-rose-600 px-1 text-[10px] font-semibold text-white">
                       {notificationCount}
                     </span>
                   )}
@@ -294,7 +294,7 @@ const Navbar = ({ currentPage = 'home' }) => {
                   }}
                   className="flex items-center space-x-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-700">
                     {profilePicture
                       ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                       : <User size={16} className="text-white" />
@@ -318,7 +318,7 @@ const Navbar = ({ currentPage = 'home' }) => {
                 >
                   <Bell size={20} />
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-rose-600 px-1 text-[10px] font-semibold text-white">
                       {notificationCount}
                     </span>
                   )}
@@ -334,7 +334,7 @@ const Navbar = ({ currentPage = 'home' }) => {
                   }}
                   className="flex items-center p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-slate-800 to-slate-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-slate-700">
                     {profilePicture
                       ? <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
                       : <User size={16} className="text-white" />

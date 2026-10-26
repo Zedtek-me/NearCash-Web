@@ -262,7 +262,7 @@ export default function TransactionMap({
   const otherTitle = isVendor ? 'Client' : 'Vendor';
 
   return (
-    <div className="mb-8 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="h-96 relative">
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
@@ -286,8 +286,7 @@ export default function TransactionMap({
             {myLoc && (
               <button
                 onClick={() => focusOn(myLoc)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95"
-                style={{ background: '#3B82F6', color: '#fff' }}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
               >
                 <MapPin size={12} />
                 You
@@ -296,8 +295,7 @@ export default function TransactionMap({
             {otherLoc && (
               <button
                 onClick={() => focusOn(otherLoc)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-md transition-all hover:scale-105 active:scale-95"
-                style={{ background: isVendor ? '#10B981' : '#F59E0B', color: '#fff' }}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
               >
                 <MapPin size={12} />
                 {otherTitle}

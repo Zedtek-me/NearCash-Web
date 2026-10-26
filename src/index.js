@@ -8,6 +8,7 @@ import { ApolloProvider } from "@apollo/client";
 import getApolloClient from "../utils/graphQl.js";
 import CToaster from "../utils/components/CToaster/index.js";
 import { WebSocketProvider } from "../components/Notification/WebSocketProvider.jsx";
+import WebPushListener from "../components/Notification/WebPushListener.jsx";
 import "leaflet/dist/leaflet.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -22,6 +23,7 @@ const renderApp = async () => {
         <StateProvider>
           <AuthProvider>
             <WebSocketProvider>
+              <WebPushListener />
               <App />
             </WebSocketProvider>
           </AuthProvider>

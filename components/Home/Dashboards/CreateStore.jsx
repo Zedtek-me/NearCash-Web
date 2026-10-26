@@ -235,35 +235,35 @@ const handleAddressSelect = (suggestion) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-black text-white p-4 sm:p-6">
+      <div className="border-b border-slate-200 bg-white p-4 text-slate-900 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-4">
-            <button className="mr-4 p-2 hover:bg-gray-800 rounded-full transition-colors duration-200">
+            <button className="mr-4 p-2 hover:bg-slate-50 rounded-full transition-colors duration-200">
               <ArrowLeft className="w-5 h-5" onClick={() => backArrowReturnFunc(navigate)}/>
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold">Create Sub Business</h1>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Create Sub Business</h1>
           </div>
-          <p className="text-gray-300 text-sm sm:text-base">
+          <p className="text-slate-500 text-sm sm:text-base">
             Fill in the details below to create your new sub business
           </p>
         </div>
       </div>
 
       {/* Form */}
-      <div className="max-w-4xl mx-auto p-4 sm:p-6">
-        <div className="space-y-6">
+      <div className="mx-auto max-w-4xl p-4 sm:p-6">
+        <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
           {/* Store Name */}
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-black">
+            <label className="block text-sm font-semibold text-slate-700">
               Business Name *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
+              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                 errors.name ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
               }`}
               placeholder="Enter your store name"
@@ -272,14 +272,14 @@ const handleAddressSelect = (suggestion) => {
           </div>
 
            <div className="space-y-2">
-            <label className="block text-sm font-semibold text-black">
+            <label className="block text-sm font-semibold text-slate-700">
               Country *
             </label>
             <input
               type="text"
               value={formData.country}
               onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
+              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                 errors.country ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
               }`}
               placeholder="Enter Country name"
@@ -290,7 +290,7 @@ const handleAddressSelect = (suggestion) => {
 
           {/* Address with Autocomplete */}
           <div className="space-y-2 relative" ref={addressInputRef}>
-            <label className="block text-sm font-semibold text-black">
+            <label className="block text-sm font-semibold text-slate-700">
               Address *
             </label>
             <div className="relative">
@@ -298,7 +298,7 @@ const handleAddressSelect = (suggestion) => {
                 type="text"
                 value={formData.address}
                 onChange={(e) => handleAddressChange(e)}
-                className={`w-full px-4 py-5 pr-10 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
+                className={`w-full px-4 py-5 pr-10 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                   errors.address ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
                 }`}
                 placeholder="Start typing your address..."
@@ -335,12 +335,12 @@ const handleAddressSelect = (suggestion) => {
 
 
           <div className="space-y-2 relative" ref={rangeDropdownRef}>
-            <label className="block text-sm font-semibold text-black">
+            <label className="block text-sm font-semibold text-slate-700">
              Price Range *
             </label>
             <div
               onClick={() => setShowRangeDropdown(!showRangeDropdown)}
-              className={`w-full px-4 py-3 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent cursor-pointer ${
+              className={`w-full px-4 py-3 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer ${
                 errors.range ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
               }`}
             >
@@ -351,7 +351,7 @@ const handleAddressSelect = (suggestion) => {
                       {formData.range.map((selectedRange, index) => (
                         <span
                           key={index}
-                          className="bg-black text-white px-2 py-1 rounded text-xs flex items-center"
+                          className="bg-indigo-600 text-white px-2 py-1 rounded text-xs flex items-center"
                         >
                           {selectedRange.label}
                           <button
@@ -390,7 +390,7 @@ const handleAddressSelect = (suggestion) => {
                         key={index}
                         onClick={() => handleRangeSelect(option)}
                         className={`flex items-center p-2 rounded cursor-pointer transition-all duration-200 ${
-                          isSelected ? 'bg-black text-white' : 'hover:bg-gray-50'
+                          isSelected ? 'bg-indigo-600 text-white' : 'hover:bg-gray-50'
                         }`}
                       >
                         <div className={`w-4 h-4 border-2 rounded mr-3 flex items-center justify-center ${
@@ -429,7 +429,7 @@ const handleAddressSelect = (suggestion) => {
                           placeholder="Min"
                           value={customRange.min}
                           onChange={(e) => setCustomRange(prev => ({ ...prev, min: formatAmountInput(e.target.value) }))}
-                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                         <input
                           type="text"
@@ -437,7 +437,7 @@ const handleAddressSelect = (suggestion) => {
                           placeholder="Max"
                           value={customRange.max}
                           onChange={(e) => setCustomRange(prev => ({ ...prev, max: formatAmountInput(e.target.value) }))}
-                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                          className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         />
                       </div>
                       <input
@@ -445,13 +445,13 @@ const handleAddressSelect = (suggestion) => {
                         placeholder="charge"
                         value={customRange.charge}
                         onChange={(e) => setCustomRange(prev => ({ ...prev, charge: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={handleCustomRangeSubmit}
-                          className="flex-1 bg-black text-white py-2 rounded text-sm hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center"
+                          className="flex-1 bg-indigo-600 text-white py-2 rounded text-sm hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center"
                         >
                           <Check className="w-4 h-4 mr-1" />
                           Add
@@ -475,14 +475,14 @@ const handleAddressSelect = (suggestion) => {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-black">
+            <label className="block text-sm font-semibold text-slate-700">
               Description
             </label>
             <textarea
               type="text"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent ${
+              className={`w-full px-4 py-5 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                 errors.description ? 'border-red-500' : 'border-gray-300 hover:border-gray-400'
               }`}
               placeholder="Enter Description"
@@ -495,7 +495,7 @@ const handleAddressSelect = (suggestion) => {
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full bg-black text-white py-4 rounded-lg font-semibold hover:bg-gray-800 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              className="w-full bg-indigo-600 text-white py-4 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-200  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               Create Sub Business
             </button>

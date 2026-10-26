@@ -1,187 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-
-
-*{font-family: "Montserrat", sans-serif;}
-#root{
-    width: 100%;
-    height: 100%
+:root {
+  color-scheme: light;
+  --nc-ink: #172033;
+  --nc-muted: #64748b;
+  --nc-canvas: #f4f6fa;
+  --nc-surface: #ffffff;
+  --nc-border: #e2e8f0;
+  --nc-brand: #4f46e5;
+  --nc-brand-dark: #3730a3;
 }
 
-.auth-shuffle {
-    padding: 1px;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-.auth-shuffle .login-btn, .auth-shuffle .signup-btn{
-    transition: all 0.2s ease-in-out;
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
 }
 
-
-.active-btn{
-    margin: 0.5px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.5s ease-in-out;
-    border-radius: 50px;
+html {
+  background: var(--nc-canvas);
 }
 
-.get-started-active-btn{
-    cursor: pointer;
-    background-color: white;
-    color: black;
+body {
+  overflow-x: hidden;
+  background: var(--nc-canvas);
+  color: var(--nc-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow-x: hidden;
-    background-color: black;
-    font-family: sans-serif;
-  }
-  
-.ripple-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-  
-.ripple-circle {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    /* background: url('../assets/images/fingerTapping1.jpg') no-repeat center;
-    background-size: contain; */
-    z-index: 2;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
-.ripple-circle::before,
-.ripple-circle::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    border-radius: 50%;
-    border: 2px solid white;
-    transform: translate(-50%, -50%);
-    animation: ripple 3s infinite;
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
-.ripple-circle::before {
-    width: 200px;
-    height: 200px;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(99 102 241 / 28%);
+  outline-offset: 2px;
 }
 
-.ripple-circle::after {
-    width: 300px;
-    height: 300px;
-    animation-delay: 1.5s;
+::selection {
+  background: #e0e7ff;
+  color: #1e1b4b;
+}
+
+.dashboard-layout {
+  min-height: 100vh;
+  background: var(--nc-canvas);
+}
+
+.dashboard-out {
+  min-height: calc(100vh - 4rem);
+  background: var(--nc-canvas);
+  color: var(--nc-ink);
 }
 
 .loader {
-    animation-name: loader;
-    animation-duration: .3s;
-    animation-timing-function: ease-in-out;
-    animation-iteration-count: infinite;
+  animation: loader 0.8s linear infinite;
 }
 
-/* animations */
-@keyframes fade-in-left {
-    0% {
-        transform: translateX(-80px);
-    }
-    50% {
-        transform: translateX(-70px);
-    }
-    65% {
-        transform: translateX(-75px);
-    }
-    80% {
-        transform: translateX(-150px);
-    }
-    100% {
-        transform: translateX(-300px);
-    }
+@keyframes loader {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes fade-in-right {
-    0% {
-        transform: translateX(80px);
-    }
-    50% {
-        transform: translateX(70px);
-    }
-    65% {
-        transform: translateX(75px);
-    }
-    80% {
-        transform: translateX(150px);
-    }
-    100% {
-        transform: translateX(300px);
-    }
-}
-
-@keyframes ripple {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.6;
-    }
-    50% {
-        transform: scale(1);
-        opacity: 0.3;
-    }
-    100% {
-        transform: scale(1.2);
-        opacity: 0.1;
-    }
-}
-
-@keyframes loader{
-    from {
-        transform: rotate(90deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-    /* 0% {
-        transform: rotate(90deg)
-    }
-    25% {
-        transform: rotate(270deg)
-    }
-    50% {
-        transform: rotate(360deg)
-    }
-    75% {
-        transform: rotate(315deg)
-    }
-    100% {
-        transform: rotate(360deg)
-    } */
-}
-
-
-/* media queries */
-@media (max-width: 768px) {
-    .ripple-circle {
-        width: 70px;
-        height: 70px;
-        background-size: 60%;
-    }
-
-    .ripple-circle::before {
-        width: 140px;
-        height: 140px;
-    }
-
-    .ripple-circle::after {
-        width: 200px;
-        height: 200px;
-    }
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

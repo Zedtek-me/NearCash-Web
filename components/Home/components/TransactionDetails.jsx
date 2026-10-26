@@ -30,11 +30,11 @@ import { getCurrencySymbol, parseTxnMeta } from '../../../utils/transactionHelpe
 // ── Status config ─────────────────────────────────────────────────────────────
 
 const STATUS_CFG = {
-  FULFILLED:   { label: 'Fulfilled',   pill: 'bg-indigo-100 text-indigo-700',       dot: 'bg-indigo-500'   },
-  INITIATED:   { label: 'Initiated',   pill: 'bg-amber-100  text-amber-700',    dot: 'bg-amber-500'   },
-  IN_PROGRESS: { label: 'In Progress', pill: 'bg-blue-100   text-blue-700',     dot: 'bg-blue-500'    },
-  DECLINED:    { label: 'Declined',    pill: 'bg-red-100    text-red-700',       dot: 'bg-red-500'     },
-  CANCELLED:   { label: 'Cancelled',   pill: 'bg-red-100    text-red-700',       dot: 'bg-red-500'     },
+  FULFILLED:   { label: 'Fulfilled',   pill: 'border border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
+  INITIATED:   { label: 'Initiated',   pill: 'border border-amber-200 bg-amber-50 text-amber-700',       dot: 'bg-amber-500'   },
+  IN_PROGRESS: { label: 'In Progress', pill: 'border border-indigo-200 bg-indigo-50 text-indigo-700',   dot: 'bg-indigo-500'  },
+  DECLINED:    { label: 'Declined',    pill: 'border border-rose-200 bg-rose-50 text-rose-700',          dot: 'bg-rose-500'    },
+  CANCELLED:   { label: 'Cancelled',   pill: 'border border-rose-200 bg-rose-50 text-rose-700',          dot: 'bg-rose-500'    },
 };
 
 // ── Date formatter ────────────────────────────────────────────────────────────
@@ -81,9 +81,9 @@ function InfoRow({ icon: Icon, label, value, highlight = false, mono = false }) 
 
 function Card({ title, children }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       </div>
       <div className="divide-y divide-gray-50">{children}</div>
     </div>
@@ -234,14 +234,14 @@ export default function TransactionDetails() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Navbar user={userData} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-16">
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 mb-6 transition-colors text-sm font-medium"
+          className="mb-6 flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
         >
           <ArrowLeft size={17} />
           Back
@@ -262,7 +262,7 @@ export default function TransactionDetails() {
         )}
 
         {/* ── Hero card ── */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl">
+        <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-sm sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
             {/* Amount block */}
             <div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import toast from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 import { useWebSocket } from "./WebSocketProvider";
@@ -85,9 +85,8 @@ const triggerVibration = () => {
 
 // ─── Push notification helper ─────────────────────────────────────────────────
 
-const sendPushNotification = async (title, body, onClick) => {
-  if (!("Notification" in window)) return;
-  if (Notification.permission === "default") await Notification.requestPermission();
+const showBrowserNotification = (title, body, onClick) => {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
 
   const notif = new Notification(title, { body, tag: title, renotify: true });
@@ -152,21 +151,8 @@ const PENDING_OPPORTUNITY_KEY = "pending_transaction_opportunity";
 const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed }) => {
   const socket    = useWebSocket();
   const { userData } = useAuth();
-  const permissionRequested = useRef(false);
 
   const [{ businessStates: { selectedBusiness } }] = Object.values(useStateValue());
-
-  // ── Request browser notification permission once ─────────────────────────
-  useEffect(() => {
-    if (
-      !permissionRequested.current &&
-      "Notification" in window &&
-      Notification.permission === "default"
-    ) {
-      Notification.requestPermission();
-      permissionRequested.current = true;
-    }
-  }, []);
 
   // ── Re-open any opportunity that arrived while the page was backgrounded ─
   useEffect(() => {
@@ -214,7 +200,7 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
         const amount       = `${getCurrencySymbol(isFx ? destCurr || "USD" : "NGN")}${Number(data?.txn_info?.amount || 0).toLocaleString()}`;
         const clientName   = data?.txn_info?.client_name || "a client";
 
-        sendPushNotification(
+        showBrowserNotification(
           isFx ? "New FX Request" : "New Cash Request",
           `${amount} from ${clientName}`,
           () => {
@@ -247,7 +233,7 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
         const rate       = latest?.proposed_rate;
         const rateLabel  = rate ? `a rate of ${Number(rate).toLocaleString()}` : "a rate";
 
-        sendPushNotification("New FX Rate Offer", `${vendorName} proposed ${rateLabel}`);
+        showBrowserNotification("New FX Rate Offer", `${vendorName} proposed ${rateLabel}`);
         toast(`${vendorName} proposed ${rateLabel}`, { duration: 8000, icon: "📈" });
 
         return;
@@ -265,7 +251,7 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
         const amount     = Number(data?.txn_info?.amount || 0).toLocaleString();
         const vendorName = data?.txn_info?.client_name || "a nearby vendor";
 
-        sendPushNotification(
+        showBrowserNotification(
           "Liquidity Request",
           `₦${amount} needed by ${vendorName}`,
           () => {
@@ -299,7 +285,7 @@ const NotificationSocket = ({ onOpportunity, onNewInterest, onTransferConfirmed 
       if (PUSH_NOTIF_MSG_TYPES.includes(message_type)) {
         playAlertTone();
         triggerVibration();
-        sendPushNotification(message_type, data?.message || "");
+        showBrowserNotification(message_type, data?.message || "");
 
         const txnInfo    = data?.txn_info;
         const amount     = txnInfo?.amount;
